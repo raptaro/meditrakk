@@ -9,8 +9,6 @@ type User = {
   email: string;
   first_name: string;
   last_name: string;
-  role: "admin" | "doctor" | "secretary";
-  is_active: boolean;
 };
 
 export default function DemoPage() {
