@@ -24,7 +24,7 @@ from backend.supabase_client import supabase
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from user.permissions import IsMe, IsMedicalStaff, isDoctor, isSecretary, isAdmin
+from user.permissions import IsMe, IsMedicalStaff, IsParticipant, isDoctor, isSecretary, isAdmin
 from rest_framework.permissions import IsAuthenticated
 
 from rest_framework import generics
@@ -552,7 +552,6 @@ class PatientRegister(APIView):
     def post(self, request):
         print("📥 Received Data:", request.data)
 
-        # Helper: determine priority automatically based on complaint
         def determine_priority():
             queue_entries = TemporaryStorageQueue.objects.filter(
                 patient=request.data.get("patient_id")
@@ -616,7 +615,7 @@ class PatientRegister(APIView):
                     status=status.HTTP_404_NOT_FOUND
                 )
         else:
-            serializer = PatientRegistrationSerializer(data=request.data)
+            serializer = PatientRegistrationSerializer(data=request.data, context={"request": request})
             if not serializer.is_valid():
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
@@ -1051,7 +1050,7 @@ class LabRequestDetailView(generics.RetrieveAPIView):
 
 class LabResultListView(generics.ListAPIView):
     serializer_class = LabResultSerializer
-    permission_classes = [isDoctor]
+    permission_classes = [IsParticipant]
 
     def get_queryset(self):
         patient_id = self.kwargs.get('patient_id')

@@ -1,15 +1,40 @@
+# Stage 1: build wheels for web deps
+FROM python:3.13-slim-bullseye AS builder
+ENV DEBIAN_FRONTEND=noninteractive
 
-FROM python:3.13-slim AS builder
-WORKDIR /app
 RUN apt-get update && apt-get install -y \
-     build-essential gcc libgomp1 libssl-dev libffi-dev \
-     && rm -rf /var/lib/apt/lists/*
-COPY requirements.txt .
-RUN pip install --prefix=/install --no-cache-dir -r requirements.txt
+    build-essential gcc g++ git curl wget \
+    libgomp1 libssl-dev libffi-dev libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
 
-FROM python:3.13-slim
+WORKDIR /wheels
+COPY requirements-web.txt /wheels/requirements-web.txt
+
+# Build wheels for web requirements
+RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r /wheels/requirements-web.txt
+
+# Stage 2: runtime image for web
+FROM python:3.13-slim-bullseye
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    libgomp1 libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
-COPY --from=builder /install /usr/local
-COPY . .
 
-CMD ["sh", "-c", "python manage.py migrate --noinput && daphne -b 0.0.0.0 -p $PORT backend.asgi:application"]
+COPY --from=builder /wheels /wheels
+COPY requirements-web.txt /app/requirements-web.txt
+
+# Install only web wheels (no network)
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r /app/requirements-web.txt \
+ && rm -rf /wheels
+
+# Copy only the app code you need
+COPY manage.py /app/manage.py
+COPY backend/ /app/backend/
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+EXPOSE 8000
+CMD ["/entrypoint.sh"]

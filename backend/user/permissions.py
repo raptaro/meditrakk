@@ -89,6 +89,7 @@ class IsTreatmentParticipant(BasePermission):
             return obj.referring_doctor == request.user
 
         return False
+    
 class IsMe(BasePermission):
     def has_object_permission(self, request, view, obj):
         if hasattr(obj, 'user'):
@@ -97,3 +98,26 @@ class IsMe(BasePermission):
         return obj.id == request.user.id
 
     
+    
+class IsParticipant(BasePermission):
+    def has_permission(self, request, view):
+        # view-level (before retrieving objects) – you might allow any authenticated user
+        return request.user and request.user.is_authenticated
+
+    def has_object_permission(self, request, view, obj):
+        # obj is a LabResult instance
+        user = request.user
+
+        patient = obj.lab_request.patient
+        doctor = obj.lab_request.doctor
+        referred_doctor = getattr(obj.lab_request, 'referred_doctor', None)
+
+        if user == patient.user:
+            return True
+        if user == doctor:
+            return True
+        if referred_doctor and user == referred_doctor:
+            return True
+        
+        # you can add additional roles here
+        return False

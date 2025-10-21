@@ -121,13 +121,14 @@ export default function RegistrationQueue() {
 
     fetchQueueData();
 
-    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-    const backendHost =
-      process.env.NODE_ENV === "production"
-        ? "thesis-backend.up.railway.app"
-        : "localhost:8000";
+  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+  const backendHost =
+    process.env.NODE_ENV === "production"
+      ? "thesis-backend.up.railway.app"
+      : "localhost:8000";
 
-    const socket = new WebSocket(`${protocol}://${backendHost}/ws/queue/registration/`);
+  const socket = new WebSocket(`${protocol}://${backendHost}/ws/queue/registration/`);
+
 
 
     socket.onopen = () => {
