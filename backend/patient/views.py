@@ -50,38 +50,72 @@ class PatientListView(APIView):
     def get(self, request):
         try:
             role = getattr(request.user, "role", None)
-            print(role)
+            print(f"User role: {role}")
             user_id = request.user.id
-            print(user_id)
-            if role == "on-call-doctor" and user_id != "cooper-020006" :
-                response = supabase.table("queueing_treatment").select(
-                    "patient_patient(*, queueing_temporarystoragequeue(id, status, created_at, priority_level, queue_number, complaint))"
-                ).eq("doctor_id",user_id).execute()
+            print(f"User ID: {user_id}")
+            
+            if role == "on-call-doctor" and user_id != "cooper-020006":
+                # Get unique patient IDs first from treatments
+                treatment_response = supabase.table("queueing_treatment").select(
+                    "patient_id"
+                ).eq("doctor_id", user_id).execute()
                 
-                patients = [t["patient_patient"] for t in response.data if "patient_patient" in t]
+                patient_ids = list(set([t['patient_id'] for t in treatment_response.data if 'patient_id' in t]))
+                print(f"Found patient IDs for doctor {user_id}: {patient_ids}")
+                
+                if patient_ids:
+                    # Fetch patients using patient_id (the primary key)
+                    response = (
+                        supabase.table("patient_patient")
+                        .select("*, queueing_temporarystoragequeue(id, status, created_at, priority_level, queue_number, complaint)")
+                        .in_("patient_id", patient_ids)  # Use patient_id instead of id
+                        .execute()
+                    )
+                    patients = response.data
+                else:
+                    patients = []
+                    
             elif role in ["secretary", "admin"] or user_id == "cooper-020006":
+                # Get all patients using patient_id as the identifier
                 response = (
-                    supabase.table("patient_patient").select("*, queueing_temporarystoragequeue(id, status, created_at, priority_level, queue_number, complaint)").execute()
+                    supabase.table("patient_patient")
+                    .select("*, queueing_temporarystoragequeue(id, status, created_at, priority_level, queue_number, complaint)")
+                    .execute()
                 )
                 patients = response.data
+                
             else: 
                 return Response(
                     {"error": "Unauthorized role"}, 
                     status=status.HTTP_403_FORBIDDEN
                 )
+            
+            # Remove duplicates using patient_id (the primary key)
+            unique_patients = {}
             for patient in patients:
-                patient_id = patient.get('id', 'unknown')
+                patient_id = patient.get('patient_id')  # Use patient_id instead of id
+                if patient_id and patient_id not in unique_patients:
+                    unique_patients[patient_id] = patient
+            
+            patients = list(unique_patients.values())
+            
+            # Process queue data for each patient
+            for patient in patients:
+                patient_id = patient.get('patient_id', 'unknown')
                 queue_list = patient.get('queueing_temporarystoragequeue') or []
                 
                 if queue_list:
+                    # Get the latest queue entry
                     sorted_queue = sorted(
                         queue_list,
                         key=lambda q: q.get('created_at'),
                         reverse=True
                     )
                     latest_queue = sorted_queue[0]
+                    patient['latest_queue'] = latest_queue
                     print(f"Latest queue for patient {patient_id}: {latest_queue}")
                 else:
+                    patient['latest_queue'] = None
                     print(f"No queue entries for patient {patient_id}.")
 
             serializer = PatientSerializer(patients, many=True)
@@ -90,7 +124,7 @@ class PatientListView(APIView):
         except Exception as e:
             print("Exception occurred:", e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
+        
 class PatientInfoView(APIView):
     permission_classes = [IsMedicalStaff]
     
