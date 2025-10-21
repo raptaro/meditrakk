@@ -1,6 +1,6 @@
 "use client";
 import { useFetch } from "@/hooks/use-fetch";
-import { CrudTable } from "@/components/ui/crud-table";
+import { PageTable } from "@/components/ui/page-table";
 import { SkeletonDataTable } from "@/components/atoms/custom-skeleton";
 import { columns } from "./patient-management-columns";
 
@@ -23,5 +23,5 @@ export default function DemoPage() {
   if (isLoading) return <SkeletonDataTable />;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
 
-  return <CrudTable title="Users" columns={columns} data={users ?? []} />;
+  return <PageTable title="Users" columns={columns} data={users ?? []} />;
 }
