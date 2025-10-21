@@ -15,13 +15,15 @@ type User = {
 
 export default function DemoPage() {
   const {
-    data: users,
+    data: patients,
     isLoading,
     error,
-  } = useFetch<User[]>(`${process.env.NEXT_PUBLIC_API_BASE}/auth/users/`);
+  } = useFetch<User[]>(
+    `${process.env.NEXT_PUBLIC_API_BASE}/user/users/?role=patient`
+  );
 
   if (isLoading) return <SkeletonDataTable />;
   if (error) return <div className="p-4 text-red-500">{error}</div>;
 
-  return <PageTable title="Users" columns={columns} data={users ?? []} />;
+  return <PageTable title="Patients" columns={columns} data={patients ?? []} />;
 }
