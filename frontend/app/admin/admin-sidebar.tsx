@@ -23,8 +23,8 @@ const menu_items = [
     icon: LayoutDashboard,
   },
   {
-    title: "User Management",
-    url: "/admin/user-management",
+    title: "Patient Management",
+    url: "/admin/patient-management",
     icon: ChartNoAxesGantt,
   },
   {

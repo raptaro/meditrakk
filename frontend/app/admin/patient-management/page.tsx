@@ -1,5 +1,5 @@
 "use client";
-import { columns } from "./user-management-columns";
+import { columns } from "./patient-management-columns";
 
 import { SkeletonDataTable } from "@/components/atoms/custom-skeleton";
 import { CrudTable } from "@/components/ui/crud-table";
