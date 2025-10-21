@@ -1,0 +1,24 @@
+
+FROM python:3.13-slim-bullseye AS builder
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y build-essential gcc g++ git curl wget \
+    libgomp1 libssl-dev libffi-dev libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /wheels
+COPY requirements-worker.txt /wheels/requirements-worker.txt
+RUN pip wheel --no-cache-dir --wheel-dir=/wheels -r /wheels/requirements-worker.txt
+
+FROM python:3.13-slim-bullseye
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y libgomp1 libpq5 && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+COPY --from=builder /wheels /wheels
+COPY requirements-worker.txt /app/requirements-worker.txt
+RUN pip install --no-cache-dir --no-index --find-links=/wheels -r /app/requirements-worker.txt \
+ && rm -rf /wheels
+
+# Add worker code if you have one, otherwise this image can be used as base for jobs
+COPY . /app
+CMD ["python", "worker_script.py"]

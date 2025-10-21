@@ -1,0 +1,13 @@
+
+numpy==2.2.6
+pandas==2.3.1
+scipy==1.16.0
+scikit-learn==1.7.0
+lightgbm==4.6.0
+llvmlite==0.44.0
+numba==0.61.2
+pyarrow==21.0.0
+statsforecast==1.7.6
+statsmodels==0.14.5
+matplotlib==3.10.3
+joblib==1.5.1

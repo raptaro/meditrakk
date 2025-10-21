@@ -1,24 +1,39 @@
-
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
 
 class RegistrationQueueConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        # Optionally check permissions: e.g. only secretaries
-        await self.channel_layer.group_add("registration_queue", self.channel_name)
+        # Accept the connection first
         await self.accept()
-        # Debug
+        
+        # Then add to group
+        await self.channel_layer.group_add(
+            "registration_queue",
+            self.channel_name
+        )
+        
         print(f"✅ WebSocket client connected: {self.channel_name}")
         print(f"📊 Added to group: registration_queue")
 
     async def disconnect(self, close_code):
-        await self.channel_layer.group_discard("registration_queue", self.channel_name)
+        # Remove from group
+        await self.channel_layer.group_discard(
+            "registration_queue",
+            self.channel_name
+        )
         print(f"❌ WebSocket client disconnected: {self.channel_name}")
 
+    async def receive(self, text_data):
+        # Handle incoming messages from client (if needed)
+        try:
+            data = json.loads(text_data)
+            print(f"📨 Received message from client: {data}")
+        except json.JSONDecodeError:
+            print("❌ Error parsing incoming WebSocket message")
+
     async def queue_update(self, event):
-        # event["data"] is the payload dictionary
+        # Send queue updates to client
         data = event["data"]
-        # Debug
         print(f"📤 Sending queue_update to client: {self.channel_name}")
         print(f"📦 Data being sent: {data}")
         
@@ -27,4 +42,3 @@ class RegistrationQueueConsumer(AsyncWebsocketConsumer):
             print(f"✅ Message successfully sent to {self.channel_name}")
         except Exception as e:
             print(f"❌ Error sending message to {self.channel_name}: {e}")
-

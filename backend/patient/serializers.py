@@ -118,14 +118,16 @@ class PatientRegistrationSerializer(serializers.Serializer):
         if UserAccount.objects.filter(email=value).exists():
             raise serializers.ValidationError("This email is already registered.")
         return value
-
     def validate(self, data):
         if data.get("complaint") == "Other":
-            if not self.context["request"].data.get("other_complaint"):
+            request = self.context.get("request")
+            other_complaint = request.data.get("other_complaint") if request else None
+            if not other_complaint:
                 raise serializers.ValidationError({
                     "other_complaint": "This field is required if complaint is 'Other'."
                 })
         return data
+
 
     def get_queue_data(self, obj):
         if hasattr(obj, "temporarystoragequeue"):
