@@ -66,7 +66,7 @@ class ReferralViewList(APIView):
         
         return Response(serializer.data)
 class DoctorSchedule(APIView):
-    permission_classes = [isSecretary]
+    permission_classes = [PatientMedicalStaff]
 
     def get(self, request, doctor_id):
         try:
@@ -632,6 +632,7 @@ class QueueDebugMonthView(APIView):
             "entries": data
         })
 
+
 from django.core.mail import send_mail
 from django.http import JsonResponse
 from django.views import View
@@ -643,7 +644,503 @@ class TestEmailView(View):
             subject="This is from django",
             message="Sample email",
             from_email="ralphancheta000@gmail.com",
-            recipient_list=["me.joliveros@gmail.com"],
+            recipient_list=["dpares08@gmail.com"],
             fail_silently=False,
         )
         return JsonResponse({"status": "Email sent!"})
+    
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
+from django.utils import timezone
+from datetime import datetime
+import requests
+import json
+import base64
+from django.conf import settings
+
+from .models import Appointment, Payment, Patient, Doctor
+from .serializers import (
+    AppointmentBookingSerializer, 
+    PaymentSerializer,
+    AppointmentDetailSerializer
+)
+
+class PayMayaService:
+    """Service class to handle PayMaya API interactions"""
+    
+    @staticmethod
+    def get_auth_header(use_public=False):
+        if use_public:
+            credentials = f"{settings.MAYA_PUBLIC_KEY}:"
+        else:
+            credentials = f"{settings.MAYA_SECRET_KEY}:"
+        encoded_credentials = base64.b64encode(credentials.encode()).decode()
+        return f"Basic {encoded_credentials}"
+
+    
+    @staticmethod
+    def create_checkout(payment, patient, appointment):
+        """Create PayMaya checkout session"""
+        try:
+            url = f"{settings.MAYA_API_BASE_URL}/checkout/v1/checkouts"
+            
+            payload = {
+                "totalAmount": {
+                    "value": float(payment.amount),
+                    "currency": "PHP",
+                    "details": {
+                        "discount": 0,
+                        "serviceCharge": 0,
+                        "shippingFee": 0,
+                        "tax": 0,
+                        "subtotal": float(payment.amount)
+                    }
+                },
+                "buyer": {
+                    "firstName": patient.first_name,
+                    "lastName": patient.last_name,
+                    "contact": {
+                        "phone": patient.phone_number,
+                        "email": patient.email
+                    }
+                },
+                "items": [
+                    {
+                        "name": f"Consultation with {appointment.doctor.user.get_full_name()}",
+                        "quantity": 1,
+                        "code": f"CONSULT_{appointment.id}",
+                        "description": "Medical Consultation Fee",
+                        "amount": {
+                            "value": float(payment.amount),
+                            "details": {
+                                "discount": 0,
+                                "serviceCharge": 0,
+                                "shippingFee": 0,
+                                "tax": 0,
+                                "subtotal": float(payment.amount)
+                            }
+                        },
+                        "totalAmount": {
+                            "value": float(payment.amount)
+                        }
+                    }
+                ],
+                "redirectUrl": {
+                    "success": f"{settings.FRONTEND_URL}/payment/success?payment_id={payment.id}",
+                    "failure": f"{settings.FRONTEND_URL}/payment/failed?payment_id={payment.id}",
+                    "cancel": f"{settings.FRONTEND_URL}/payment/cancelled?payment_id={payment.id}"
+                },
+                "requestReferenceNumber": str(payment.id),
+                "metadata": {
+                    "appointment_id": appointment.id,
+                    "patient_id": patient.pk,
+                    "doctor_id": appointment.doctor.id
+                }
+            }
+            
+            headers = {
+                'Content-Type': 'application/json',
+                'Authorization': PayMayaService.get_auth_header(use_public=True)
+            }
+            
+            response = requests.post(url, json=payload, headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Update payment with PayMaya details
+                payment.paymaya_reference_id = data.get('checkoutId')
+                payment.paymaya_checkout_url = data.get('redirectUrl')
+                payment.paymaya_response = data
+                payment.save()
+                
+                return {
+                    'success': True,
+                    'checkout_id': data.get('checkoutId'),
+                    'checkout_url': data.get('redirectUrl'),
+                    'payment_id': payment.id
+                }
+            else:
+                print(f"PayMaya API Error: {response.status_code} - {response.text}")
+                return {
+                    'success': False,
+                    'error': f"PayMaya API error: {response.status_code}",
+                    'details': response.text
+                }
+                
+        except requests.exceptions.Timeout:
+            return {
+                'success': False,
+                'error': 'PayMaya API timeout'
+            }
+        except requests.exceptions.RequestException as e:
+            return {
+                'success': False,
+                'error': f'PayMaya API request failed: {str(e)}'
+            }
+        except Exception as e:
+            return {
+                'success': False,
+                'error': f'Unexpected error: {str(e)}'
+            }
+    
+    @staticmethod
+    def get_payment_status(checkout_id):
+        """Get payment status from PayMaya"""
+        try:
+            url = f"{settings.MAYA_API_BASE_URL}/payments/v1/checkouts/{checkout_id}/payments"
+            headers = {
+                'Authorization': PayMayaService.get_auth_header()
+            }
+            
+            response = requests.get(url, headers=headers, timeout=30)
+            
+            if response.status_code == 200:
+                payments = response.json()
+                if payments:
+                    # Get the latest payment
+                    latest_payment = payments[0]
+                    return {
+                        'status': latest_payment.get('status'),
+                        'payment_id': latest_payment.get('id'),
+                        'amount': latest_payment.get('amount'),
+                        'currency': latest_payment.get('currency'),
+                        'paid_at': latest_payment.get('createdAt')
+                    }
+            return None
+            
+        except Exception as e:
+            print(f"Error getting PayMaya status: {str(e)}")
+            return None
+
+class BookAppointmentAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        try:
+            data = request.data
+            print(data)
+
+            # Check if user has a patient profile
+            if not hasattr(request.user, 'patient_profile'):
+                return Response({
+                    'error': 'Patient profile not found. Please complete your patient profile setup.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            patient = request.user.patient_profile
+            
+            if not patient.first_name or not patient.last_name or not patient.phone_number:
+                return Response({
+                    'error': 'Please complete your patient profile with first name, last name, and phone number.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            print(f"Using authenticated patient: {patient.patient_id} - {patient.full_name}")
+            
+            doctor_id = data.get('doctor_id')
+            appointment_date = data.get('appointment_date')
+            notes = data.get('notes', '')
+            payment_method = data.get('payment_method', 'Gcash')
+            
+            if not all([doctor_id, appointment_date]):
+                return Response({
+                    'error': 'Doctor and appointment date are required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            try:
+                doctor = Doctor.objects.get(role_id=data["doctor_id"])
+
+            except Doctor.DoesNotExist:
+                return Response({
+                    'error': 'Doctor not found'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            existing_appointment = Appointment.objects.filter(
+                doctor=doctor,
+                appointment_date=appointment_date,
+                status__in=['Scheduled', 'PendingPayment', 'Waiting']
+            ).exists()
+            
+            if existing_appointment:
+                return Response({
+                    'error': 'This time slot is already booked. Please choose another time.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Create appointment
+            appointment = Appointment.objects.create(
+                patient=patient,
+                doctor=doctor,
+                appointment_date=appointment_date,
+                notes=notes,
+                status='PendingPayment'
+            )
+
+            # ✅ Fixed payment creation
+            payment = Payment.objects.create(
+                appointment=appointment,
+                patient=patient,  # Required field added
+                amount=500.00,
+                payment_method=payment_method,
+                status='Pending'
+            )
+
+            # Payment handling
+            if payment_method == 'PayMaya':
+                paymaya_result = PayMayaService.create_checkout(payment, patient, appointment)
+                
+                if paymaya_result['success']:
+                    return Response({
+                        'appointment_id': appointment.id,
+                        'payment_id': payment.id,
+                        'checkout_url': paymaya_result['checkout_url'],
+                        'message': 'Appointment created. Please complete the payment.'
+                    }, status=status.HTTP_201_CREATED)
+                else:
+                    appointment.delete()
+                    return Response({
+                        'error': paymaya_result.get('error', 'Payment processing failed'),
+                        'details': paymaya_result.get('details')
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+                    
+            else:
+                return Response({
+                    'appointment_id': appointment.id,
+                    'payment_id': payment.id,
+                    'message': 'Appointment created. Please upload GCash payment proof.',
+                    'payment_details': {
+                        'amount': '500.00',
+                        'payment_method': payment_method,
+                        'status': 'Pending'
+                    }
+                }, status=status.HTTP_201_CREATED)
+                
+        except Exception as e:
+            print(f"Error in BookAppointmentAPIView: {str(e)}")
+            return Response({
+                'error': f'Failed to create appointment: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class CheckPaymentStatusAPIView(APIView):
+    """
+    API to check PayMaya payment status
+    """
+    def get(self, request, payment_id):
+        try:
+            payment = Payment.objects.get(id=payment_id)
+            
+            if payment.payment_method == 'PayMaya' and payment.paymaya_reference_id:
+                status_result = PayMayaService.get_payment_status(
+                    payment.paymaya_reference_id
+                )
+                
+                if status_result:
+                    # Update payment status based on PayMaya response
+                    if status_result['status'] == 'PAYMENT_SUCCESS':
+                        payment.status = 'Paid'
+                        payment.appointment.status = 'Scheduled'
+                        payment.appointment.save()
+                    elif status_result['status'] in ['PAYMENT_FAILED', 'PAYMENT_EXPIRED']:
+                        payment.status = 'Failed'
+                    
+                    payment.save()
+                    
+                    return Response({
+                        'payment_status': payment.status,
+                        'appointment_status': payment.appointment.status,
+                        'paymaya_status': status_result['status']
+                    })
+            
+            return Response({
+                'payment_status': payment.status,
+                'appointment_status': payment.appointment.status
+            })
+            
+        except Payment.DoesNotExist:
+            return Response({
+                'error': 'Payment not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+class PaymentWebhookAPIView(APIView):
+    """
+    Webhook for PayMaya payment notifications
+    """
+    def post(self, request):
+        try:
+            # Verify webhook signature (you should verify this in production)
+            webhook_data = request.data
+            
+            # Extract relevant data from webhook
+            checkout_id = webhook_data.get('id')
+            event_type = webhook_data.get('type')
+            payment_status = webhook_data.get('data', {}).get('status')
+            
+            if event_type == 'CHECKOUT_SUCCESS' and payment_status == 'PAYMENT_SUCCESS':
+                # Find payment by checkout ID
+                payment = Payment.objects.get(
+                    paymaya_reference_id=checkout_id
+                )
+                
+                payment.status = 'Paid'
+                payment.paymaya_response = webhook_data
+                payment.save()
+                
+                # Update appointment status
+                payment.appointment.status = 'Scheduled'
+                payment.appointment.save()
+                
+                # TODO: Send confirmation email/SMS
+                
+                return Response({'status': 'success'}, status=status.HTTP_200_OK)
+                
+            elif event_type in ['CHECKOUT_FAILURE', 'CHECKOUT_DROPOUT']:
+                payment = Payment.objects.get(
+                    paymaya_reference_id=checkout_id
+                )
+                payment.status = 'Failed'
+                payment.paymaya_response = webhook_data
+                payment.save()
+                
+                return Response({'status': 'failed'}, status=status.HTTP_200_OK)
+                
+        except Payment.DoesNotExist:
+            return Response({'error': 'Payment not found'}, 
+                          status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"Webhook error: {str(e)}")
+            return Response({'error': str(e)}, 
+                          status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UploadGcashProofAPIView(APIView):
+    """
+    API for uploading GCash payment proof
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, appointment_id):
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+            
+            # Verify the patient matches (you might want to use authentication instead)
+            if hasattr(request.user, 'patient'):
+                if appointment.patient != request.user.patient:
+                    return Response({
+                        'error': 'You can only upload proof for your own appointments'
+                    }, status=status.HTTP_403_FORBIDDEN)
+            
+            payment = appointment.payment
+            
+            if payment.payment_method != 'Gcash':
+                return Response({
+                    'error': 'This appointment does not use GCash payment'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            gcash_proof = request.FILES.get('gcash_proof')
+            if not gcash_proof:
+                return Response({
+                    'error': 'GCash proof image is required'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Validate file type
+            allowed_types = ['image/jpeg', 'image/png', 'image/jpg']
+            if gcash_proof.content_type not in allowed_types:
+                return Response({
+                    'error': 'Only JPEG and PNG images are allowed'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Validate file size (5MB max)
+            if gcash_proof.size > 5 * 1024 * 1024:
+                return Response({
+                    'error': 'File size must be less than 5MB'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            payment.gcash_proof = gcash_proof
+            payment.status = 'Pending'  # Wait for secretary verification
+            payment.save()
+            
+            return Response({
+                'message': 'GCash proof uploaded successfully. Waiting for verification.',
+                'payment_id': payment.id
+            }, status=status.HTTP_200_OK)
+            
+        except Appointment.DoesNotExist:
+            return Response({
+                'error': 'Appointment not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+class SecretaryAppointmentAPIView(APIView):
+    """
+    API for secretary to manage appointments
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Get all appointments for secretary dashboard
+        """
+        status_filter = request.GET.get('status', '')
+        payment_status = request.GET.get('payment_status', '')
+        
+        appointments = Appointment.objects.select_related(
+            'patient', 'doctor', 'payment'
+        ).all()
+        
+        if status_filter:
+            appointments = appointments.filter(status=status_filter)
+        
+        if payment_status:
+            appointments = appointments.filter(payment__status=payment_status)
+        
+        serializer = AppointmentDetailSerializer(appointments, many=True)
+        return Response(serializer.data)
+    
+    def patch(self, request, appointment_id):
+        """
+        Update appointment status (for secretary)
+        """
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+            new_status = request.data.get('status')
+            action = request.data.get('action')
+            
+            if action == 'verify_payment':
+                # Verify any pending payment
+                if appointment.payment.status == 'Pending':
+                    appointment.payment.status = 'Paid'
+                    appointment.payment.save()
+                    appointment.status = 'Scheduled'
+                    appointment.save()
+                    
+                    return Response({
+                        'message': 'Payment verified and appointment scheduled'
+                    })
+            
+            elif action == 'reject_payment':
+                if appointment.payment.status == 'Pending':
+                    appointment.payment.status = 'Failed'
+                    appointment.payment.save()
+                    appointment.status = 'Cancelled'
+                    appointment.save()
+                    
+                    return Response({
+                        'message': 'Payment rejected and appointment cancelled'
+                    })
+            
+            elif new_status and new_status in dict(Appointment.STATUS):
+                appointment.status = new_status
+                appointment.save()
+                
+                return Response({
+                    'message': f'Appointment status updated to {new_status}'
+                })
+            
+            return Response({
+                'error': 'Invalid action or status'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Appointment.DoesNotExist:
+            return Response({
+                'error': 'Appointment not found'
+            }, status=status.HTTP_404_NOT_FOUND)
