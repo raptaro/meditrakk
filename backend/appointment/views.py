@@ -354,8 +354,8 @@ class UpcomingAppointments(APIView):
     
     def get(self, request):
         user = request.user
-        manila = pytz.timezone("Asia/Manila")
-        current_time = localtime(now(), manila)   # Manila datetime
+        current_time = timezone.localtime(timezone.now())  # Current local time in settings.TIME_ZONE
+        date_today = current_time.date()
         date_today = current_time.date()          # Manila date
         print(date_today, current_time)
         role = getattr(request.user, "role", None)
@@ -447,6 +447,9 @@ class AcceptAppointmentView(APIView):
     permission_classes = [isSecretary]
 
     def post(self, request, appointment_id):
+        print("Request data:", request.data)
+        print("User:", request.user, "Role:", getattr(request.user, "role", None))
+
         today = now().date()
         try:
             appointment = Appointment.objects.get(id=appointment_id)
@@ -457,12 +460,15 @@ class AcceptAppointmentView(APIView):
             patient=appointment.patient,
             queue_date=today
         ).exclude(status__in=['Completed', 'Cancelled'])
-        
+
         if already.exists():
-            return Response(
-                {"message": "Patient already in queue today"}, 
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            existing_queue = already.first()
+            return Response({
+                "message": "Patient already in queue today",
+                "queue_id": existing_queue.id,
+                "queue_number": existing_queue.queue_number
+            }, status=status.HTTP_200_OK)
+
 
         priority_level = "Priority"
         if hasattr(appointment, 'appointmentreferral') and getattr(appointment.appointmentreferral, 'reason', None):
