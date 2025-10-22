@@ -59,7 +59,7 @@ class PrescriptionViews(generics.ListAPIView):
     queryset = Prescription.objects.all()
     serializer_class = PrescriptionSerializer
     
-    permission_classes = [isSecretary]
+    permission_classes = []
 
 
 class ConfirmDispenseview(APIView):

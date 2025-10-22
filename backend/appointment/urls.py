@@ -17,6 +17,15 @@ urlpatterns = [
     # path("<uuid:appointment_id>/cancel/", CancelAppointmentView.as_view(), name="cancel-appointment"),
     # path("<uuid:appointment_id>/requeue/", RequeueAppointmentView.as_view(), name="requeue-appointment"),
      path("send-test-email/", views.TestEmailView.as_view(), name="send-test-email"),
+     
+    path('appointments/book/', views.BookAppointmentAPIView.as_view(), name='book-appointment'),
+    
+    path('payments/status/<str:payment_id>/', views.CheckPaymentStatusAPIView.as_view(), name='check-payment-status'),
+    path('payments/webhook/', views.PaymentWebhookAPIView.as_view(), name='payment-webhook'),
+    path('appointments/<str:appointment_id>/upload-gcash/', views.UploadGcashProofAPIView.as_view(), name='upload-gcash'),
+    
+    # Secretary management
+    path('secretary/appointments/', views.SecretaryAppointmentAPIView.as_view(), name='secretary-appointments'),
 
     path('appointment/', include(router.urls))
 ]

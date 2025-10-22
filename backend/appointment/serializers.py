@@ -1,8 +1,9 @@
 # serializers.py
 from rest_framework import serializers
 
+from patient.serializers import PatientSerializer
 from patient.models import Patient
-from .models import Appointment, AppointmentReferral
+from .models import Appointment, AppointmentReferral, Payment
 from user.models import Doctor, UserAccount
 from queueing.models import TemporaryStorageQueue
 
@@ -163,6 +164,95 @@ class QueueSerializer(serializers.ModelSerializer):
                 return val
         return str(patient)
 
+
+class AppointmentBookingSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer()
+    doctor_id = serializers.IntegerField(write_only=True)
+    payment_method = serializers.ChoiceField(
+        choices=Payment.PAYMENT_METHODS, 
+        write_only=True
+    )
+    
+    class Meta:
+        model = Appointment
+        fields = [
+            'patient', 'doctor_id', 'appointment_date', 
+            'notes', 'payment_method'
+        ]
+    
+    def create(self, validated_data):
+        patient_data = validated_data.pop('patient')
+        doctor_id = validated_data.pop('doctor_id')
+        payment_method = validated_data.pop('payment_method')
+        request = self.context.get('request')
+        
+        # Get or create patient
+        patient, created = Patient.objects.get_or_create(
+            phone_number=patient_data['phone_number'],
+            defaults=patient_data
+        )
+        
+        if not created:
+            # Update patient info if exists
+            for attr, value in patient_data.items():
+                setattr(patient, attr, value)
+            patient.save()
+        
+        # Get doctor
+        try:
+            doctor = Doctor.objects.get(id=doctor_id)
+        except Doctor.DoesNotExist:
+            raise serializers.ValidationError("Doctor not found")
+        
+        # Create appointment
+        appointment = Appointment.objects.create(
+            patient=patient,
+            doctor=doctor,
+            scheduled_by=request.user if request.user.is_authenticated else None,
+            **validated_data
+        )
+        
+        # Create payment record
+        Payment.objects.create(
+            appointment=appointment,
+            patient=patient,
+            payment_method=payment_method,
+            amount=500.00,  # Fixed consultation fee
+            status='Pending'
+        )
+        
+        return appointment
+class PaymentSerializer(serializers.ModelSerializer):
+    appointment_id = serializers.IntegerField(write_only=True)
+    
+    class Meta:
+        model = Payment
+        fields = [
+            'id', 'appointment_id', 'payment_method', 'amount',
+            'status', 'paymaya_reference_id', 'paymaya_checkout_url',
+            'gcash_proof', 'created_at'
+        ]
+        read_only_fields = ['id', 'status', 'paymaya_reference_id', 
+                          'paymaya_checkout_url', 'created_at']
+
+class AppointmentDetailSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer()
+    doctor_name = serializers.CharField(source='doctor.user.get_full_name', read_only=True)
+    payment = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Appointment
+        fields = [
+            'id', 'patient', 'doctor', 'doctor_name', 'appointment_date',
+            'status', 'notes', 'created_at', 'payment'
+        ]
+    
+    def get_payment(self, obj):
+        try:
+            payment = obj.payment
+            return PaymentSerializer(payment).data
+        except Payment.DoesNotExist:
+            return None
 
 
 
