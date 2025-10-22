@@ -468,12 +468,12 @@ export default function MedicineList() {
                                 {new Date(medicine.expiration_date).toLocaleDateString()}
                               </div>
                               {(expired || isExpiring) && (
-<Badge
-  variant={expired ? "destructive" : "outline"}
-  className={expired ? "" : "bg-yellow-500 text-white"}
->
-  {expired ? "Expired" : "Expiring Soon"}
-</Badge>
+                                <Badge
+                                  variant={expired ? "destructive" : "outline"}
+                                  className={expired ? "" : "bg-yellow-500 text-white"}
+                                >
+                                  {expired ? "Expired" : "Expiring Soon"}
+                                </Badge>
 
                               )}
                             </div>
