@@ -6,6 +6,7 @@ from user.models import Doctor
 from django.conf import settings
 class Appointment(models.Model):
     STATUS = (
+        ('PendingPayment', 'Pending Payment'),
         ('Scheduled', 'Scheduled'),
         ('Waiting', 'Waiting'),
         ('Completed', 'Completed'),
@@ -13,9 +14,15 @@ class Appointment(models.Model):
     )
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='appointments')
     doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='appointments')
-    scheduled_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='scheduled_appointments')
+    scheduled_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,        # allow null values
+        blank=True,       # allow empty forms
+        related_name='scheduled_appointments'
+    )
     appointment_date = models.DateTimeField()
-    status = models.CharField(max_length=20, choices=STATUS, default='Scheduled')
+    status = models.CharField(max_length=20, choices=STATUS, default='PendingPayment')
     notes = models.TextField(max_length=250, blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -31,6 +38,40 @@ class Appointment(models.Model):
 
     def __str__(self):
         return f"Appointment {self.id} on {self.appointment_date} with {self.scheduled_by} for {self.patient}"
+
+class Payment(models.Model):
+    PAYMENT_METHODS = (
+        ('PayMaya', 'PayMaya'),
+        ('Gcash', 'Gcash'),
+    )
+
+    STATUS_CHOICES = (
+        ('Pending', 'Pending'),
+        ('Paid', 'Paid'),
+        ('Failed', 'Failed'),
+    )
+
+    appointment = models.OneToOneField(Appointment, on_delete=models.CASCADE, related_name='payment')
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='payments')
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_METHODS)
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='Pending')
+
+    # For PayMaya
+    paymaya_reference_id = models.CharField(max_length=100, blank=True, null=True)
+    paymaya_checkout_url = models.URLField(blank=True, null=True)
+    paymaya_response = models.JSONField(blank=True, null=True)
+
+    # For Gcash (manual proof)
+    gcash_proof = models.ImageField(upload_to='gcash_proofs/', blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.appointment} - {self.payment_method} - {self.status}"
+
+    
 
 class AppointmentReferral(models.Model):
     STATUS_CHOICES = [

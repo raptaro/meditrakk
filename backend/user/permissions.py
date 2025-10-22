@@ -6,7 +6,7 @@ class IsMedicalStaff(BasePermission):
        
     def has_permission(self, request, view):
         print(f"User Role: {getattr(request.user, 'role', 'No role assigned')}")
-        allowed_roles = ['doctor', 'secretary', 'on-call-doctor']
+        allowed_roles = ['doctor', 'secretary', 'on-call-doctor', 'patient']
         user_role = getattr(request.user, 'role', '').lower()
         return user_role in allowed_roles
     
