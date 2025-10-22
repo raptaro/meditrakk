@@ -119,21 +119,22 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      
+
       {/* Pagination and patient count */}
       <div className="flex items-center justify-between pt-4">
         {/* Patient count on the left */}
         <div className="text-sm text-muted-foreground">
-          Total: {table.getFilteredRowModel().rows.length} patient(s)
+          Total: {table.getFilteredRowModel().rows.length} user(s)
         </div>
-        
+
         {/* Pagination controls on the right */}
         <div className="flex items-center space-x-6">
           {/* Page info */}
           <div className="text-sm text-muted-foreground">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
           </div>
-          
+
           {/* Navigation buttons */}
           <div className="flex items-center space-x-2">
             <Button
