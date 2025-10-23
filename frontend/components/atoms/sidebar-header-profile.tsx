@@ -26,9 +26,9 @@ export default function SidebarHeaderProfile() {
       </Link>
 
       <div className="flex flex-col items-center">
-        <div className="mb-2 mt-4">
+        <div className="mb-2 mt-4 rounded-2xl border-2">
           <Image
-            className="rounded-2xl border-2 object-cover"
+            className="object-cover dark:brightness-90 dark:invert"
             src="/profile.png"
             alt="user"
             width={64}
