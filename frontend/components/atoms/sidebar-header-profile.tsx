@@ -29,7 +29,7 @@ export default function SidebarHeaderProfile() {
         <div className="mb-2 mt-4">
           <Image
             className="rounded-2xl border-2 object-cover"
-            src="/secretary.jpg"
+            src="/profile.png"
             alt="user"
             width={64}
             height={64}
