@@ -91,16 +91,15 @@ export const PatientColumns: ColumnDef<Patient>[] = [
 
       const statusColor =
         status.toLowerCase() === "completed"
-          ? "text-green-500 border-green-500"
+          ? " border-green-500 bg-green-100 dark:text-muted"
           : status.toLowerCase() === "queued for treatment"
-          ? "text-yellow-500 border-yellow-500"
-          : "text-gray-500 border-gray-500";
+          ? "border-amber-500 bg-amber-100 dark:text-muted"
+          : status.toLowerCase() === "queued for assessment"
+          ? "border-blue-400 bg-blue-100 dark:text-muted"
+          : "border-gray-500 bg-gray-100 dark:text-muted";
 
       return (
-        <Badge
-          variant="outline"
-          className={`${statusColor} rounded-full bg-muted`}
-        >
+        <Badge variant="outline" className={`${statusColor} rounded-full`}>
           {status}
         </Badge>
       );
