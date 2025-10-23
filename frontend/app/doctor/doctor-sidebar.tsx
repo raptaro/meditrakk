@@ -4,7 +4,6 @@ import {
   Calendar,
   ChartArea,
   Bandage,
-  User,
   List,
   Pill,
   Clock,
@@ -35,11 +34,6 @@ const menu_items = [
     title: "Dashboard",
     url: "/doctor",
     icon: LayoutDashboard,
-  },
-  {
-    title: "Patient Portal",
-    url: "/doctor/patient-portal",
-    icon: User,
   },
   {
     title: "Doctors List",
