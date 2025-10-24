@@ -1,8 +1,9 @@
 "use client";
-import { useFetch } from "@/hooks/use-fetch";
+
 import { PageTable } from "@/components/ui/page-table";
 import { SkeletonDataTable } from "@/components/atoms/custom-skeleton";
 import { columns } from "./patient-management-columns";
+import { useApiQuery } from "@/hooks/use-api-query";
 
 type User = {
   id: number;
@@ -12,16 +13,18 @@ type User = {
 };
 
 export default function DemoPage() {
+  const baseUrl = process.env.NEXT_PUBLIC_API_BASE;
+
   const {
     data: patients,
     isLoading,
     error,
-  } = useFetch<User[]>(
-    `${process.env.NEXT_PUBLIC_API_BASE}/user/users/?role=patient`
-  );
+  } = useApiQuery<User[]>(["patients"], `${baseUrl}/user/users/?role=patient`, {
+    refetchOnWindowFocus: true,
+  });
 
   if (isLoading) return <SkeletonDataTable />;
-  if (error) return <div className="p-4 text-red-500">{error}</div>;
+  if (error) return <div className="p-4 text-red-500">{error.message}</div>;
 
   return <PageTable title="Patients" columns={columns} data={patients ?? []} />;
 }
