@@ -6,17 +6,27 @@ export type User = {
   id?: number;
   email: string;
   first_name: string;
+  middle_name?: string;
   last_name: string;
 };
 
 export const columns: ColumnDef<User>[] = [
   {
-    accessorKey: "first_name",
-    header: "First Name",
-  },
-  {
-    accessorKey: "last_name",
-    header: "Last Name",
+    id: "name",
+    header: "Name",
+    accessorFn: (row) =>
+      `${row.first_name} ${row.middle_name ? row.middle_name + " " : ""}${
+        row.last_name
+      }`,
+    cell: ({ row }) => {
+      const { first_name, middle_name, last_name } = row.original;
+      return (
+        <span>
+          {first_name} {middle_name ? `${middle_name} ` : ""}
+          {last_name}
+        </span>
+      );
+    },
   },
   {
     accessorKey: "email",

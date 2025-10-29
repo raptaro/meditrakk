@@ -1,6 +1,6 @@
 "use client";
 
-import { PageTable } from "@/components/ui/page-table";
+import { DataTable } from "@/components/ui/data-table";
 import { SkeletonDataTable } from "@/components/atoms/custom-skeleton";
 import { columns } from "./patient-management-columns";
 import { useApiQuery } from "@/hooks/use-api-query";
@@ -26,5 +26,5 @@ export default function DemoPage() {
   if (isLoading) return <SkeletonDataTable />;
   if (error) return <div className="p-4 text-red-500">{error.message}</div>;
 
-  return <PageTable title="Patients" columns={columns} data={patients ?? []} />;
+  return <DataTable title="Patients" columns={columns} data={patients ?? []} />;
 }
