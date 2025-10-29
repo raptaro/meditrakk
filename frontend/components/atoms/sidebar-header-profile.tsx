@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRole } from "@/hooks/use-role";
 import { useName } from "@/hooks/use-name";
 import { Skeleton } from "../ui/skeleton";
+import { User } from "lucide-react";
 
 export default function SidebarHeaderProfile() {
   const role = useRole();
@@ -26,14 +27,8 @@ export default function SidebarHeaderProfile() {
       </Link>
 
       <div className="flex flex-col items-center">
-        <div className="mb-2 mt-4">
-          <Image
-            className="rounded-2xl border-2 object-cover"
-            src="/profile.png"
-            alt="user"
-            width={64}
-            height={64}
-          />
+        <div className="mb-2 mt-4 rounded-xl border-4 border-muted/90 p-1">
+          <User className="h-12 w-12" />
         </div>
         <div className="flex flex-col items-center justify-center">
           <span className="text-sm font-bold">
