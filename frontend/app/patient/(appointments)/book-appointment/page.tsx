@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -22,21 +22,22 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { 
-  Check, 
-  ChevronsUpDown, 
-  Clock, 
-  CalendarDays, 
-  User, 
-  Mail, 
-  Phone, 
-  AlertCircle, 
-  CheckCircle2, 
+import {
+  Check,
+  ChevronsUpDown,
+  Clock,
+  CalendarDays,
+  User,
+  Mail,
+  Phone,
+  AlertCircle,
+  CheckCircle2,
   Info,
   CreditCard,
   Loader2,
   Upload,
-  X
+  X,
+  ExternalLink
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -46,7 +47,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { format, addMonths, isBefore } from "date-fns";
+import { format, addMonths } from "date-fns";
 import {
   Dialog,
   DialogContent,
@@ -105,17 +106,21 @@ interface PatientProfile {
   email: string;
 }
 
+// --- Component ---
 export default function PatientBookAppointment() {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentStep, setPaymentStep] = useState<"form" | "processing" | "success" | "error">("form");
+  const [paymentStep, setPaymentStep] = useState<"form" | "processing" | "redirect" | "success" | "error">("form");
   const [paymentMethod, setPaymentMethod] = useState<"PayMaya" | "Gcash">("PayMaya");
   const [appointmentData, setAppointmentData] = useState<any>(null);
   const [gcashProof, setGcashProof] = useState<File | null>(null);
-  
+  const [reservationExpiresAt, setReservationExpiresAt] = useState<number | null>(null); // unix ms
+  const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
+  const countdownRef = useRef<number | null>(null);
+
   // State for API data
   const [doctors, setDoctors] = useState<DoctorWithSchedule[]>([]);
   const [loadingDoctors, setLoadingDoctors] = useState(true);
@@ -136,13 +141,14 @@ export default function PatientBookAppointment() {
   const selectedDoctor = form.watch("doctor");
   const doctorData = doctors.find((d) => d.id === selectedDoctor);
 
-  // Fetch patient profile and doctors on component mount
+  // fetch patient profile and doctors
   useEffect(() => {
     fetchPatientProfile();
     fetchDoctors();
+    // cleanup on unmount
+    return () => clearCountdown();
   }, []);
 
-  // Fetch schedule when doctor is selected
   useEffect(() => {
     if (selectedDoctor) {
       fetchDoctorSchedule(selectedDoctor);
@@ -152,6 +158,44 @@ export default function PatientBookAppointment() {
       form.setValue("appointment_time", "");
     }
   }, [selectedDoctor]);
+
+  // Countdown effect: update every second
+  useEffect(() => {
+    if (!reservationExpiresAt) {
+      setSecondsLeft(null);
+      return;
+    }
+    const updateSeconds = () => {
+      const now = Date.now();
+      const diff = Math.max(0, Math.floor((reservationExpiresAt - now) / 1000));
+      setSecondsLeft(diff);
+      if (diff <= 0) {
+        // reservation expired: cleanup local state
+        clearCountdown();
+        onReservationExpired();
+      }
+    };
+    updateSeconds();
+    countdownRef.current = window.setInterval(updateSeconds, 1000);
+    return () => clearCountdown();
+  }, [reservationExpiresAt]);
+
+  const clearCountdown = () => {
+    if (countdownRef.current) {
+      window.clearInterval(countdownRef.current);
+      countdownRef.current = null;
+    }
+  };
+
+  const onReservationExpired = () => {
+    setPaymentStep("error");
+    setError("Reservation expired. Please choose another slot and try again.");
+    // Clear appointment data (frontend)
+    setAppointmentData(null);
+    setReservationExpiresAt(null);
+    setShowPaymentModal(false);
+    setTimeout(() => setError(null), 8000);
+  };
 
   // Fetch patient profile
   const fetchPatientProfile = async () => {
@@ -181,39 +225,36 @@ export default function PatientBookAppointment() {
     }
   };
 
-  // Fetch doctors from API
+  // Fetch doctors
   const fetchDoctors = async () => {
     try {
       setLoadingDoctors(true);
       setError(null);
       const token = localStorage.getItem("access");
-      
+
       if (!token) {
         throw new Error('No authentication token found');
       }
-      
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/user/users/?role=doctor`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/user/users/?role=doctor`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
       if (!response.ok) {
         throw new Error(`Failed to fetch doctors: ${response.status}`);
       }
-      
+
       const data: Doctor[] = await response.json();
-      
+
       const doctorsWithSchedule: DoctorWithSchedule[] = data.map(doctor => ({
         ...doctor,
         schedule: undefined,
         fee: 500
       }));
-      
+
       setDoctors(doctorsWithSchedule);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load doctors. Please try again.';
@@ -224,54 +265,51 @@ export default function PatientBookAppointment() {
     }
   };
 
-  // Fetch doctor schedule from API
+  // Fetch doctor schedule
   const fetchDoctorSchedule = async (doctorId: string) => {
     try {
       setLoadingSchedule(true);
       setError(null);
       const token = localStorage.getItem("access");
-      
+
       if (!token) {
         throw new Error('No authentication token found');
       }
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/appointment/doctor-schedule/${doctorId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/appointment/doctor-schedule/${doctorId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
       if (!response.ok) {
         throw new Error(`Failed to fetch doctor schedule: ${response.status}`);
       }
-      
+
       const data: ScheduleResponse = await response.json();
-      
+
       if (!data.availability || !Array.isArray(data.availability)) {
         throw new Error('Invalid schedule data received');
       }
-      
+
       const scheduleData = data.availability;
       const slotsByDate: { [date: string]: ScheduleSlot[] } = {};
       const availableDates: Date[] = [];
-      
+
       scheduleData.forEach(slot => {
         try {
           const startDate = new Date(slot.start);
           const endDate = new Date(slot.end);
           const dateKey = format(startDate, "yyyy-MM-dd");
-          
+
           if (!slotsByDate[dateKey]) {
             slotsByDate[dateKey] = [];
             if (startDate >= new Date() && slot.is_available) {
               availableDates.push(startDate);
             }
           }
-          
+
           slotsByDate[dateKey].push({
             start: slot.start,
             end: slot.end,
@@ -281,27 +319,27 @@ export default function PatientBookAppointment() {
           console.error('Error processing date:', dateError);
         }
       });
-      
+
       availableDates.sort((a, b) => a.getTime() - b.getTime());
-      
+
       Object.keys(slotsByDate).forEach(date => {
-        slotsByDate[date].sort((a, b) => 
+        slotsByDate[date].sort((a, b) =>
           new Date(a.start).getTime() - new Date(b.start).getTime()
         );
       });
-      
-      setDoctors(prev => prev.map(doctor => 
-        doctor.id === doctorId 
-          ? { 
-              ...doctor, 
-              schedule: { 
-                availableDates, 
-                timeSlots: slotsByDate 
-              } 
+
+      setDoctors(prev => prev.map(doctor =>
+        doctor.id === doctorId
+          ? {
+            ...doctor,
+            schedule: {
+              availableDates,
+              timeSlots: slotsByDate
             }
+          }
           : doctor
       ));
-      
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load doctor schedule. Please try again.';
       setError(errorMessage);
@@ -314,12 +352,12 @@ export default function PatientBookAppointment() {
   // Check if day should be disabled
   const isDayDisabled = (date: Date) => {
     if (!doctorData?.schedule?.timeSlots) return true;
-    
+
     const dateKey = format(date, "yyyy-MM-dd");
     const slotsForDate = doctorData.schedule.timeSlots[dateKey] || [];
     const now = new Date();
-    
-    return !slotsForDate.some(slot => 
+
+    return !slotsForDate.some(slot =>
       slot.is_available && new Date(slot.end) > now
     );
   };
@@ -357,14 +395,14 @@ export default function PatientBookAppointment() {
     try {
       setIsSubmitting(true);
       setError(null);
-      
+
       if (!selectedDate || !doctorData?.schedule?.timeSlots) {
         throw new Error('Invalid appointment data');
       }
 
       const dateKey = format(selectedDate, "yyyy-MM-dd");
       const slotsForDate = doctorData.schedule.timeSlots[dateKey] || [];
-      const selectedSlot = slotsForDate.find(slot => 
+      const selectedSlot = slotsForDate.find(slot =>
         `${formatTimeUTC(slot.start)} - ${formatTimeUTC(slot.end)}` === values.appointment_time
       );
 
@@ -373,7 +411,7 @@ export default function PatientBookAppointment() {
       }
 
       const appointmentDateTime = formatDateTime(selectedDate, selectedSlot);
-      
+
       const requestData = {
         doctor_id: values.doctor,
         appointment_date: appointmentDateTime,
@@ -398,25 +436,43 @@ export default function PatientBookAppointment() {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Booking API error:', errorText);
-        throw new Error(`Failed to book appointment: ${response.status}`);
+        const body = await response.json().catch(() => null);
+        let errorMsg = `Failed to book appointment: ${response.status}`;
+        
+        // Parse PayMaya specific errors
+        if (body?.details) {
+          try {
+            const paymayaError = JSON.parse(body.details);
+            if (paymayaError.error) {
+              errorMsg = `PayMaya Error: ${paymayaError.error}`;
+            }
+          } catch {
+            // If not JSON, use as is
+            if (body.details.includes('"error"')) {
+              errorMsg = `Payment gateway error: ${body.details}`;
+            } else {
+              errorMsg = body.details || body.error || errorMsg;
+            }
+          }
+        } else if (body?.error) {
+          errorMsg = body.error;
+        }
+        
+        throw new Error(errorMsg);
       }
 
       const data = await response.json();
       console.log('Appointment booked successfully:', data);
 
       setAppointmentData(data);
-      
-      if (paymentMethod === 'PayMaya' && data.checkout_url) {
-        setPaymentStep("success");
-        // Redirect to PayMaya after a brief delay to show success message
-        setTimeout(() => {
-          window.location.href = data.checkout_url;
-        }, 2000);
-      } else if (paymentMethod === 'Gcash') {
-        setPaymentStep("success");
-        setShowSuccess(true);
+
+      if (data.reservation_expires_at) {
+        const expiresMs = typeof data.reservation_expires_at === "number"
+          ? data.reservation_expires_at
+          : Date.parse(data.reservation_expires_at);
+        if (!isNaN(expiresMs)) {
+          setReservationExpiresAt(expiresMs);
+        }
       }
 
       return data;
@@ -432,9 +488,36 @@ export default function PatientBookAppointment() {
     }
   };
 
-  // Upload GCash proof
+  // Cancel endpoint (explicit cancel before payment)
+  const cancelAppointmentRequest = async (appointmentRequestId?: number | string) => {
+    if (!appointmentRequestId) return;
+    try {
+      const token = localStorage.getItem("access");
+      if (!token) throw new Error("Authentication required");
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/appointment-requests/${appointmentRequestId}/cancel/`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        console.warn("Cancel failed", body || res.status);
+      }
+    } catch (err) {
+      console.error("Cancel error:", err);
+    } finally {
+      setAppointmentData(null);
+      setReservationExpiresAt(null);
+      setPaymentStep("form");
+      setShowPaymentModal(false);
+      clearCountdown();
+    }
+  };
+
+  // Upload GCash proof using appointment_request_id returned earlier
   const uploadGcashProof = async () => {
-    if (!gcashProof || !appointmentData) {
+    if (!gcashProof || !appointmentData?.appointment_request_id) {
       setError('No GCash proof or appointment data found');
       return;
     }
@@ -447,16 +530,19 @@ export default function PatientBookAppointment() {
       formData.append('gcash_proof', gcashProof);
 
       const token = localStorage.getItem("access");
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/appointments/${appointmentData.appointment_id}/upload-gcash/`, {
+      if (!token) throw new Error("Authentication required");
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/appointments/${appointmentData.appointment_request_id}/upload-gcash/`, {
         method: 'POST',
         headers: {
-          'Authorization': token ? `Bearer ${token}` : ''
+          Authorization: token ? `Bearer ${token}` : ''
         },
         body: formData
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to upload GCash proof: ${response.status}`);
+        const body = await response.json().catch(() => null);
+        throw new Error((body && body.error) ? body.error : `Failed to upload GCash proof: ${response.status}`);
       }
 
       const result = await response.json();
@@ -465,7 +551,10 @@ export default function PatientBookAppointment() {
       setShowSuccess(true);
       setShowPaymentModal(false);
       setPaymentStep("form");
-      
+      setAppointmentData(null);
+      setReservationExpiresAt(null);
+      clearCountdown();
+
     } catch (error) {
       console.error('GCash upload error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to upload GCash proof. Please try again.';
@@ -480,12 +569,11 @@ export default function PatientBookAppointment() {
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      // Validate file type and size
       if (!file.type.startsWith('image/')) {
         setError('Please select an image file');
         return;
       }
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+      if (file.size > 5 * 1024 * 1024) {
         setError('File size should be less than 5MB');
         return;
       }
@@ -498,12 +586,18 @@ export default function PatientBookAppointment() {
     try {
       setPaymentStep("processing");
       setError(null);
-      
+
       const values = form.getValues();
-      console.log('Processing payment with values:', values);
-      
-      await bookAppointment(values);
-      
+      const result = await bookAppointment(values);
+
+      // For PayMaya, show redirect confirmation instead of auto-redirecting
+      if (paymentMethod === 'PayMaya' && result.checkout_url) {
+        setPaymentStep("redirect");
+        setAppointmentData(result);
+      } else if (paymentMethod === 'Gcash') {
+        setPaymentStep("success");
+      }
+
     } catch (error) {
       console.error("Payment processing error", error);
       const errorMessage = error instanceof Error ? error.message : 'Payment failed. Please try again.';
@@ -512,21 +606,36 @@ export default function PatientBookAppointment() {
     }
   };
 
+  const handlePayMayaRedirect = () => {
+    if (appointmentData?.checkout_url) {
+      // Open in new tab to preserve the current state
+      window.open(appointmentData.checkout_url, '_blank');
+      // Optionally close the modal after a delay
+      setTimeout(() => {
+        setShowPaymentModal(false);
+        setPaymentStep("form");
+      }, 2000);
+    }
+  };
+
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    console.log('Form submitted:', data);
     setShowPaymentModal(true);
     setPaymentStep("form");
     setError(null);
   };
 
-  const handleDialogClose = () => {
-    setShowPaymentModal(false);
-    if (paymentStep === "success" || paymentStep === "error") {
+  const handleDialogClose = async () => {
+    // If a reservation exists and payment is not done yet, cancel it
+    const appointmentRequestId = appointmentData?.appointment_request_id;
+    if (appointmentRequestId && paymentStep !== "success") {
+      await cancelAppointmentRequest(appointmentRequestId);
+    } else {
+      setShowPaymentModal(false);
       setPaymentStep("form");
     }
   };
 
-  // Reset form after successful booking
+  // Reset form after success
   const resetForm = () => {
     form.reset();
     setSelectedDate(undefined);
@@ -536,16 +645,15 @@ export default function PatientBookAppointment() {
     setShowSuccess(false);
   };
 
-  // Get available days for display
-  const getAvailableDays = () => {
-    if (!doctorData?.schedule?.availableDates) return [];
-    return Array.from(new Set(
-      doctorData.schedule.availableDates.map(date => 
-        date.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })
-      )
-    )).sort();
+  // Helper: format secondsLeft to mm:ss
+  const formatSeconds = (s: number | null) => {
+    if (s == null) return null;
+    const mm = Math.floor(s / 60).toString().padStart(2, "0");
+    const ss = Math.floor(s % 60).toString().padStart(2, "0");
+    return `${mm}:${ss}`;
   };
 
+  // --- Render ---
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-12 px-4">
       <div className="mx-auto max-w-4xl">
@@ -553,7 +661,17 @@ export default function PatientBookAppointment() {
           <Alert className="mb-6 border-red-200 bg-red-50">
             <AlertCircle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-800">
-              {error}
+              {error.includes('PayMaya API error') ? (
+                <div>
+                  <strong>Payment Gateway Error:</strong> 
+                  {error.includes('401') && ' Authentication failed. Please check payment configuration.'}
+                  {error.includes('402') && ' Payment declined. Please check your card details.'}
+                  {error.includes('500') && ' Payment service temporarily unavailable. Please try again later.'}
+                  {!error.includes('401') && !error.includes('402') && !error.includes('500') && ` ${error}`}
+                </div>
+              ) : (
+                error
+              )}
             </AlertDescription>
           </Alert>
         )}
@@ -562,8 +680,8 @@ export default function PatientBookAppointment() {
           <Alert className="mb-6 border-green-200 bg-green-50">
             <CheckCircle2 className="h-4 w-4 text-green-600" />
             <AlertDescription className="text-green-800">
-              {paymentMethod === 'PayMaya' 
-                ? 'Payment completed! Your appointment has been confirmed.' 
+              {paymentMethod === 'PayMaya'
+                ? 'Payment completed! Your appointment has been confirmed.'
                 : 'GCash proof uploaded successfully! Waiting for verification.'}
             </AlertDescription>
           </Alert>
@@ -576,7 +694,7 @@ export default function PatientBookAppointment() {
                 Book Your Appointment
               </h1>
               <p className="text-blue-100 text-lg">
-                Schedule your consultation with our expert medical professionals. 
+                Schedule your consultation with our expert medical professionals.
                 Secure your slot with easy online payment.
               </p>
             </div>
@@ -603,7 +721,7 @@ export default function PatientBookAppointment() {
                 <Alert className="border-blue-200 bg-blue-50">
                   <Info className="h-4 w-4 text-blue-600" />
                   <AlertDescription className="text-blue-800">
-                    Your appointment will be booked using your registered patient profile. 
+                    Your appointment will be booked using your registered patient profile.
                     To update your information, please visit your account settings.
                   </AlertDescription>
                 </Alert>
@@ -761,7 +879,7 @@ export default function PatientBookAppointment() {
                       ) : doctorData.schedule ? (
                         <>
                           Dr. {doctorData.first_name} {doctorData.last_name} is available on{' '}
-                          <strong>{getAvailableDays().join(', ')}</strong>. Consultation fee: <strong>₱500</strong>
+                          <strong>{getAvailableDays(doctorData).join(', ')}</strong>. Consultation fee: <strong>₱500</strong>
                         </>
                       ) : (
                         "Schedule not available"
@@ -808,7 +926,7 @@ export default function PatientBookAppointment() {
                         render={({ field }) => {
                           const dateKey = format(selectedDate, "yyyy-MM-dd");
                           const slotsForDate = doctorData.schedule?.timeSlots[dateKey] || [];
-                          
+
                           return (
                             <FormItem className="flex flex-col">
                               <FormLabel className="text-slate-700 font-medium flex items-center gap-2 mb-3">
@@ -855,7 +973,7 @@ export default function PatientBookAppointment() {
                                         <Clock className="w-4 h-4" />
                                         <span className="text-base">{timeString}</span>
                                       </div>
-                                      
+
                                       {isTaken && (
                                         <div className="absolute top-1 right-1">
                                           <div className="bg-red-100 text-red-700 text-xs px-2 py-1 rounded-full flex items-center gap-1">
@@ -993,7 +1111,7 @@ export default function PatientBookAppointment() {
                       )}
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
                     <Button
                       type="button"
@@ -1004,7 +1122,7 @@ export default function PatientBookAppointment() {
                     >
                       Clear Form
                     </Button>
-                    
+
                     <Dialog open={showPaymentModal} onOpenChange={handleDialogClose}>
                       <DialogTrigger asChild>
                         <Button
@@ -1016,6 +1134,7 @@ export default function PatientBookAppointment() {
                           {isSubmitting ? "Processing..." : "Book Appointment"}
                         </Button>
                       </DialogTrigger>
+
                       <DialogContent className="sm:max-w-md">
                         <DialogHeader>
                           <DialogTitle className="flex items-center gap-2">
@@ -1023,11 +1142,17 @@ export default function PatientBookAppointment() {
                             Complete Payment
                           </DialogTitle>
                           <DialogDescription>
-                            {paymentMethod === 'PayMaya' 
-                              ? 'Secure payment via PayMaya' 
+                            {paymentMethod === 'PayMaya'
+                              ? 'Secure payment via PayMaya'
                               : 'Upload GCash payment proof'}
                           </DialogDescription>
                         </DialogHeader>
+
+                        {reservationExpiresAt && secondsLeft !== null && (
+                          <div className="mb-4 text-sm text-slate-600">
+                            Reservation holds this slot for: <strong>{formatSeconds(secondsLeft)}</strong>
+                          </div>
+                        )}
 
                         {paymentStep === "form" && paymentMethod === "PayMaya" && (
                           <div className="space-y-6">
@@ -1067,6 +1192,12 @@ export default function PatientBookAppointment() {
                                 "Pay ₱500"
                               )}
                             </Button>
+
+                            {appointmentData?.appointment_request_id && (
+                              <Button variant="outline" className="w-full" onClick={() => cancelAppointmentRequest(appointmentData.appointment_request_id)}>
+                                Cancel Booking
+                              </Button>
+                            )}
                           </div>
                         )}
 
@@ -1090,7 +1221,7 @@ export default function PatientBookAppointment() {
                                 <label className="text-sm font-medium text-slate-700 mb-2 block">
                                   Upload GCash Payment Proof
                                 </label>
-                                <Input 
+                                <Input
                                   type="file"
                                   accept="image/*,.pdf"
                                   onChange={handleFileSelect}
@@ -1116,6 +1247,12 @@ export default function PatientBookAppointment() {
                                 "Submit Proof"
                               )}
                             </Button>
+
+                            {appointmentData?.appointment_request_id && (
+                              <Button variant="outline" className="w-full" onClick={() => cancelAppointmentRequest(appointmentData.appointment_request_id)}>
+                                Cancel Booking
+                              </Button>
+                            )}
                           </div>
                         )}
 
@@ -1131,18 +1268,46 @@ export default function PatientBookAppointment() {
                           </div>
                         )}
 
-                        {paymentStep === "success" && paymentMethod === "PayMaya" && (
-                          <div className="text-center py-8 space-y-4">
-                            <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
+                        {paymentStep === "redirect" && paymentMethod === "PayMaya" && (
+                          <div className="text-center py-6 space-y-4">
+                            <ExternalLink className="h-12 w-12 text-blue-500 mx-auto" />
                             <div>
-                              <h3 className="font-semibold text-slate-800">Appointment Booked Successfully!</h3>
-                              <p className="text-sm text-slate-600 mt-1">
-                                You are being redirected to PayMaya to complete your payment...
+                              <h3 className="font-semibold text-slate-800">Redirecting to PayMaya</h3>
+                              <p className="text-sm text-slate-600 mt-2">
+                                You're being redirected to PayMaya to complete your payment.
+                                <br />
+                                <strong>Please complete the payment in the new window.</strong>
                               </p>
                             </div>
+                            
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
+                              <div className="flex items-start gap-3">
+                                <Info className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+                                <div className="text-sm text-yellow-800">
+                                  <strong>Test Card Details:</strong><br />
+                                  Card: 4123450131001381 (Visa)<br />
+                                  Expiry: 12/30<br />
+                                  CVV: 123
+                                </div>
+                              </div>
+                            </div>
+
                             <div className="space-y-3">
-                              <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto" />
-                              <p className="text-xs text-slate-500">Redirecting to secure payment page</p>
+                              <Button 
+                                onClick={handlePayMayaRedirect}
+                                className="w-full bg-blue-600 hover:bg-blue-700"
+                              >
+                                <ExternalLink className="mr-2 h-4 w-4" />
+                                Open PayMaya Payment
+                              </Button>
+                              
+                              <Button 
+                                variant="outline" 
+                                onClick={() => setPaymentStep("form")}
+                                className="w-full"
+                              >
+                                Back to Payment
+                              </Button>
                             </div>
                           </div>
                         )}
@@ -1151,20 +1316,12 @@ export default function PatientBookAppointment() {
                           <div className="text-center py-8 space-y-4">
                             <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
                             <div>
-                              <h3 className="font-semibold text-slate-800">Appointment Booked Successfully!</h3>
+                              <h3 className="font-semibold text-slate-800">Reservation Created</h3>
                               <p className="text-sm text-slate-600 mt-1">
-                                Your appointment has been created. GCash proof uploaded successfully!
+                                Reservation created. Please upload your GCash proof now.
                               </p>
                             </div>
-                            <Button
-                              onClick={() => {
-                                setShowPaymentModal(false);
-                                resetForm();
-                              }}
-                              className="w-full bg-blue-600 hover:bg-blue-700"
-                            >
-                              Close
-                            </Button>
+                            <Button onClick={uploadGcashProof} className="w-full bg-blue-600 hover:bg-blue-700">Upload Proof</Button>
                           </div>
                         )}
 
@@ -1172,18 +1329,27 @@ export default function PatientBookAppointment() {
                           <div className="text-center py-8 space-y-4">
                             <AlertCircle className="h-12 w-12 text-red-500 mx-auto" />
                             <div>
-                              <h3 className="font-semibold text-slate-800">Payment Failed</h3>
+                              <h3 className="font-semibold text-slate-800">Payment / Reservation Error</h3>
                               <p className="text-sm text-slate-600 mt-1">
-                                {error || 'Please try again or use a different payment method.'}
+                                {error || 'Please try again or choose a different slot.'}
                               </p>
                             </div>
-                            <Button
-                              onClick={() => setPaymentStep("form")}
-                              variant="outline"
-                              className="w-full"
-                            >
-                              Try Again
-                            </Button>
+                            <div className="space-y-3">
+                              {appointmentData?.payment_id && (
+                                <Button
+                                  variant="outline"
+                                  className="w-full"
+                                >
+                                  Check Payment Status
+                                </Button>
+                              )}
+                              <Button
+                                onClick={() => { setPaymentStep("form"); setError(null); }}
+                                className="w-full"
+                              >
+                                Try Again
+                              </Button>
+                            </div>
                           </div>
                         )}
                       </DialogContent>
@@ -1191,10 +1357,21 @@ export default function PatientBookAppointment() {
                   </div>
                 </div>
               </div>
+              {/* End of summary & action */}
             </form>
           </Form>
         </div>
       </div>
     </div>
   );
+}
+
+// small helper used in a few places
+function getAvailableDays(doctorData?: DoctorWithSchedule) {
+  if (!doctorData?.schedule?.availableDates) return [];
+  return Array.from(new Set(
+    doctorData.schedule.availableDates.map(date =>
+      date.toLocaleDateString('en-US', { weekday: 'long', timeZone: 'UTC' })
+    )
+  )).sort();
 }

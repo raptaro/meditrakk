@@ -189,6 +189,11 @@ DATABASES = {
     )
 }
 
+# maya
+MAYA_PUBLIC_KEY = os.getenv("MAYA_PUBLIC_KEY")
+MAYA_SECRET_KEY = os.getenv("MAYA_SECRET_KEY")
+MAYA_API_BASE_URL = os.getenv("MAYA_API_BASE_URL")
+FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 
 
@@ -297,12 +302,6 @@ EMAIL_HOST_USER = "ralphancheta000@gmail.com"
 EMAIL_HOST_PASSWORD = "rshc xsyo mdwg svjc"  # NOT your real Gmail password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-FRONTEND_URL = "http://localhost:3000"
-# Maya 
-MAYA_API_BASE_URL = "https://pg-sandbox.paymaya.com"
-MAYA_CHECKOUT_PAGE_URL = "https://payments-web-sandbox.paymaya.com"
-MAYA_PUBLIC_KEY = "pk-Z0OSzLvIcOI2UIvDhdTGVVfRSSeiGStnceqwUE7n0Ah"
-MAYA_SECRET_KEY = "sk-X8qolYjy62kIzEbr0QRK1h4b4KDVHaNcwMYk39jInSl"
-MAYA_ENVIRONMENT = "SANDBOX"
-PAYMENT_AMOUNT_APPOINTMENT = Decimal("500.00")
+
+
 
