@@ -19,28 +19,36 @@ class PayMayaService:
     @staticmethod
     def _get_basic_auth_header(use_public_key: bool = True) -> str:
         """
-        Build Basic auth header. 
-        - Use PUBLIC key for checkout creation
-        - Use SECRET key for payment status checks
+        Build Basic auth header with null checks
         """
-        if use_public_key:
-            key = settings.MAYA_PUBLIC_KEY
-            key_type = "PUBLIC"
-        else:
-            key = settings.MAYA_SECRET_KEY  
-            key_type = "SECRET"
+        try:
+            if use_public_key:
+                key = getattr(settings, 'MAYA_PUBLIC_KEY', None)
+                key_type = "PUBLIC"
+            else:
+                key = getattr(settings, 'MAYA_SECRET_KEY', None)
+                key_type = "SECRET"
+            
+            # Check if key exists and is not None
+            if not key:
+                error_msg = f"PayMaya {key_type} key is not set or is None"
+                logger.error(error_msg)
+                raise ValueError(error_msg)
+            
+            # Log the key (masked for security)
+            masked_key = key[:8] + "..." + key[-4:] if len(key) > 12 else "***"
+            logger.info(f"Using PayMaya {key_type} key: {masked_key}")
+            
+            # PayMaya expects "key:" format
+            creds = f"{key}:"
+            encoded = base64.b64encode(creds.encode()).decode()
+            
+            return f"Basic {encoded}"
+            
+        except Exception as e:
+            logger.exception(f"Error creating auth header: {e}")
+            raise
         
-        # Log the key (masked for security)
-        masked_key = key[:8] + "..." + key[-4:] if len(key) > 12 else "***"
-        logger.info(f"Using PayMaya {key_type} key: {masked_key}")
-        
-        # PayMaya typically expects "key:" format (with colon)
-        creds = f"{key}:"
-        encoded = base64.b64encode(creds.encode()).decode()
-        
-        auth_header = f"Basic {encoded}"
-        return auth_header
-
     @staticmethod
     def test_paymaya_auth():
         """
@@ -180,7 +188,24 @@ class PayMayaService:
         Create a PayMaya checkout session with enhanced error handling
         """
         try:
-            url = f"{settings.MAYA_API_BASE_URL.rstrip('/')}/checkout/v1/checkouts"
+            # Validate required settings first
+            required_settings = {
+                'MAYA_API_BASE_URL': getattr(settings, 'MAYA_API_BASE_URL', None),
+                'MAYA_PUBLIC_KEY': getattr(settings, 'MAYA_PUBLIC_KEY', None),
+                'FRONTEND_URL': getattr(settings, 'FRONTEND_URL', None)
+            }
+            
+            missing_settings = [key for key, value in required_settings.items() if not value]
+            if missing_settings:
+                error_msg = f"Missing required settings: {', '.join(missing_settings)}"
+                logger.error(error_msg)
+                return {"success": False, "error": error_msg}
+            
+            # Clean the URLs
+            base_url = required_settings['MAYA_API_BASE_URL'].rstrip('/')
+            frontend_url = required_settings['FRONTEND_URL'].rstrip('/')
+            
+            url = f"{base_url}/checkout/v1/checkouts"
                 
             logger.info(f"🎯 Creating PayMaya checkout for payment {payment.id}")
             logger.info(f"Amount: {payment.amount}, Patient: {patient.first_name}")
@@ -198,8 +223,8 @@ class PayMayaService:
                     }
                 },
                 "buyer": {
-                    "firstName": patient.first_name[:50],
-                    "lastName": patient.last_name[:50],
+                    "firstName": patient.first_name[:50] if patient.first_name else "",
+                    "lastName": patient.last_name[:50] if patient.last_name else "",
                     "contact": {
                         "phone": str(getattr(patient, "phone_number", "") or "")[:20],
                         "email": str(getattr(patient, "email", "") or "")[:100]
@@ -227,9 +252,9 @@ class PayMayaService:
                     }
                 ],
                 "redirectUrl": {
-                    "success": f"{settings.FRONTEND_URL.rstrip('/')}/payment/success?payment_id={payment.id}",
-                    "failure": f"{settings.FRONTEND_URL.rstrip('/')}/payment/failed?payment_id={payment.id}",
-                    "cancel": f"{settings.FRONTEND_URL.rstrip('/')}/payment/cancelled?payment_id={payment.id}"
+                    "success": f"{frontend_url}/payment/success?payment_id={payment.id}",
+                    "failure": f"{frontend_url}/payment/failed?payment_id={payment.id}",
+                    "cancel": f"{frontend_url}/payment/cancelled?payment_id={payment.id}"
                 },
                 "requestReferenceNumber": str(payment.id)[:50],
                 "metadata": {
@@ -239,12 +264,18 @@ class PayMayaService:
                 }
             }
 
+            # Get auth header with error handling
+            try:
+                auth_header = PayMayaService._get_basic_auth_header(use_public_key=True)
+            except ValueError as e:
+                return {"success": False, "error": str(e)}
+
             headers = {
                 "Content-Type": "application/json",
-                "Authorization": PayMayaService._get_basic_auth_header(use_public_key=True),
+                "Authorization": auth_header,
             }
 
-            logger.info(f"📤 Sending PayMaya request...")
+            logger.info(f"📤 Sending PayMaya request to: {url}")
             resp = requests.post(url, json=payload, headers=headers, timeout=DEFAULT_TIMEOUT)
             
             # Enhanced logging
@@ -287,7 +318,6 @@ class PayMayaService:
         except Exception as e:
             logger.exception(f"💥 Unexpected error in PayMaya create_checkout: {str(e)}")
             return {"success": False, "error": f"Unexpected error: {str(e)}"}
-
     @staticmethod
     def get_payment_status(checkout_id: str) -> Optional[Dict[str, Any]]:
         """
