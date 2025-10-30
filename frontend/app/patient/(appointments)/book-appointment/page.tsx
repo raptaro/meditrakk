@@ -487,7 +487,29 @@ export default function PatientBookAppointment() {
       setIsSubmitting(false);
     }
   };
+// Add this function to your component
+const checkPaymentStatus = async (paymentId: string) => {
+  try {
+    const token = localStorage.getItem("access");
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE}/payments/status/${paymentId}/`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
+    if (response.ok) {
+      return await response.json();
+    } else {
+      throw new Error('Failed to fetch payment status');
+    }
+  } catch (error) {
+    console.error('Error checking payment status:', error);
+    return null;
+  }
+};
   // Cancel endpoint (explicit cancel before payment)
   const cancelAppointmentRequest = async (appointmentRequestId?: number | string) => {
     if (!appointmentRequestId) return;
@@ -1311,7 +1333,68 @@ export default function PatientBookAppointment() {
                             </div>
                           </div>
                         )}
-
+                        {paymentStep === "success" && paymentMethod === "PayMaya" && (
+                          <div className="text-center py-8 space-y-4">
+                            <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
+                            <div>
+                              <h3 className="font-semibold text-slate-800">Payment Processing</h3>
+                              <p className="text-sm text-slate-600 mt-1">
+                                Your payment is being processed. This may take a few moments.
+                              </p>
+                            </div>
+                            
+                            {/* Webhook Test Button */}
+                          <Button 
+                            onClick={async () => {
+                              try {
+                                const token = localStorage.getItem("access");
+                                
+                                // Call the test webhook endpoint
+                                const response = await fetch(
+                                  `${process.env.NEXT_PUBLIC_API_BASE}/appointments/payments/${appointmentData?.payment_id}/test-webhook/`,
+                                  {
+                                    method: 'POST',
+                                    headers: {
+                                      'Authorization': `Bearer ${token}`,
+                                      'Content-Type': 'application/json'
+                                    }
+                                  }
+                                );
+                                
+                                const result = await response.json();
+                                console.log('Webhook test result:', result);
+                                
+                                if (result.success) {
+                                  // Wait a moment for the webhook to process, then check status
+                                  setTimeout(async () => {
+                                    const statusCheck = await checkPaymentStatus(appointmentData?.payment_id);
+                                    console.log('Status after webhook:', statusCheck);
+                                    
+                                    if (statusCheck?.payment_status === 'Paid') {
+                                      setPaymentStep("success");
+                                      setShowSuccess(true);
+                                      // Close the modal after success
+                                      setTimeout(() => {
+                                        setShowPaymentModal(false);
+                                      }, 2000);
+                                    } else {
+                                      setError('Payment status not updated. Please try again.');
+                                    }
+                                  }, 1000);
+                                } else {
+                                  setError(result.error || 'Webhook simulation failed');
+                                }
+                              } catch (error) {
+                                console.error('Webhook test failed:', error);
+                                setError('Webhook simulation failed');
+                              }
+                            }}
+                            variant="outline"
+                          >
+                            Simulate Webhook (Testing)
+                          </Button>
+                          </div>
+                        )}
                         {paymentStep === "success" && paymentMethod === "Gcash" && (
                           <div className="text-center py-8 space-y-4">
                             <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />

@@ -850,16 +850,7 @@ class CheckPaymentStatusAPIView(APIView):
             print(f"Error checking payment status: {str(e)}")
             return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
-# appointments/views.py (webhook simplified)
-import traceback
-from datetime import timedelta
-from django.utils import timezone
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework import status
-
-from .models import Payment, AppointmentRequest, AppointmentReservation, HOLD_MINUTES
-
+# appointments/views.py
 class PayMayaWebhookAPIView(APIView):
     authentication_classes = []
     permission_classes = []
@@ -867,36 +858,35 @@ class PayMayaWebhookAPIView(APIView):
     def post(self, request):
         try:
             payload = request.data
-            print(f"PayMaya Webhook Received: {payload}")
+            print(f"=== WEBHOOK RECEIVED ===")
+            print(f"Payload: {payload}")
 
-            # Extract checkout ID from different possible locations in payload
+            # Extract checkout ID from different possible locations
             checkout_id = (
-                payload.get("id") or  # Direct checkout ID
-                payload.get("checkoutId") or  # Alternative field name
-                payload.get("data", {}).get("id") or  # Nested in data
-                payload.get("data", {}).get("checkoutId")  # Nested checkoutId
+                payload.get("id") or
+                payload.get("checkoutId") or
+                payload.get("data", {}).get("id") or
+                payload.get("data", {}).get("checkoutId")
             )
 
             if not checkout_id:
-                print("Webhook error: Missing checkout ID")
-                return Response({"error": "missing checkout id"}, status=status.HTTP_400_BAD_REQUEST)
+                print("❌ Webhook error: Missing checkout ID")
+                return Response({"status": "missing_checkout_id"}, status=status.HTTP_200_OK)  # Return 200 to stop retries
 
             print(f"Looking for payment with checkout_id: {checkout_id}")
 
-            # Try find payment by paymaya_reference_id
             try:
                 payment = Payment.objects.get(paymaya_reference_id=checkout_id)
-                print(f"Found payment: {payment.id}, status: {payment.status}")
+                print(f"Found payment: {payment.id}, current status: {payment.status}")
             except Payment.DoesNotExist:
-                print(f"Payment with checkout_id {checkout_id} not found")
-                # Log and return 200 to avoid webhook retries
+                print(f"❌ Payment with checkout_id {checkout_id} not found")
                 return Response({"status": "payment_not_found"}, status=status.HTTP_200_OK)
 
-            # Save the full payload for debugging
-            payment.paymaya_response = payload
-            payment.save(update_fields=["paymaya_response", "updated_at"])
+            # Save webhook payload for debugging
+            payment.paymaya_webhook_response = payload
+            payment.save(update_fields=["paymaya_webhook_response", "updated_at"])
 
-            # Extract payment status from different possible locations
+            # Extract payment status
             payment_status = (
                 payload.get("status") or
                 payload.get("data", {}).get("status") or
@@ -905,40 +895,39 @@ class PayMayaWebhookAPIView(APIView):
             )
 
             event_type = payload.get("type")
-
             print(f"Event type: {event_type}, Payment status: {payment_status}")
 
             # Handle successful payment
             if (event_type == "CHECKOUT_SUCCESS" or 
                 payment_status in ["PAYMENT_SUCCESS", "PAYMENT_SUCCESSFUL", "success"]):
                 
-                print("Processing successful payment...")
+                print("🎯 Processing successful payment...")
 
-                # Idempotency: if already processed, return success
+                # Idempotency check
                 if payment.status == "Paid":
-                    print("Payment already marked as Paid")
+                    print("✅ Payment already marked as Paid")
                     return Response({"status": "already_processed"}, status=status.HTTP_200_OK)
 
                 # Update payment status
                 payment.status = "Paid"
                 payment.save(update_fields=["status", "updated_at"])
-                print(f"Payment {payment.id} marked as Paid")
+                print(f"✅ Payment {payment.id} marked as Paid")
 
                 # Update appointment request status
                 if payment.appointment_request:
                     appt_request = payment.appointment_request
                     appt_request.status = "paid"
                     appt_request.save(update_fields=["status", "updated_at"])
-                    print(f"AppointmentRequest {appt_request.id} marked as paid")
+                    print(f"✅ AppointmentRequest {appt_request.id} marked as paid")
 
                     # Extend reservation expiry
                     try:
                         reservation = appt_request.reservation
                         reservation.expires_at = timezone.now() + timedelta(minutes=HOLD_MINUTES + 5)
                         reservation.save(update_fields=["expires_at", "updated_at"])
-                        print(f"Reservation extended to {reservation.expires_at}")
+                        print(f"✅ Reservation extended to {reservation.expires_at}")
                     except AppointmentReservation.DoesNotExist:
-                        print("No reservation found to extend")
+                        print("ℹ️ No reservation found to extend")
 
                 return Response({"status": "success_processed"}, status=status.HTTP_200_OK)
 
@@ -946,38 +935,34 @@ class PayMayaWebhookAPIView(APIView):
             elif (event_type in ["CHECKOUT_FAILURE", "CHECKOUT_DROPOUT"] or 
                   payment_status in ["PAYMENT_FAILED", "PAYMENT_EXPIRED", "failed"]):
                 
-                print("Processing failed payment...")
-
+                print("❌ Processing failed payment...")
                 payment.status = "Failed"
                 payment.save(update_fields=["status", "updated_at"])
-                print(f"Payment {payment.id} marked as Failed")
 
-                # Update appointment request status
                 if payment.appointment_request:
                     appt_request = payment.appointment_request
                     appt_request.status = "cancelled"
                     appt_request.save(update_fields=["status", "updated_at"])
-                    print(f"AppointmentRequest {appt_request.id} marked as cancelled")
-
-                    # Remove reservation to free up slot
+                    
                     try:
                         reservation = appt_request.reservation
                         reservation.delete()
-                        print("Reservation deleted")
+                        print("✅ Reservation deleted")
                     except AppointmentReservation.DoesNotExist:
-                        print("No reservation found to delete")
+                        print("ℹ️ No reservation found to delete")
 
                 return Response({"status": "failed_processed"}, status=status.HTTP_200_OK)
 
-            # Unhandled events
-            print(f"Unhandled event type: {event_type}, status: {payment_status}")
+            # Unhandled event type
+            print(f"⚠️ Unhandled event: {event_type}, status: {payment_status}")
             return Response({"status": "ignored"}, status=status.HTTP_200_OK)
 
         except Exception as e:
-            print(f"Webhook processing error: {str(e)}")
+            print(f"💥 Webhook processing error: {str(e)}")
+            import traceback
             traceback.print_exc()
-            return Response({"error": "server error"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
+            # Still return 200 to prevent Maya from retrying
+            return Response({"status": "error_but_no_retry"}, status=status.HTTP_200_OK)
 
 class UploadGcashProofAPIView(APIView):
     """
