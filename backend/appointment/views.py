@@ -792,38 +792,39 @@ class BookAppointmentAPIView(APIView):
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+# appointments/views.py
 class CheckPaymentStatusAPIView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request, payment_id):
+        """
+        Check payment status with automatic PayMaya sync
+        """
         try:
-            payment = Payment.objects.get(
+            payment = Payment.objects.select_related(
+                'appointment_request', 
+                'appointment'
+            ).get(
                 id=payment_id,
                 patient=request.user.patient_profile
             )
 
-            # If PayMaya payment is still Pending, check with PayMaya API
-            if payment.payment_method == 'PayMaya' and payment.status == 'Pending':
-                if payment.paymaya_reference_id:
-                    print(f"Checking PayMaya status for reference: {payment.paymaya_reference_id}")
-                    paymaya_status = PayMayaService.get_payment_status(payment.paymaya_reference_id)
-                    
-                    if paymaya_status and paymaya_status.get('status') in ['PAYMENT_SUCCESS', 'PAYMENT_SUCCESSFUL']:
-                        # Update payment status
-                        payment.status = 'Paid'
-                        payment.save(update_fields=['status', 'updated_at'])
-                        
-                        # Update appointment request status
-                        if payment.appointment_request:
-                            payment.appointment_request.status = 'paid'
-                            payment.appointment_request.save(update_fields=['status', 'updated_at'])
-                        print(f"Payment {payment.id} updated to Paid via status check")
+            logger.info(f"🔍 Checking payment status for {payment_id}: {payment.status}")
+
+            # If PayMaya payment is pending, sync with PayMaya
+            if (payment.payment_method == 'PayMaya' and 
+                payment.status == 'Pending' and 
+                payment.paymaya_reference_id):
+                
+                logger.info(f"🔄 Syncing with PayMaya for reference: {payment.paymaya_reference_id}")
+                self._sync_with_paymaya(payment)
 
             response_data = {
                 'payment_id': payment.id,
                 'payment_status': payment.status,
                 'payment_method': payment.payment_method,
                 'amount': str(payment.amount),
+                'paymaya_reference_id': payment.paymaya_reference_id,
             }
 
             # Include appointment request info
@@ -842,128 +843,362 @@ class CheckPaymentStatusAPIView(APIView):
                     'appointment_status': payment.appointment.status,
                 })
 
+            logger.info(f"📤 Returning payment status: {response_data['payment_status']}")
             return Response(response_data)
 
         except Payment.DoesNotExist:
-            return Response({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)
+            logger.error(f"❌ Payment {payment_id} not found for user {request.user.id}")
+            return Response(
+                {'error': 'Payment not found'}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
         except Exception as e:
-            print(f"Error checking payment status: {str(e)}")
-            return Response({'error': 'Internal server error'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.error(f"💥 Error checking payment status: {str(e)}", exc_info=True)
+            return Response(
+                {'error': 'Internal server error'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def _sync_with_paymaya(self, payment):
+        """
+        Sync payment status with PayMaya API
+        """
+        try:
+            from .services.paymaya import PayMayaService
+            paymaya_status = PayMayaService.get_payment_status(payment.paymaya_reference_id)
+            
+            if paymaya_status and paymaya_status.get('status') in ['PAYMENT_SUCCESS', 'PAYMENT_SUCCESSFUL']:
+                with transaction.atomic():
+                    payment.status = 'Paid'
+                    payment.save(update_fields=['status', 'updated_at'])
+                    
+                    if payment.appointment_request:
+                        payment.appointment_request.status = 'paid'
+                        payment.appointment_request.save(update_fields=['status', 'updated_at'])
+                    
+                    logger.info(f"✅ Payment {payment.id} synced to Paid via API")
+                    
+        except Exception as e:
+            logger.error(f"⚠️ PayMaya sync failed: {str(e)}")
 
 # appointments/views.py
+# appointments/views.py
+import json
+import logging
+from django.db import transaction
+from django.utils import timezone
+from datetime import timedelta
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .models import Payment, AppointmentRequest, AppointmentReservation
+
+logger = logging.getLogger(__name__)
+# views.py - Replace your PayMayaWebhookAPIView with this
 class PayMayaWebhookAPIView(APIView):
+    """
+    PayMaya Webhook Handler - Must always return 200 to prevent retries
+    """
     authentication_classes = []
     permission_classes = []
 
     def post(self, request):
+        webhook_data = request.data
+        logger.info(f"🔔 PayMaya Webhook Received: {webhook_data}")
+        
         try:
-            payload = request.data
-            print(f"=== WEBHOOK RECEIVED ===")
-            print(f"Payload: {payload}")
-
-            # Extract checkout ID from different possible locations
-            checkout_id = (
-                payload.get("id") or
-                payload.get("checkoutId") or
-                payload.get("data", {}).get("id") or
-                payload.get("data", {}).get("checkoutId")
-            )
-
+            # Extract checkout ID from webhook payload
+            checkout_id = self._extract_checkout_id(webhook_data)
             if not checkout_id:
-                print("❌ Webhook error: Missing checkout ID")
-                return Response({"status": "missing_checkout_id"}, status=status.HTTP_200_OK)  # Return 200 to stop retries
+                logger.error("❌ Webhook missing checkout ID")
+                return Response({"status": "missing_checkout_id"}, status=status.HTTP_200_OK)
 
-            print(f"Looking for payment with checkout_id: {checkout_id}")
+            logger.info(f"🔍 Processing webhook for checkout: {checkout_id}")
 
+            # Find payment by PayMaya reference
             try:
                 payment = Payment.objects.get(paymaya_reference_id=checkout_id)
-                print(f"Found payment: {payment.id}, current status: {payment.status}")
+                logger.info(f"✅ Found payment {payment.id}, current status: {payment.status}")
             except Payment.DoesNotExist:
-                print(f"❌ Payment with checkout_id {checkout_id} not found")
+                logger.error(f"❌ Payment not found for checkout: {checkout_id}")
                 return Response({"status": "payment_not_found"}, status=status.HTTP_200_OK)
 
-            # Save webhook payload for debugging
-            payment.paymaya_webhook_response = payload
-            payment.save(update_fields=["paymaya_webhook_response", "updated_at"])
+            # Save webhook payload for debugging - USING CORRECT FIELD NAME
+            payment.paymaya_response = webhook_data  # Changed from paymaya_webhook_response
+            payment.save(update_fields=['paymaya_response', 'updated_at'])
 
-            # Extract payment status
-            payment_status = (
-                payload.get("status") or
-                payload.get("data", {}).get("status") or
-                payload.get("paymentStatus") or
-                payload.get("data", {}).get("paymentStatus")
-            )
+            # Process based on webhook type
+            event_type = webhook_data.get('type')
+            payment_status = self._extract_payment_status(webhook_data)
 
-            event_type = payload.get("type")
-            print(f"Event type: {event_type}, Payment status: {payment_status}")
+            logger.info(f"📊 Webhook Event: {event_type}, Payment Status: {payment_status}")
 
-            # Handle successful payment
-            if (event_type == "CHECKOUT_SUCCESS" or 
-                payment_status in ["PAYMENT_SUCCESS", "PAYMENT_SUCCESSFUL", "success"]):
-                
-                print("🎯 Processing successful payment...")
-
-                # Idempotency check
-                if payment.status == "Paid":
-                    print("✅ Payment already marked as Paid")
-                    return Response({"status": "already_processed"}, status=status.HTTP_200_OK)
-
-                # Update payment status
-                payment.status = "Paid"
-                payment.save(update_fields=["status", "updated_at"])
-                print(f"✅ Payment {payment.id} marked as Paid")
-
-                # Update appointment request status
-                if payment.appointment_request:
-                    appt_request = payment.appointment_request
-                    appt_request.status = "paid"
-                    appt_request.save(update_fields=["status", "updated_at"])
-                    print(f"✅ AppointmentRequest {appt_request.id} marked as paid")
-
-                    # Extend reservation expiry
-                    try:
-                        reservation = appt_request.reservation
-                        reservation.expires_at = timezone.now() + timedelta(minutes=HOLD_MINUTES + 5)
-                        reservation.save(update_fields=["expires_at", "updated_at"])
-                        print(f"✅ Reservation extended to {reservation.expires_at}")
-                    except AppointmentReservation.DoesNotExist:
-                        print("ℹ️ No reservation found to extend")
-
-                return Response({"status": "success_processed"}, status=status.HTTP_200_OK)
-
-            # Handle failed payment
-            elif (event_type in ["CHECKOUT_FAILURE", "CHECKOUT_DROPOUT"] or 
-                  payment_status in ["PAYMENT_FAILED", "PAYMENT_EXPIRED", "failed"]):
-                
-                print("❌ Processing failed payment...")
-                payment.status = "Failed"
-                payment.save(update_fields=["status", "updated_at"])
-
-                if payment.appointment_request:
-                    appt_request = payment.appointment_request
-                    appt_request.status = "cancelled"
-                    appt_request.save(update_fields=["status", "updated_at"])
-                    
-                    try:
-                        reservation = appt_request.reservation
-                        reservation.delete()
-                        print("✅ Reservation deleted")
-                    except AppointmentReservation.DoesNotExist:
-                        print("ℹ️ No reservation found to delete")
-
-                return Response({"status": "failed_processed"}, status=status.HTTP_200_OK)
-
-            # Unhandled event type
-            print(f"⚠️ Unhandled event: {event_type}, status: {payment_status}")
-            return Response({"status": "ignored"}, status=status.HTTP_200_OK)
+            if event_type == "CHECKOUT_SUCCESS" or payment_status in ["PAYMENT_SUCCESS", "PAYMENT_SUCCESSFUL"]:
+                return self._handle_successful_payment(payment)
+            elif event_type in ["CHECKOUT_FAILURE", "CHECKOUT_DROPOUT"] or payment_status in ["PAYMENT_FAILED", "PAYMENT_EXPIRED"]:
+                return self._handle_failed_payment(payment)
+            else:
+                logger.warning(f"⚠️ Unhandled webhook event: {event_type}")
+                return Response({"status": "ignored"}, status=status.HTTP_200_OK)
 
         except Exception as e:
-            print(f"💥 Webhook processing error: {str(e)}")
-            import traceback
-            traceback.print_exc()
-            # Still return 200 to prevent Maya from retrying
-            return Response({"status": "error_but_no_retry"}, status=status.HTTP_200_OK)
+            logger.error(f"💥 Webhook processing error: {str(e)}", exc_info=True)
+            # Always return 200 to prevent PayMaya retries
+            return Response({"status": "error_processed"}, status=status.HTTP_200_OK)
 
+    def _extract_checkout_id(self, payload):
+        """Extract checkout ID from various possible locations in payload"""
+        return (
+            payload.get('id') or
+            payload.get('checkoutId') or
+            payload.get('data', {}).get('id') or
+            payload.get('data', {}).get('checkoutId')
+        )
+
+    def _extract_payment_status(self, payload):
+        """Extract payment status from various possible locations in payload"""
+        return (
+            payload.get('status') or
+            payload.get('paymentStatus') or
+            payload.get('data', {}).get('status') or
+            payload.get('data', {}).get('paymentStatus')
+        )
+
+    # In your PayMayaWebhookAPIView, replace the _handle_successful_payment method:
+    def _handle_successful_payment(self, payment):
+        """Handle successful payment with transaction safety"""
+        logger.info(f"🎯 Processing successful payment for {payment.id}")
+        
+        # Idempotency check
+        if payment.status == 'Paid':
+            logger.info("✅ Payment already marked as Paid")
+            return Response({"status": "already_processed"}, status=status.HTTP_200_OK)
+
+        try:
+            with transaction.atomic():
+                # Update payment status ONLY - remove paid_at
+                payment.status = 'Paid'
+                payment.save(update_fields=['status', 'updated_at'])  # REMOVED paid_at
+                logger.info(f"✅ Payment {payment.id} updated to Paid")
+
+                # Update appointment request
+                if payment.appointment_request:
+                    appt_request = payment.appointment_request
+                    appt_request.status = 'paid'
+                    appt_request.save(update_fields=['status', 'updated_at'])
+                    logger.info(f"✅ AppointmentRequest {appt_request.id} updated to paid")
+
+            # Handle reservation extension
+            self._handle_reservation_extension(payment)
+            
+            logger.info("🎉 Successfully processed payment webhook")
+            return Response({"status": "success_processed"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"💥 Error in payment success handling: {str(e)}", exc_info=True)
+            return Response({"status": "error_in_success_handling"}, status=status.HTTP_200_OK)
+
+    def _handle_failed_payment(self, payment):
+        """Handle failed payment"""
+        logger.info(f"❌ Processing failed payment for {payment.id}")
+        
+        try:
+            with transaction.atomic():
+                payment.status = 'Failed'
+                payment.save(update_fields=['status', 'updated_at'])
+
+                if payment.appointment_request:
+                    appt_request = payment.appointment_request
+                    appt_request.status = 'cancelled'
+                    appt_request.save(update_fields=['status', 'updated_at'])
+
+            # Delete reservation if exists
+            self._handle_reservation_cleanup(payment)
+            
+            return Response({"status": "failed_processed"}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            logger.error(f"💥 Error in payment failure handling: {str(e)}")
+            return Response({"status": "error_in_failure_handling"}, status=status.HTTP_200_OK)
+
+    def _handle_reservation_extension(self, payment):
+        """Extend reservation expiry for successful payments"""
+        try:
+            if payment.appointment_request:
+                reservation = payment.appointment_request.reservation
+                if reservation:
+                    reservation.expires_at = timezone.now() + timedelta(minutes=60)
+                    reservation.save(update_fields=['expires_at', 'updated_at'])
+                    logger.info(f"✅ Reservation extended to {reservation.expires_at}")
+        except AppointmentReservation.DoesNotExist:
+            logger.warning("⚠️ No reservation found to extend")
+        except Exception as e:
+            logger.error(f"⚠️ Reservation extension failed: {str(e)}")
+
+    def _handle_reservation_cleanup(self, payment):
+        """Clean up reservation for failed payments"""
+        try:
+            if payment.appointment_request:
+                reservation = payment.appointment_request.reservation
+                if reservation:
+                    reservation.delete()
+                    logger.info("✅ Reservation deleted for failed payment")
+        except Exception as e:
+            logger.error(f"⚠️ Reservation cleanup failed: {str(e)}")
+class SecretaryAppointmentAPIView(APIView):
+    """
+    API for secretary to manage appointments
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """
+        Get all appointments for secretary dashboard
+        """
+        status_filter = request.GET.get('status', '')
+        payment_status = request.GET.get('payment_status', '')
+        
+        appointments = Appointment.objects.select_related(
+            'patient', 'doctor', 'payment'
+        ).all()
+        
+        if status_filter:
+            appointments = appointments.filter(status=status_filter)
+        
+        if payment_status:
+            appointments = appointments.filter(payment__status=payment_status)
+        
+        serializer = AppointmentDetailSerializer(appointments, many=True)
+        return Response(serializer.data)
+    
+    def patch(self, request, appointment_id):
+        """
+        Update appointment status (for secretary)
+        """
+        try:
+            appointment = Appointment.objects.get(id=appointment_id)
+            new_status = request.data.get('status')
+            action = request.data.get('action')
+            
+            if action == 'verify_payment':
+                # Verify any pending payment
+                if appointment.payment.status == 'Pending':
+                    appointment.payment.status = 'Paid'
+                    appointment.payment.save()
+                    appointment.status = 'Scheduled'
+                    appointment.save()
+                    
+                    return Response({
+                        'message': 'Payment verified and appointment scheduled'
+                    })
+            
+            elif action == 'reject_payment':
+                if appointment.payment.status == 'Pending':
+                    appointment.payment.status = 'Failed'
+                    appointment.payment.save()
+                    appointment.status = 'Cancelled'
+                    appointment.save()
+                    
+                    return Response({
+                        'message': 'Payment rejected and appointment cancelled'
+                    })
+            
+            elif new_status and new_status in dict(Appointment.STATUS):
+                appointment.status = new_status
+                appointment.save()
+                
+                return Response({
+                    'message': f'Appointment status updated to {new_status}'
+                })
+            
+            return Response({
+                'error': 'Invalid action or status'
+            }, status=status.HTTP_400_BAD_REQUEST)
+            
+        except Appointment.DoesNotExist:
+            return Response({
+                'error': 'Appointment not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+# appointments/views.py (cancel endpoint)
+from django.db import transaction
+from rest_framework.views import APIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from rest_framework import status
+from django.shortcuts import get_object_or_404
+
+from .models import AppointmentRequest, AppointmentReservation, Payment
+
+class CancelAppointmentRequestAPIView(APIView):
+    """
+    Cancel a pending appointment request.
+    Deletes AppointmentRequest, its Reservation, and its Payment (if Payment.status is Pending/Failed).
+    Refuses to cancel if Payment.status == 'Paid' or request already scheduled.
+
+    Endpoint: POST /api/appointment-requests/<request_id>/cancel/
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, request_id):
+        # Fetch request and check ownership
+        appt_req = get_object_or_404(AppointmentRequest, id=request_id)
+
+        # Ensure the user owns this request (patient)
+        # Adjust this check to your user->patient relation attribute name
+        if not hasattr(request.user, 'patient_profile') or appt_req.patient != request.user.patient_profile:
+            return Response({'error': 'You are not allowed to cancel this request.'},
+                            status=status.HTTP_403_FORBIDDEN)
+
+        # Disallow cancelling already scheduled or already cancelled/expired requests
+        if appt_req.status in ('scheduled',):
+            return Response({'error': 'This request has already been scheduled and cannot be cancelled here.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        if appt_req.status in ('cancelled', 'expired'):
+            # idempotent: returning success if already cancelled/expired
+            return Response({'detail': f'Request already {appt_req.status}.'}, status=status.HTTP_200_OK)
+
+        # If there's a linked payment, inspect its status
+        payment = getattr(appt_req, 'payment', None)
+        if payment and payment.status == 'Paid':
+            # We avoid automatically deleting records for paid requests.
+            # Business decision: instruct user to contact support or trigger refund workflow.
+            return Response({
+                'error': 'Payment has already been completed. To cancel and request a refund, please contact support or follow the refund process.'
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # Perform deletion inside a transaction to avoid partial cleanup
+        try:
+            with transaction.atomic():
+                # Delete reservation if exists
+                try:
+                    reservation = appt_req.reservation
+                    reservation.delete()
+                except AppointmentReservation.DoesNotExist:
+                    pass
+
+                # Delete or mark payment appropriately
+                if payment:
+                    # If payment is pending or failed, safely delete it (or mark cancelled if you prefer)
+                    if payment.status in ('Pending', 'Failed'):
+                        payment.delete()
+                    else:
+                        # defensive: should not reach here because we checked Paid above
+                        payment.status = 'Failed'
+                        payment.save(update_fields=['status', 'updated_at'])
+
+                # Finally delete the appointment request
+                appt_req.delete()
+
+            return Response({'detail': 'Appointment request cancelled and temporary records removed.'},
+                            status=status.HTTP_200_OK)
+
+        except Exception as e:
+            # Log the exception server-side as needed
+            print(f"Error cancelling appointment request {appt_req.id}: {e}")
+            return Response({'error': 'Failed to cancel appointment request. Try again later.'},
+                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 class UploadGcashProofAPIView(APIView):
     """
     API for uploading GCash payment proof for AppointmentRequest
@@ -1125,83 +1360,228 @@ class SecretaryAppointmentAPIView(APIView):
             return Response({
                 'error': 'Appointment not found'
             }, status=status.HTTP_404_NOT_FOUND)
-
-# appointments/views.py (cancel endpoint)
-from django.db import transaction
-from rest_framework.views import APIView
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework import status
-from django.shortcuts import get_object_or_404
-
-from .models import AppointmentRequest, AppointmentReservation, Payment
-
-class CancelAppointmentRequestAPIView(APIView):
+# appointments/views.py
+class TestWebhookAPIView(APIView):
     """
-    Cancel a pending appointment request.
-    Deletes AppointmentRequest, its Reservation, and its Payment (if Payment.status is Pending/Failed).
-    Refuses to cancel if Payment.status == 'Paid' or request already scheduled.
-
-    Endpoint: POST /api/appointment-requests/<request_id>/cancel/
+    Test endpoint to simulate PayMaya webhook (for development)
     """
     permission_classes = [IsAuthenticated]
 
-    def post(self, request, request_id):
-        # Fetch request and check ownership
-        appt_req = get_object_or_404(AppointmentRequest, id=request_id)
+    def post(self, request, payment_id):
+        try:
+            payment = Payment.objects.get(
+                id=payment_id,
+                patient=request.user.patient_profile
+            )
 
-        # Ensure the user owns this request (patient)
-        # Adjust this check to your user->patient relation attribute name
-        if not hasattr(request.user, 'patient_profile') or appt_req.patient != request.user.patient_profile:
-            return Response({'error': 'You are not allowed to cancel this request.'},
-                            status=status.HTTP_403_FORBIDDEN)
+            if not payment.paymaya_reference_id:
+                return Response({'error': 'No PayMaya reference ID'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Disallow cancelling already scheduled or already cancelled/expired requests
-        if appt_req.status in ('scheduled',):
-            return Response({'error': 'This request has already been scheduled and cannot be cancelled here.'},
-                            status=status.HTTP_400_BAD_REQUEST)
+            # Simulate PayMaya webhook payload
+            webhook_payload = {
+                "id": payment.paymaya_reference_id,
+                "type": "CHECKOUT_SUCCESS",
+                "data": {
+                    "status": "PAYMENT_SUCCESS",
+                    "checkoutId": payment.paymaya_reference_id,
+                    "paymentId": f"pay_{payment.paymaya_reference_id}",
+                    "paymentStatus": "PAYMENT_SUCCESS",
+                    "amount": float(payment.amount),
+                    "currency": "PHP",
+                    "createdAt": timezone.now().isoformat(),
+                    "updatedAt": timezone.now().isoformat()
+                }
+            }
 
-        if appt_req.status in ('cancelled', 'expired'):
-            # idempotent: returning success if already cancelled/expired
-            return Response({'detail': f'Request already {appt_req.status}.'}, status=status.HTTP_200_OK)
+            # Call webhook internally
+            webhook_view = PayMayaWebhookAPIView()
+            webhook_view.request = request._request
+            response = webhook_view.post(request._request)
+            
+            # Refresh payment status
+            payment.refresh_from_db()
 
-        # If there's a linked payment, inspect its status
-        payment = getattr(appt_req, 'payment', None)
-        if payment and payment.status == 'Paid':
-            # We avoid automatically deleting records for paid requests.
-            # Business decision: instruct user to contact support or trigger refund workflow.
             return Response({
-                'error': 'Payment has already been completed. To cancel and request a refund, please contact support or follow the refund process.'
-            }, status=status.HTTP_400_BAD_REQUEST)
+                'message': 'Webhook simulation completed',
+                'webhook_response': response.data,
+                'current_payment_status': payment.status,
+                'appointment_request_status': payment.appointment_request.status if payment.appointment_request else None
+            })
 
-        # Perform deletion inside a transaction to avoid partial cleanup
+        except Payment.DoesNotExist:
+            return Response({'error': 'Payment not found'}, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Webhook test error: {str(e)}", exc_info=True)
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+# views.py
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.utils import timezone
+from django.db import transaction
+import logging
+from .models import Payment, AppointmentRequest, AppointmentReservation
+
+logger = logging.getLogger(__name__)
+
+class TestWebhookAPIView(APIView):
+    """
+    API View to test PayMaya webhook functionality
+    """
+    permission_classes = []  # No authentication for testing
+    
+    def get(self, request, payment_id=None):
+        """
+        Get payment status and info
+        """
+        try:
+            if not payment_id:
+                return Response(
+                    {"error": "Payment ID required in URL"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            payment = Payment.objects.get(id=payment_id)
+            
+            response_data = {
+                "payment_id": payment.id,
+                "current_status": payment.status,
+                "payment_method": payment.payment_method,
+                "amount": str(payment.amount),
+                "paymaya_reference_id": payment.paymaya_reference_id,
+                "paymaya_response": payment.paymaya_response,
+                "appointment_request_id": payment.appointment_request.id if payment.appointment_request else None,
+                "appointment_request_status": payment.appointment_request.status if payment.appointment_request else None,
+                "created_at": payment.created_at,
+                "updated_at": payment.updated_at
+            }
+            
+            return Response(response_data)
+            
+        except Payment.DoesNotExist:
+            return Response({"error": "Payment not found"}, status=404)
+        except Exception as e:
+            logger.error(f"Error in test webhook GET: {str(e)}")
+            return Response({"error": str(e)}, status=500)
+
+    def post(self, request, payment_id=None):
+        """
+        Test webhook for a specific payment - SIMULATES PayMaya webhook
+        """
+        try:
+            logger.info(f"🔔 TEST WEBHOOK REQUEST for payment: {payment_id}")
+            
+            # If no payment_id in URL, check in request data
+            if not payment_id:
+                payment_id = request.data.get('payment_id')
+            
+            if not payment_id:
+                return Response(
+                    {"error": "Payment ID required. Provide in URL or request body."},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Find the payment
+            try:
+                payment = Payment.objects.get(id=payment_id)
+                logger.info(f"✅ Found payment {payment.id}, current status: {payment.status}")
+            except Payment.DoesNotExist:
+                logger.error(f"❌ Payment not found: {payment_id}")
+                return Response(
+                    {"error": f"Payment {payment_id} not found"},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Process payment directly (simulate webhook logic)
+            return self._process_test_payment(payment)
+            
+        except Exception as e:
+            logger.error(f"💥 Test webhook error: {str(e)}", exc_info=True)
+            return Response(
+                {"error": f"Test webhook failed: {str(e)}"},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def _process_test_payment(self, payment):
+        """Process test payment with transaction safety"""
+        logger.info(f"🎯 Processing test payment for {payment.id}")
+        
+        # Idempotency check
+        if payment.status == 'Paid':
+            logger.info("✅ Payment already marked as Paid")
+            return Response(
+                {"status": "already_processed", "payment_id": payment.id}, 
+                status=status.HTTP_200_OK
+            )
+
         try:
             with transaction.atomic():
-                # Delete reservation if exists
-                try:
-                    reservation = appt_req.reservation
-                    reservation.delete()
-                except AppointmentReservation.DoesNotExist:
-                    pass
+                # Update payment status
+                payment.status = 'Paid'
+                
+                # Store test response in paymaya_response field
+                payment.paymaya_response = {
+                    "test_webhook": True,
+                    "type": "CHECKOUT_SUCCESS", 
+                    "status": "PAYMENT_SUCCESS",
+                    "processed_at": timezone.now().isoformat(),
+                    "simulated": True
+                }
+                
+                payment.save(update_fields=['status', 'paymaya_response', 'updated_at'])
+                logger.info(f"✅ Payment {payment.id} updated to Paid")
 
-                # Delete or mark payment appropriately
-                if payment:
-                    # If payment is pending or failed, safely delete it (or mark cancelled if you prefer)
-                    if payment.status in ('Pending', 'Failed'):
-                        payment.delete()
-                    else:
-                        # defensive: should not reach here because we checked Paid above
-                        payment.status = 'Failed'
-                        payment.save(update_fields=['status', 'updated_at'])
+                # Update appointment request
+                if payment.appointment_request:
+                    appt_request = payment.appointment_request
+                    appt_request.status = 'paid'
+                    appt_request.save(update_fields=['status', 'updated_at'])
+                    logger.info(f"✅ AppointmentRequest {appt_request.id} updated to paid")
 
-                # Finally delete the appointment request
-                appt_req.delete()
-
-            return Response({'detail': 'Appointment request cancelled and temporary records removed.'},
-                            status=status.HTTP_200_OK)
+            # Handle reservation extension
+            self._handle_reservation_extension(payment)
+            
+            logger.info(f"🎉 Successfully processed test payment for {payment.id}")
+            return Response(
+                {
+                    "status": "success_processed", 
+                    "payment_id": payment.id,
+                    "appointment_request_id": payment.appointment_request.id if payment.appointment_request else None,
+                    "message": "Test payment completed successfully",
+                    "new_payment_status": "Paid",
+                    "new_appointment_request_status": payment.appointment_request.status if payment.appointment_request else None
+                }, 
+                status=status.HTTP_200_OK
+            )
 
         except Exception as e:
-            # Log the exception server-side as needed
-            print(f"Error cancelling appointment request {appt_req.id}: {e}")
-            return Response({'error': 'Failed to cancel appointment request. Try again later.'},
-                            status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            logger.error(f"💥 Error in test payment processing: {str(e)}", exc_info=True)
+            return Response(
+                {"status": "error_processed", "error": str(e)}, 
+                status=status.HTTP_200_OK
+            )
+
+    def _handle_reservation_extension(self, payment):
+        """Extend reservation expiry for successful payments"""
+        try:
+            if payment.appointment_request:
+                # Try to get existing reservation or create one
+                reservation, created = AppointmentReservation.objects.get_or_create(
+                    appointment_request=payment.appointment_request,
+                    defaults={
+                        'doctor': payment.appointment_request.doctor,
+                        'appointment_datetime': payment.appointment_request.requested_datetime,
+                        'expires_at': timezone.now() + timedelta(minutes=60)
+                    }
+                )
+                
+                if not created:
+                    reservation.expires_at = timezone.now() + timedelta(minutes=60)
+                    reservation.save(update_fields=['expires_at', 'updated_at'])
+                
+                logger.info(f"✅ Reservation {'created' if created else 'extended'} to {reservation.expires_at}")
+                
+        except Exception as e:
+            logger.error(f"⚠️ Reservation handling failed: {str(e)}")

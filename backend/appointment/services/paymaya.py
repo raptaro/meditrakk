@@ -325,9 +325,11 @@ class PayMayaService:
         Uses SECRET key for authentication
         """
         try:
-            url = f"{settings.MAYA_API_BASE_URL.rstrip('/')}/payments/v1/checkouts/{checkout_id}/payments"
+            # CORRECT ENDPOINT - Get checkout details (not payments list)
+            url = f"{settings.MAYA_API_BASE_URL.rstrip('/')}/payments/v1/checkouts/{checkout_id}"
+            
             headers = {
-                "Authorization": PayMayaService._get_basic_auth_header(use_public_key=False),  # Use SECRET key
+                "Authorization": PayMayaService._get_basic_auth_header(use_public_key=False),
             }
             
             logger.info(f"Checking payment status for checkout: {checkout_id}")
@@ -338,24 +340,15 @@ class PayMayaService:
                 return None
 
             payload = resp.json()
-            payments = payload if isinstance(payload, list) else payload.get("payments") or []
-
-            if not payments:
-                return {"status": "NO_PAYMENTS", "raw": payload}
-
-            # Get latest payment
-            latest = payments[0]
-            try:
-                latest = max(payments, key=lambda p: p.get("createdAt") or p.get("created_at") or "")
-            except Exception:
-                latest = payments[0]
-
+            
+            # Parse checkout response (different structure)
             return {
-                "status": latest.get("status"),
-                "payment_id": latest.get("id") or latest.get("paymentId"),
-                "amount": latest.get("amount"),
-                "currency": latest.get("currency"),
-                "paid_at": latest.get("createdAt") or latest.get("created_at"),
+                "status": payload.get("status"),  # CHECKOUT_SUCCESS, CHECKOUT_FAILED, etc.
+                "payment_status": payload.get("paymentStatus"),  # PAYMENT_SUCCESS, PAYMENT_FAILED
+                "checkout_id": payload.get("id"),
+                "amount": payload.get("amount", {}).get("value") if isinstance(payload.get("amount"), dict) else payload.get("amount"),
+                "currency": payload.get("amount", {}).get("currency") if isinstance(payload.get("amount"), dict) else "PHP",
+                "paid_at": payload.get("createdAt"),
                 "raw": payload
             }
 
