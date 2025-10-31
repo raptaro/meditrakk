@@ -37,7 +37,8 @@ import {
   Loader2,
   Upload,
   X,
-  ExternalLink
+  ExternalLink,
+  RefreshCw
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -113,13 +114,14 @@ export default function PatientBookAppointment() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentStep, setPaymentStep] = useState<"form" | "processing" | "redirect" | "success" | "error">("form");
+  const [paymentStep, setPaymentStep] = useState<"form" | "processing" | "redirect" | "polling" | "success" | "error">("form");
   const [paymentMethod, setPaymentMethod] = useState<"PayMaya" | "Gcash">("PayMaya");
   const [appointmentData, setAppointmentData] = useState<any>(null);
   const [gcashProof, setGcashProof] = useState<File | null>(null);
   const [reservationExpiresAt, setReservationExpiresAt] = useState<number | null>(null); // unix ms
   const [secondsLeft, setSecondsLeft] = useState<number | null>(null);
   const countdownRef = useRef<number | null>(null);
+  const pollingRef = useRef<number | null>(null);
 
   // State for API data
   const [doctors, setDoctors] = useState<DoctorWithSchedule[]>([]);
@@ -146,7 +148,10 @@ export default function PatientBookAppointment() {
     fetchPatientProfile();
     fetchDoctors();
     // cleanup on unmount
-    return () => clearCountdown();
+    return () => {
+      clearCountdown();
+      clearPolling();
+    };
   }, []);
 
   useEffect(() => {
@@ -184,6 +189,13 @@ export default function PatientBookAppointment() {
     if (countdownRef.current) {
       window.clearInterval(countdownRef.current);
       countdownRef.current = null;
+    }
+  };
+
+  const clearPolling = () => {
+    if (pollingRef.current) {
+      window.clearInterval(pollingRef.current);
+      pollingRef.current = null;
     }
   };
 
@@ -391,103 +403,104 @@ export default function PatientBookAppointment() {
   };
 
   // Book appointment API call
-  const bookAppointment = async (values: z.infer<typeof formSchema>) => {
-    try {
-      setIsSubmitting(true);
-      setError(null);
+// Enhanced bookAppointment function with better logging
+const bookAppointment = async (values: z.infer<typeof formSchema>) => {
+  try {
+    setIsSubmitting(true);
+    setError(null);
 
-      if (!selectedDate || !doctorData?.schedule?.timeSlots) {
-        throw new Error('Invalid appointment data');
-      }
+    console.log('📅 Starting appointment booking process...');
 
-      const dateKey = format(selectedDate, "yyyy-MM-dd");
-      const slotsForDate = doctorData.schedule.timeSlots[dateKey] || [];
-      const selectedSlot = slotsForDate.find(slot =>
-        `${formatTimeUTC(slot.start)} - ${formatTimeUTC(slot.end)}` === values.appointment_time
-      );
-
-      if (!selectedSlot) {
-        throw new Error('Selected time slot not found');
-      }
-
-      const appointmentDateTime = formatDateTime(selectedDate, selectedSlot);
-
-      const requestData = {
-        doctor_id: values.doctor,
-        appointment_date: appointmentDateTime,
-        notes: values.note || values.injury || "",
-        payment_method: paymentMethod,
-      };
-
-      console.log('Booking appointment with data:', requestData);
-
-      const token = localStorage.getItem("access");
-      if (!token) {
-        throw new Error('Authentication required. Please log in.');
-      }
-
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/appointments/book/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(requestData)
-      });
-
-      if (!response.ok) {
-        const body = await response.json().catch(() => null);
-        let errorMsg = `Failed to book appointment: ${response.status}`;
-        
-        // Parse PayMaya specific errors
-        if (body?.details) {
-          try {
-            const paymayaError = JSON.parse(body.details);
-            if (paymayaError.error) {
-              errorMsg = `PayMaya Error: ${paymayaError.error}`;
-            }
-          } catch {
-            // If not JSON, use as is
-            if (body.details.includes('"error"')) {
-              errorMsg = `Payment gateway error: ${body.details}`;
-            } else {
-              errorMsg = body.details || body.error || errorMsg;
-            }
-          }
-        } else if (body?.error) {
-          errorMsg = body.error;
-        }
-        
-        throw new Error(errorMsg);
-      }
-
-      const data = await response.json();
-      console.log('Appointment booked successfully:', data);
-
-      setAppointmentData(data);
-
-      if (data.reservation_expires_at) {
-        const expiresMs = typeof data.reservation_expires_at === "number"
-          ? data.reservation_expires_at
-          : Date.parse(data.reservation_expires_at);
-        if (!isNaN(expiresMs)) {
-          setReservationExpiresAt(expiresMs);
-        }
-      }
-
-      return data;
-
-    } catch (error) {
-      console.error('Booking error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to book appointment. Please try again.';
-      setError(errorMessage);
-      setPaymentStep("error");
-      throw error;
-    } finally {
-      setIsSubmitting(false);
+    if (!selectedDate || !doctorData?.schedule?.timeSlots) {
+      throw new Error('Invalid appointment data');
     }
-  };
-// Add this function to your component
+
+    const dateKey = format(selectedDate, "yyyy-MM-dd");
+    const slotsForDate = doctorData.schedule.timeSlots[dateKey] || [];
+    const selectedSlot = slotsForDate.find(slot =>
+      `${formatTimeUTC(slot.start)} - ${formatTimeUTC(slot.end)}` === values.appointment_time
+    );
+
+    if (!selectedSlot) {
+      throw new Error('Selected time slot not found');
+    }
+
+    const appointmentDateTime = formatDateTime(selectedDate, selectedSlot);
+
+    const requestData = {
+      doctor_id: values.doctor,
+      appointment_date: appointmentDateTime,
+      notes: values.note || values.injury || "",
+      payment_method: paymentMethod,
+    };
+
+    console.log('📤 Sending appointment request:', requestData);
+
+    const token = localStorage.getItem("access");
+    if (!token) {
+      throw new Error('Authentication required. Please log in.');
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/appointments/book/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify(requestData)
+    });
+
+    console.log('📥 Received response:', response.status, response.statusText);
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => null);
+      console.error('❌ Booking failed with response:', body);
+      
+      let errorMsg = `Failed to book appointment: ${response.status}`;
+      
+      if (body?.details) {
+        try {
+          const paymayaError = JSON.parse(body.details);
+          errorMsg = `PayMaya Error: ${paymayaError.error || JSON.stringify(paymayaError)}`;
+        } catch {
+          errorMsg = body.details || body.error || errorMsg;
+        }
+      } else if (body?.error) {
+        errorMsg = body.error;
+      }
+      
+      throw new Error(errorMsg);
+    }
+
+    const data = await response.json();
+    console.log('✅ Appointment booked successfully:', data);
+
+    setAppointmentData(data);
+
+    if (data.reservation_expires_at) {
+      const expiresMs = typeof data.reservation_expires_at === "number"
+        ? data.reservation_expires_at
+        : Date.parse(data.reservation_expires_at);
+      if (!isNaN(expiresMs)) {
+        setReservationExpiresAt(expiresMs);
+      }
+    }
+
+    return data;
+
+  } catch (error) {
+    console.error('💥 Booking error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to book appointment. Please try again.';
+    setError(errorMessage);
+    setPaymentStep("error");
+    throw error;
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+
+  // Check payment status
+// Enhanced checkPaymentStatus function
 const checkPaymentStatus = async (paymentId: string) => {
   try {
     const token = localStorage.getItem("access");
@@ -501,15 +514,107 @@ const checkPaymentStatus = async (paymentId: string) => {
     );
 
     if (response.ok) {
-      return await response.json();
+      const data = await response.json();
+      console.log('🔍 Payment status response:', data);
+      return data;
     } else {
+      console.error('❌ Failed to fetch payment status:', response.status);
       throw new Error('Failed to fetch payment status');
     }
   } catch (error) {
-    console.error('Error checking payment status:', error);
+    console.error('💥 Error checking payment status:', error);
     return null;
   }
 };
+
+// Enhanced polling logic
+const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
+  let attempts = 0;
+  
+  const checkStatus = async (): Promise<boolean> => {
+    try {
+      const statusData = await checkPaymentStatus(paymentId);
+      console.log(`🔄 Payment status check ${attempts + 1}/${maxAttempts}:`, statusData);
+      
+      if (!statusData) {
+        console.log('❌ No status data received');
+        attempts++;
+        return false;
+      }
+
+      // Handle all possible status cases
+      const paymentStatus = statusData.payment_status || statusData.status;
+      
+      switch (paymentStatus?.toLowerCase()) {
+        case 'paid':
+        case 'success':
+        case 'completed':
+          console.log('✅ Payment confirmed!');
+          setShowSuccess(true);
+          setShowPaymentModal(false);
+          setPaymentStep("success");
+          setAppointmentData(null);
+          setReservationExpiresAt(null);
+          clearCountdown();
+          clearPolling();
+          
+          setTimeout(() => {
+            resetForm();
+          }, 3000);
+          return true;
+
+        case 'failed':
+        case 'expired':
+        case 'cancelled':
+          console.log('❌ Payment failed');
+          setError(`Payment ${paymentStatus}. Please try again.`);
+          setPaymentStep("error");
+          clearPolling();
+          return true;
+
+        case 'pending':
+        case 'processing':
+          console.log('⏳ Payment still processing...');
+          attempts++;
+          return false;
+
+        default:
+          console.log('❓ Unknown payment status:', paymentStatus);
+          attempts++;
+          return false;
+      }
+      
+    } catch (error) {
+      console.error('💥 Error in payment status check:', error);
+      attempts++;
+      return false;
+    }
+  };
+
+  // Clear any existing polling
+  clearPolling();
+
+  console.log(`🚀 Starting payment polling for ID: ${paymentId}`);
+
+  // Poll every 5 seconds for up to 5 minutes
+  pollingRef.current = window.setInterval(async () => {
+    const done = await checkStatus();
+    if (done || attempts >= maxAttempts) {
+      clearPolling();
+      if (attempts >= maxAttempts && !done) {
+        console.log('⏰ Payment polling timeout');
+        setError('Payment status check timeout. Please check your appointments page for confirmation.');
+        setPaymentStep("error");
+      }
+    }
+  }, 5000);
+
+  // Initial check immediately
+  checkStatus();
+};
+
+
+
   // Cancel endpoint (explicit cancel before payment)
   const cancelAppointmentRequest = async (appointmentRequestId?: number | string) => {
     if (!appointmentRequestId) return;
@@ -534,6 +639,7 @@ const checkPaymentStatus = async (paymentId: string) => {
       setPaymentStep("form");
       setShowPaymentModal(false);
       clearCountdown();
+      clearPolling();
     }
   };
 
@@ -612,10 +718,15 @@ const checkPaymentStatus = async (paymentId: string) => {
       const values = form.getValues();
       const result = await bookAppointment(values);
 
-      // For PayMaya, show redirect confirmation instead of auto-redirecting
+      // For PayMaya, show redirect confirmation and start polling
       if (paymentMethod === 'PayMaya' && result.checkout_url) {
         setPaymentStep("redirect");
         setAppointmentData(result);
+        
+        // Start automatic payment status polling
+        if (result.payment_id) {
+          startPaymentPolling(result.payment_id);
+        }
       } else if (paymentMethod === 'Gcash') {
         setPaymentStep("success");
       }
@@ -632,11 +743,32 @@ const checkPaymentStatus = async (paymentId: string) => {
     if (appointmentData?.checkout_url) {
       // Open in new tab to preserve the current state
       window.open(appointmentData.checkout_url, '_blank');
-      // Optionally close the modal after a delay
-      setTimeout(() => {
-        setShowPaymentModal(false);
-        setPaymentStep("form");
-      }, 2000);
+      // Switch to polling state
+      setPaymentStep("polling");
+    }
+  };
+
+  const handleManualStatusCheck = async () => {
+    if (appointmentData?.payment_id) {
+      try {
+        const status = await checkPaymentStatus(appointmentData.payment_id);
+        console.log('Manual status check:', status);
+        
+        if (status?.payment_status === 'Paid') {
+          setShowSuccess(true);
+          setShowPaymentModal(false);
+          setPaymentStep("form");
+          setAppointmentData(null);
+          setReservationExpiresAt(null);
+          clearCountdown();
+          clearPolling();
+        } else {
+          setError('Payment not completed yet. Please complete the payment in the PayMaya window.');
+        }
+      } catch (error) {
+        console.error('Manual status check failed:', error);
+        setError('Failed to check payment status. Please try again.');
+      }
     }
   };
 
@@ -654,6 +786,7 @@ const checkPaymentStatus = async (paymentId: string) => {
     } else {
       setShowPaymentModal(false);
       setPaymentStep("form");
+      clearPolling();
     }
   };
 
@@ -665,6 +798,10 @@ const checkPaymentStatus = async (paymentId: string) => {
     setPaymentMethod("PayMaya");
     setGcashProof(null);
     setShowSuccess(false);
+    setAppointmentData(null);
+    setReservationExpiresAt(null);
+    clearCountdown();
+    clearPolling();
   };
 
   // Helper: format secondsLeft to mm:ss
@@ -724,66 +861,6 @@ const checkPaymentStatus = async (paymentId: string) => {
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="p-8 space-y-8">
-              {/* Patient Information Display */}
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <User className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-semibold text-slate-800">
-                      Patient Information
-                    </h2>
-                    <p className="text-sm text-slate-600">
-                      Using your registered patient profile
-                    </p>
-                  </div>
-                </div>
-
-                <Alert className="border-blue-200 bg-blue-50">
-                  <Info className="h-4 w-4 text-blue-600" />
-                  <AlertDescription className="text-blue-800">
-                    Your appointment will be booked using your registered patient profile.
-                    To update your information, please visit your account settings.
-                  </AlertDescription>
-                </Alert>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">First Name</label>
-                    <div className="p-3 border border-slate-300 rounded-md bg-slate-50 text-slate-600">
-                      {patientProfile?.first_name || 'Loading...'}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700">Last Name</label>
-                    <div className="p-3 border border-slate-300 rounded-md bg-slate-50 text-slate-600">
-                      {patientProfile?.last_name || 'Loading...'}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                      <Phone className="w-4 h-4" />
-                      Phone Number
-                    </label>
-                    <div className="p-3 border border-slate-300 rounded-md bg-slate-50 text-slate-600">
-                      {patientProfile?.phone_number || 'Loading...'}
-                    </div>
-                  </div>
-
-                  <div className="space-y-2 md:col-span-2">
-                    <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      Email Address
-                    </label>
-                    <div className="p-3 border border-slate-300 rounded-md bg-slate-50 text-slate-600">
-                      {patientProfile?.email || 'Loading...'}
-                    </div>
-                  </div>
-                </div>
-              </div>
 
               {/* Appointment Details */}
               <div className="space-y-6">
@@ -1296,9 +1373,9 @@ const checkPaymentStatus = async (paymentId: string) => {
                             <div>
                               <h3 className="font-semibold text-slate-800">Redirecting to PayMaya</h3>
                               <p className="text-sm text-slate-600 mt-2">
-                                You're being redirected to PayMaya to complete your payment.
+                                Click the button below to complete your payment in PayMaya.
                                 <br />
-                                <strong>Please complete the payment in the new window.</strong>
+                                <strong>We'll automatically check for payment confirmation.</strong>
                               </p>
                             </div>
                             
@@ -1333,68 +1410,65 @@ const checkPaymentStatus = async (paymentId: string) => {
                             </div>
                           </div>
                         )}
+
+                        {paymentStep === "polling" && paymentMethod === "PayMaya" && (
+                          <div className="text-center py-8 space-y-4">
+                            <Loader2 className="h-12 w-12 animate-spin text-blue-600 mx-auto" />
+                            <div>
+                              <h3 className="font-semibold text-slate-800">Waiting for Payment Confirmation</h3>
+                              <p className="text-sm text-slate-600 mt-1">
+                                We're automatically checking your payment status.
+                                <br />
+                                This may take a few moments...
+                              </p>
+                            </div>
+                            
+                            <div className="space-y-3">
+                              <Button 
+                                onClick={handleManualStatusCheck}
+                                variant="outline"
+                                className="w-full"
+                              >
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Check Status Manually
+                              </Button>
+                              
+                              <Button 
+                                variant="outline" 
+                                onClick={() => setPaymentStep("form")}
+                                className="w-full"
+                              >
+                                Cancel Payment
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
                         {paymentStep === "success" && paymentMethod === "PayMaya" && (
                           <div className="text-center py-8 space-y-4">
                             <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
                             <div>
-                              <h3 className="font-semibold text-slate-800">Payment Processing</h3>
+                              <h3 className="font-semibold text-slate-800">Payment Completed!</h3>
                               <p className="text-sm text-slate-600 mt-1">
-                                Your payment is being processed. This may take a few moments.
+                                Your payment has been confirmed successfully.
+                                <br />
+                                Your appointment is now scheduled.
                               </p>
                             </div>
-                            
-                            {/* Webhook Test Button */}
-                          <Button 
-                            onClick={async () => {
-                              try {
-                                const token = localStorage.getItem("access");
-                                
-                                // Call the test webhook endpoint
-                                const response = await fetch(
-                                  `${process.env.NEXT_PUBLIC_API_BASE}/appointments/payments/${appointmentData?.payment_id}/test-webhook/`,
-                                  {
-                                    method: 'POST',
-                                    headers: {
-                                      'Authorization': `Bearer ${token}`,
-                                      'Content-Type': 'application/json'
-                                    }
-                                  }
-                                );
-                                
-                                const result = await response.json();
-                                console.log('Webhook test result:', result);
-                                
-                                if (result.success) {
-                                  // Wait a moment for the webhook to process, then check status
-                                  setTimeout(async () => {
-                                    const statusCheck = await checkPaymentStatus(appointmentData?.payment_id);
-                                    console.log('Status after webhook:', statusCheck);
-                                    
-                                    if (statusCheck?.payment_status === 'Paid') {
-                                      setPaymentStep("success");
-                                      setShowSuccess(true);
-                                      // Close the modal after success
-                                      setTimeout(() => {
-                                        setShowPaymentModal(false);
-                                      }, 2000);
-                                    } else {
-                                      setError('Payment status not updated. Please try again.');
-                                    }
-                                  }, 1000);
-                                } else {
-                                  setError(result.error || 'Webhook simulation failed');
-                                }
-                              } catch (error) {
-                                console.error('Webhook test failed:', error);
-                                setError('Webhook simulation failed');
-                              }
-                            }}
-                            variant="outline"
-                          >
-                            Simulate Webhook (Testing)
-                          </Button>
+                            <Button 
+                              onClick={() => {
+                                setShowPaymentModal(false);
+                                setPaymentStep("form");
+                                setShowSuccess(true);
+                                resetForm();
+                              }}
+                              className="w-full bg-blue-600 hover:bg-blue-700"
+                            >
+                              Close
+                            </Button>
                           </div>
                         )}
+
                         {paymentStep === "success" && paymentMethod === "Gcash" && (
                           <div className="text-center py-8 space-y-4">
                             <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
@@ -1420,6 +1494,7 @@ const checkPaymentStatus = async (paymentId: string) => {
                             <div className="space-y-3">
                               {appointmentData?.payment_id && (
                                 <Button
+                                  onClick={handleManualStatusCheck}
                                   variant="outline"
                                   className="w-full"
                                 >
