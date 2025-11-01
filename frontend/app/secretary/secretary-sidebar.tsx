@@ -81,7 +81,7 @@ const patient_items = [
     icon: Clock,
   },
   {
-    title: "Assessment",
+    title: "Assessment Queue",
     url: "/secretary/assessment-queue",
     icon: ClipboardPenLine,
   },
