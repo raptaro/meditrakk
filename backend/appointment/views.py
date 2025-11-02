@@ -247,11 +247,6 @@ class AppointmentReferralViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated, IsReferralParticipant]
 
     def get_queryset(self):
-        """
-        Base queryset: shows relevant referrals based on user type.
-        - Patients: only their referrals
-        - Doctors: referrals they sent or received
-        """
         user = self.request.user
         queryset = AppointmentReferral.objects.all()
 

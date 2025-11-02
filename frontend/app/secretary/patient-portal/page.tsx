@@ -36,7 +36,7 @@ export default function PaymentTable() {
       setLoading(true);
       const token = localStorage.getItem('access');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/appointment-requests/patient-request/`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/appointment/appointment-requests/patient-request/`,
         {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -164,7 +164,7 @@ export default function PaymentTable() {
     try {
       const token = localStorage.getItem('access');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/appointment-requests/${id}/confirm-to-appointment/`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/appointment/appointment-requests/${id}/confirm-to-appointment/`,
         {
           method: 'POST',
           headers: {
@@ -191,7 +191,7 @@ export default function PaymentTable() {
     try {
       const token = localStorage.getItem('access');
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/appointment-requests/${id}/reject-request/`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/appointment/appointment-requests/${id}/reject-request/`,
         {
           method: 'POST',
           headers: {
