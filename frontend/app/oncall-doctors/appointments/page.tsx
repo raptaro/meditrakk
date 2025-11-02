@@ -1,47 +1,33 @@
-"use client";
+'use client'
+import React, { useState, useEffect } from 'react';
+import { Edit2, Trash2, ArrowRight, Search, Eye, EyeOff } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
-// imports
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { format, differenceInCalendarDays, isValid } from "date-fns";
-import { parseISO } from "date-fns/parseISO";
-
-// Doctor interface to match API response
-interface DoctorInfo {
-  id: string;
-  full_name: string;
-  email?: string;
-  role?: string;
-  specialization?: string;
-}
-
-// shape of referral object - updated to match API
-interface Referral {
+interface Appointment {
   id: number;
   patient: string;
-  referring_doctor: DoctorInfo; // Changed from string to DoctorInfo
-  receiving_doctor: DoctorInfo; // Changed from string to DoctorInfo
-  reason: string;
-  notes?: string;
-  status: "pending" | "scheduled" | "canceled" | string;
-  created_at: string;
+  patient_name: string;
+  doctor: number;
+  doctor_name: string;
   appointment_date: string;
+  status: 'PendingPayment' | 'Scheduled' | 'Waiting' | 'Completed' | 'Cancelled' | 'Pending' | 'Canceled' | string;
+  appointment_type: string;
+  notes: string | null;
 }
 
-export default function ReferralsPage() {
-  // state variables
-  const [referrals, setReferrals] = useState<Referral[]>([]);
+export default function AppointmentView() {
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [expandedNotes, setExpandedNotes] = useState<number[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [currentUserId, setCurrentUserId] = useState<string>('');
+  const [showOtherAppointments, setShowOtherAppointments] = useState(false);
   const router = useRouter();
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [selectedReferral, setSelectedReferral] = useState<Referral | null>(
-    null
-  );
 
-  // fetch referrals from backend
+  // Fetch appointments from backend
   useEffect(() => {
-    const fetchReferrals = async () => {
+    const fetchAppointments = async () => {
       try {
         const token = localStorage.getItem("access");
         if (!token) {
@@ -50,7 +36,7 @@ export default function ReferralsPage() {
         }
 
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE}/appointment/referrals/`,
+          `${process.env.NEXT_PUBLIC_API_BASE}/appointment/referrals/sep_appointment_all/`,
           {
             method: "GET",
             headers: {
@@ -60,21 +46,22 @@ export default function ReferralsPage() {
           }
         );
 
-        if (!res.ok) throw new Error("Failed to fetch referrals");
-        const data = await res.json();
-        setReferrals(data);
+        if (!res.ok) throw new Error("Failed to fetch appointments");
+        const data: Appointment[] = await res.json();
+        setAppointments(data);
       } catch (err) {
         setError(
-          err instanceof Error ? err.message : "Error fetching referrals"
+          err instanceof Error ? err.message : "Error fetching appointments"
         );
       } finally {
         setLoading(false);
       }
     };
 
-    fetchReferrals();
+    fetchAppointments();
   }, [router]);
 
+  // Fetch current user
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -93,7 +80,7 @@ export default function ReferralsPage() {
 
         if (!response.ok) return;
         const data = await response.json();
-        setCurrentUserId(data.id);
+        setCurrentUserId(String(data.id));
       } catch (error) {
         console.error("Failed to fetch user", error);
       }
@@ -102,23 +89,103 @@ export default function ReferralsPage() {
     fetchCurrentUser();
   }, []);
 
-  const handleEdit = (referral: Referral) => setSelectedReferral(referral);
+  const getStatusColor = (status: string | undefined) => {
+    const normalized = (status || '').trim().toLowerCase();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedReferral) return;
+    switch (normalized) {
+      case 'scheduled':
+        return 'bg-blue-100 text-blue-700 border-blue-200';
+      case 'waiting':
+        return 'bg-amber-100 text-amber-700 border-amber-200';
+      case 'completed':
+        return 'bg-emerald-100 text-emerald-700 border-emerald-200';
+      case 'cancelled':
+      case 'canceled':
+        return 'bg-red-100 text-red-700 border-red-200';
+      case 'pendingpayment':
+      case 'pending_payment':
+      case 'pending':
+        return 'bg-purple-100 text-purple-700 border-purple-200';
+      default:
+        return 'bg-gray-100 text-gray-700 border-gray-200';
+    }
+  };
 
-    const formData = new FormData(e.currentTarget as HTMLFormElement);
-    const updates = {
-      reason: formData.get("reason"),
-      notes: formData.get("notes"),
-      appointment_date: formData.get("appointment_date"),
-    };
 
+  /**
+   * Format backend ISO datetime without converting to client local timezone.
+   * Use UTC timezone explicitly so the hour/minute shown exactly matches
+   * the backend-provided timestamp (for example: "2025-10-22T22:00:00Z" -> 22:00).
+   */
+  const formatDateTime = (datetime: string | undefined) => {
+    if (!datetime) {
+      return { date: '-', time: '-' };
+    }
+
+    // Attempt to parse; if invalid, show the raw string
+    const parsed = new Date(datetime);
+    if (Number.isNaN(parsed.getTime())) {
+      return { date: datetime, time: '' };
+    }
+
+    // Force UTC formatting so the displayed date/time equals the backend value.
+    const date = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC'
+    }).format(parsed);
+
+    const time = new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC'
+    }).format(parsed);
+
+    return { date, time };
+  };
+
+  const formatStatusLabel = (status: string | undefined) => {
+    if (!status) return '-';
+    const normalized = status.trim();
+    switch (normalized) {
+      case 'PendingPayment':
+      case 'pending_payment':
+        return 'Pending Payment';
+      case 'Canceled':
+        return 'Cancelled';
+      default:
+        return normalized;
+    }
+  };
+
+  const formatAppointmentType = (type: string | undefined) => {
+    if (!type) return '-';
+    switch (type) {
+      case 'clinic_scheduled':
+        return 'Clinic Scheduled';
+      case 'patient_request':
+        return 'Patient Request';
+      case 'referral':
+        return 'Referral';
+      default:
+        return type.split('_').map(word =>
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+    }
+  };
+
+  const handleEdit = async (appointment: Appointment) => {
     try {
       const token = localStorage.getItem("access");
+      const updates = {
+        notes: appointment.notes,
+        appointment_date: appointment.appointment_date,
+      };
+
       const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/appointment/referrals/${selectedReferral.id}/`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/appointment/referrals/${appointment.id}/`,
         {
           method: "PATCH",
           headers: {
@@ -130,19 +197,21 @@ export default function ReferralsPage() {
       );
 
       if (!res.ok) throw new Error("Update failed");
-      const updatedReferral = await res.json();
-      setReferrals((prev) =>
-        prev.map((ref) =>
-          ref.id === updatedReferral.id ? updatedReferral : ref
+      const updatedAppointment = await res.json();
+      setAppointments((prev) =>
+        prev.map((apt) =>
+          apt.id === updatedAppointment.id ? updatedAppointment : apt
         )
       );
-      setSelectedReferral(null);
     } catch (error) {
       console.error("Update error:", error);
+      setError("Failed to update appointment");
     }
   };
 
-  const handleCancel = async (id: number) => {
+  const handleDelete = async (id: number) => {
+    if (!confirm("Are you sure you want to cancel this appointment?")) return;
+
     try {
       const token = localStorage.getItem("access");
       const res = await fetch(
@@ -155,345 +224,244 @@ export default function ReferralsPage() {
           },
         }
       );
+
       if (!res.ok) throw new Error("Cancel failed");
-      const updatedReferral = await res.json();
-      setReferrals((prev) =>
-        prev.map((ref) => (ref.id === id ? updatedReferral : ref))
+      const updatedAppointment = await res.json();
+      setAppointments((prev) =>
+        prev.map((apt) => (apt.id === id ? updatedAppointment : apt))
       );
     } catch (error) {
-      console.error(error);
+      console.error("Cancel error:", error);
+      setError("Failed to cancel appointment");
     }
   };
 
-  const handleProceed = (patient: string) =>
-    router.push(`/oncall-doctors/treatment-details/${patient}/`);
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "scheduled":
-        return "bg-green-100 text-green-800";
-      case "pending":
-        return "bg-yellow-100 text-yellow-800";
-      case "canceled":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const handleProceed = (patientId: string) => {
+    router.push(`/oncall-doctors/treatment-details/${patientId}/`);
   };
 
-  if (loading)
-    return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-slate-50">
-        <div className="flex animate-pulse space-x-2">
-          <div className="h-3 w-3 rounded-full bg-blue-600"></div>
-          <div className="h-3 w-3 rounded-full bg-blue-600"></div>
-          <div className="h-3 w-3 rounded-full bg-blue-600"></div>
-        </div>
-      </div>
+  const toggleNotes = (id: number) => {
+    setExpandedNotes(prev =>
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
+  };
 
-  if (error)
+  const scheduledAppointments = appointments.filter(apt =>
+    (apt.status || '').toString().toLowerCase() === 'scheduled'
+  );
+
+  const otherAppointments = appointments.filter(apt =>
+    (apt.status || '').toString().toLowerCase() !== 'scheduled'
+  );
+
+  const filterAppointments = (apps: Appointment[]) => {
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return apps;
+    return apps.filter(apt =>
+      (apt.patient_name || '').toLowerCase().includes(term) ||
+      (apt.doctor_name || '').toLowerCase().includes(term) ||
+      (apt.patient || '').toLowerCase().includes(term)
+    );
+  };
+
+  const AppointmentTable = ({ appointments, title }: { appointments: Appointment[], title: string }) => (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-slate-200 flex justify-between items-center">
+        <h2 className="text-lg font-semibold text-slate-800">{title}</h2>
+        {title === "Other Appointments" && (
+          <button
+            onClick={() => setShowOtherAppointments(!showOtherAppointments)}
+            className="flex items-center gap-2 px-3 py-1 text-sm text-slate-600 hover:text-slate-800 hover:bg-slate-200 rounded-lg transition-colors"
+          >
+            {showOtherAppointments ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {showOtherAppointments ? 'Hide' : 'Show'}
+          </button>
+        )}
+      </div>
+
+      {(title !== "Other Appointments" || showOtherAppointments) && (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="bg-slate-50 border-b border-slate-200">
+                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">ID</th>
+                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Patient</th>
+                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Doctor</th>
+                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Date & Time</th>
+                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Status</th>
+                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Type</th>
+                <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Notes</th>
+                <th className="text-center px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
+              {appointments.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
+                    No appointments found
+                  </td>
+                </tr>
+              ) : (
+                appointments.map((appointment) => {
+                  const { date, time } = formatDateTime(appointment.appointment_date);
+                  const isExpanded = expandedNotes.includes(appointment.id);
+                  const notes = appointment.notes || 'No notes';
+                  const shortNotes = notes.length > 40
+                    ? notes.substring(0, 40) + '...'
+                    : notes;
+
+                  return (
+                    <tr key={appointment.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-mono font-medium text-slate-900">#{appointment.id}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div>
+                          <div className="text-sm font-medium text-slate-900">{appointment.patient_name}</div>
+                          <div className="text-xs text-slate-500">{appointment.patient}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-slate-700">{appointment.doctor_name}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div>
+                          <div className="text-sm font-medium text-slate-900">{date}</div>
+                          <div className="text-xs text-slate-500">{time}</div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(appointment.status)}`}>
+                          {formatStatusLabel(appointment.status)}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-slate-600">
+                          {formatAppointmentType(appointment.appointment_type)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 max-w-xs">
+                        <div className="text-sm text-slate-600">
+                          {isExpanded ? notes : shortNotes}
+                          {notes.length > 40 && (
+                            <button
+                              onClick={() => toggleNotes(appointment.id)}
+                              className="ml-2 text-blue-600 hover:text-blue-700 font-medium text-xs"
+                            >
+                              {isExpanded ? 'Less' : 'More'}
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleEdit(appointment)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group relative"
+                            title="Edit"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              Edit
+                            </span>
+                          </button>
+                          <button
+                            onClick={() => handleProceed(appointment.patient)}
+                            className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors group relative"
+                            title="Proceed to Treatment"
+                          >
+                            <ArrowRight className="w-4 h-4" />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              Proceed
+                            </span>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(appointment.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors group relative"
+                            title="Cancel"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                              Cancel
+                            </span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+
+  if (loading) {
     return (
-      <div className="flex min-h-screen w-full items-center justify-center bg-slate-50">
-        <div className="mx-auto flex w-full max-w-3xl items-center space-x-4 rounded-xl bg-white p-6 shadow-md">
-          <div className="flex-shrink-0">
-            <svg
-              className="h-12 w-12 text-red-500"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-              />
-            </svg>
-          </div>
-          <div>
-            <div className="text-xl font-medium text-black">Error</div>
-            <p className="text-gray-500">{error}</p>
-          </div>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-8 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="mt-4 text-slate-600">Loading appointments...</p>
         </div>
       </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-8 flex items-center justify-center">
+        <div className="text-center text-red-600">
+          <p>Error: {error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen w-full bg-slate-50 px-6 py-8">
-      {/* Edit Modal */}
-      {selectedReferral && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="w-full max-w-2xl rounded-xl bg-white p-8 shadow-lg">
-            <h3 className="mb-6 text-2xl font-bold text-gray-900">
-              Edit Referral
-            </h3>
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-6">
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Reason for Referral
-                  </label>
-                  <input
-                    name="reason"
-                    defaultValue={selectedReferral.reason}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-8">
+      <div className="max-w-[1800px] mx-auto">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-slate-900 mb-2">Appointment Management</h1>
+          <p className="text-slate-600">Track and manage all patient appointments</p>
+        </div>
 
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Additional Notes
-                  </label>
-                  <textarea
-                    name="notes"
-                    defaultValue={selectedReferral.notes || ""}
-                    rows={3}
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-gray-700">
-                    Appointment Date & Time
-                  </label>
-                  <input
-                    type="datetime-local"
-                    name="appointment_date"
-                    defaultValue={
-                      selectedReferral.appointment_date
-                        ? format(
-                            parseISO(selectedReferral.appointment_date),
-                            "yyyy-MM-dd'T'HH:mm"
-                          )
-                        : ""
-                    }
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2 focus:border-blue-500 focus:ring-blue-500"
-                  />
-                </div>
-              </div>
-
-              <div className="mt-8 flex justify-end space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setSelectedReferral(null)}
-                  className="rounded-lg px-6 py-2 text-gray-700 transition-colors hover:bg-gray-100"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-lg bg-blue-600 px-6 py-2 text-white transition-colors hover:bg-blue-700"
-                >
-                  Save Changes
-                </button>
-              </div>
-            </form>
+        {/* Search Bar */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="Search by patient name, patient ID, or doctor name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-all"
+            />
           </div>
         </div>
-      )}
 
-      <div className="mx-auto mb-8 max-w-full">
-        <h1 className="text-3xl font-bold text-gray-900">Your Referrals</h1>
-        <p className="mt-2 text-gray-500">
-          Manage your patient referrals and appointments
-        </p>
+        {/* Scheduled Appointments */}
+        <AppointmentTable
+          appointments={filterAppointments(scheduledAppointments)}
+          title="Scheduled Appointments"
+        />
+
+        {/* Other Appointments */}
+        {otherAppointments.length > 0 && (
+          <AppointmentTable
+            appointments={filterAppointments(otherAppointments)}
+            title="Other Appointments"
+          />
+        )}
       </div>
-
-      {referrals.length === 0 ? (
-        <div className="flex w-full flex-col items-center justify-center rounded-xl bg-white p-12 shadow-sm">
-          <svg
-            className="mb-4 h-24 w-24 text-gray-300"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="1"
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <p className="text-lg text-gray-500">No referrals found</p>
-        </div>
-      ) : (
-        <div className="w-full space-y-6">
-          {referrals.map((referral) => {
-            const createdAt = parseISO(referral.created_at || "");
-            const appointmentAt = parseISO(referral.appointment_date || "");
-            const formattedCreated = isValid(createdAt)
-              ? format(createdAt, "MMMM d, yyyy")
-              : "Unknown date";
-
-            let appointmentSection = null;
-            if (isValid(appointmentAt) && referral.status === "scheduled") {
-              const formattedWhen = format(appointmentAt, "MMMM d, yyyy");
-              const formattedTime = format(appointmentAt, "h:mm a");
-              const daysLeft = differenceInCalendarDays(
-                appointmentAt,
-                new Date()
-              );
-              const countdownText =
-                daysLeft > 0
-                  ? `${daysLeft} day${daysLeft > 1 ? "s" : ""} left`
-                  : daysLeft === 0
-                  ? "Today"
-                  : `${Math.abs(daysLeft)} day${
-                      Math.abs(daysLeft) > 1 ? "s" : ""
-                    } ago`;
-
-              appointmentSection = (
-                <div className="h-min rounded-lg bg-blue-50 p-4">
-                  <div className="flex items-start">
-                    <div className="mt-1 flex-shrink-0">
-                      <svg
-                        className="h-5 w-5 text-blue-500"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                    </div>
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-blue-800">
-                        Appointment scheduled
-                      </h3>
-                      <div className="mt-1 text-sm text-blue-700">
-                        <p>
-                          {formattedWhen} at {formattedTime}
-                        </p>
-                        <p className="mt-1 font-semibold">{countdownText}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              );
-            }
-
-            return (
-              <div
-                key={referral.id}
-                className="w-full overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm"
-              >
-                <div className="p-6">
-                  <div className="mb-4 flex flex-wrap items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <h2 className="text-xl font-semibold text-gray-900">
-                        {referral.patient}
-                      </h2>
-                      <span
-                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          referral.status
-                        )}`}
-                      >
-                        {referral.status}
-                      </span>
-                    </div>
-                    <div className="flex items-center text-sm text-gray-500">
-                      <svg
-                        className="mr-1 h-4 w-4 text-gray-400"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                        />
-                      </svg>
-                      Created on {formattedCreated}
-                    </div>
-                  </div>
-
-                  <div className="grid gap-6 md:grid-cols-3">
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm text-gray-500">
-                          Reason for referral
-                        </p>
-                        <p className="text-gray-700">{referral.reason}</p>
-                      </div>
-                      {referral.notes && (
-                        <div>
-                          <p className="text-sm text-gray-500">
-                            Additional notes
-                          </p>
-                          <p className="text-gray-700">{referral.notes}</p>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-3">
-                      <div>
-                        <p className="text-sm text-gray-500">Referring Doctor</p>
-                        <p className="text-gray-700">
-                          {referral.referring_doctor.full_name}
-                        </p>
-                        {referral.referring_doctor.specialization && (
-                          <p className="text-xs text-gray-500">
-                            {referral.referring_doctor.specialization}
-                          </p>
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-500">Receiving Doctor</p>
-                        <p className="text-gray-700">
-                          {referral.receiving_doctor.full_name}
-                        </p>
-                        {referral.receiving_doctor.specialization && (
-                          <p className="text-xs text-gray-500">
-                            {referral.receiving_doctor.specialization}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-
-                    {appointmentSection && (
-                      <div className="md:col-span-1">
-                        {appointmentSection}
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {referral.status === "scheduled" && (
-                  <div className="flex justify-end space-x-3 bg-gray-50 px-6 py-4">
-                    {currentUserId === "cooper-020006" && (
-                      <button
-                        onClick={() => handleEdit(referral)}
-                        className="rounded-md border border-blue-600 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50"
-                      >
-                        Edit
-                      </button>
-                    )}
-                    <button
-                      onClick={() => handleCancel(referral.id)}
-                      className="rounded-md border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100"
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      onClick={() => handleProceed(referral.patient)}
-                      className="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700"
-                    >
-                      Proceed to Treatment
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }

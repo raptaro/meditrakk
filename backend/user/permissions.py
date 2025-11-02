@@ -98,7 +98,11 @@ class IsMe(BasePermission):
         return obj.id == request.user.id
 
     
-    
+class IsDoctorOrOnCallDoctor(BasePermission):
+    """Permission for doctors and on-call doctors to access appointments"""
+    def has_permission(self, request, view):
+        return request.user.is_authenticated and request.user.role in ['doctor', 'on-call-doctor']
+        
 class IsParticipant(BasePermission):
     def has_permission(self, request, view):
         # view-level (before retrieving objects) – you might allow any authenticated user

@@ -5,7 +5,7 @@ from . import views
 app_name = 'appointment'
 
 router = DefaultRouter()
-router.register(r'referrals', views.AppointmentReferralViewSet, basename='referral-set')
+router.register(r'referrals', views.AppointmentViewSet, basename='referral-set')
 router.register(r'appointment-requests', views.AppointmentRequestViewSet, basename='appointment-request')
 
 urlpatterns = [

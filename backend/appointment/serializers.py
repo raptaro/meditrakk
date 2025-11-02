@@ -33,28 +33,18 @@ class UserAccountSerializer(serializers.ModelSerializer):
 
 
 class AppointmentReferralSerializer(serializers.ModelSerializer):
-    referring_doctor = UserAccountSerializer(read_only=True)
-    receiving_doctor = serializers.SlugRelatedField(
-        slug_field='id',  # UserAccount ID
-        queryset=UserAccount.objects.filter(role__in=['doctor', 'on-call-doctor'])
-    )
-    patient = serializers.SlugRelatedField(
-        slug_field='patient_id',
-        queryset=Patient.objects.all()
-    )
-    appointment_date = serializers.DateTimeField(
-        source='appointment.appointment_date',
-        read_only=True,
-        format='%Y-%m-%dT%H:%M:%S'
-    )
-
+    patient_name = serializers.CharField(source='patient.user.get_full_name', read_only=True)
+    referring_doctor_name = serializers.CharField(source='referring_doctor.get_full_name', read_only=True)
+    receiving_doctor_name = serializers.CharField(source='receiving_doctor.get_full_name', read_only=True)
+    
     class Meta:
         model = AppointmentReferral
         fields = [
-            'id', 'patient', 'receiving_doctor', 'reason', 'notes',
-            'referring_doctor', 'status', 'created_at', 'appointment_date'
+            'id', 'referring_doctor', 'referring_doctor_name', 'patient', 'patient_name',
+            'receiving_doctor', 'receiving_doctor_name', 'reason', 'notes', 'status',
+            'appointment', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'referring_doctor']
+        read_only_fields = ['created_at', 'updated_at']
         list_serializer_class = BulkReferralListSerializer
 
     def to_representation(self, instance):
@@ -97,16 +87,18 @@ class AppointmentReferralSerializer(serializers.ModelSerializer):
 
 
 class AppointmentSerializer(serializers.ModelSerializer):
-    # use a method field so it's robust to different patient model shapes
-    doctor_name = serializers.CharField(source="doctor.user.get_full_name", read_only=True)
-    patient_name = serializers.SerializerMethodField()
-
+    patient_name = serializers.CharField(source='patient.user.get_full_name', read_only=True)
+    doctor_name = serializers.CharField(source='doctor.user.get_full_name', read_only=True)
+    scheduled_by_name = serializers.CharField(source='scheduled_by.get_full_name', read_only=True)
+    
     class Meta:
         model = Appointment
         fields = [
-            "id", "patient", "patient_name", "doctor", "doctor_name",
-            "appointment_date", "status", "notes"
+            'id', 'patient', 'patient_name', 'doctor', 'doctor_name', 
+            'appointment_date', 'status', 'appointment_type', 'notes',
+            'scheduled_by', 'scheduled_by_name', 'created_at', 'updated_at'
         ]
+        read_only_fields = ['created_at', 'updated_at']
 
     def get_patient_name(self, obj):
         patient = getattr(obj, "patient", None)

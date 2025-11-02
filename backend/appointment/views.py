@@ -8,7 +8,7 @@ from .services import PayMayaService
 from .models import HOLD_MINUTES, AppointmentReferral, AppointmentRequest, AppointmentReservation
 from patient.models import Patient
 from .serializers import AppointmentReferralSerializer, AppointmentRequestSerializer, AppointmentSerializer
-from user.permissions import isDoctor, isSecretary
+from user.permissions import IsDoctorOrOnCallDoctor, isDoctor, isSecretary
 
 from django.utils import timezone
 from datetime import date
@@ -241,7 +241,71 @@ class ScheduleAppointment(APIView):
         
 # only referral participants can access this
 
+class AppointmentViewSet(viewsets.ModelViewSet):
+    serializer_class = AppointmentSerializer
+    permission_classes = [IsAuthenticated, IsDoctorOrOnCallDoctor]
 
+    def get_queryset(self):
+        user = self.request.user
+        queryset = Appointment.objects.all()
+
+        if user.role == 'doctor':
+            # Regular doctors can see all appointments
+            pass  # No filtering, show everything
+        elif user.role == 'on-call-doctor':
+            # On-call doctors can only see:
+            # 1. Appointments where they are the doctor
+            # 2. Referral appointments where they are the receiving doctor
+            queryset = queryset.filter(
+                Q(doctor__user=user) |  # Direct appointments
+                Q(appointment_type='referral', referral__receiving_doctor=user)  # Referral appointments
+            ).distinct()
+        elif hasattr(user, 'patient_profile'):
+            # Patients can only see their own appointments
+            queryset = queryset.filter(patient=user.patient_profile)
+
+        return queryset.select_related(
+            'patient__user', 
+            'doctor__user',
+            'scheduled_by'
+        ).prefetch_related('payment').order_by('-appointment_date')
+
+    @action(detail=False, methods=['get'])
+    def sep_appointment_all(self, request):
+        appointments = self.get_queryset()
+    
+        scheduled = appointments.filter(status='Scheduled')
+        pending = appointments.exclude(status='Scheduled')
+        
+        # scheduled first
+        result = list(scheduled) + list(pending)
+        
+        serializer = self.get_serializer(result, many=True)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def confirm(self, request, pk=None):
+        appointment = self.get_object()
+        if appointment.status == 'PendingPayment':
+            appointment.status = 'Scheduled'
+            appointment.save()
+            serializer = self.get_serializer(appointment)
+            return Response(serializer.data)
+        return Response(
+            {'error': 'Only pending payment appointments can be confirmed'},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    @action(detail=True, methods=['post'])
+    def cancel(self, request, pk=None):
+        """Cancel an appointment"""
+        appointment = self.get_object()
+        appointment.status = 'Cancelled'
+        appointment.save()
+        serializer = self.get_serializer(appointment)
+        return Response(serializer.data)
+    
+    
 class AppointmentReferralViewSet(viewsets.ModelViewSet):
     serializer_class = AppointmentReferralSerializer
     permission_classes = [IsAuthenticated, IsReferralParticipant]
@@ -265,11 +329,40 @@ class AppointmentReferralViewSet(viewsets.ModelViewSet):
         """Automatically sets the referring doctor to the logged-in user."""
         serializer.save(referring_doctor=self.request.user)
 
-    @action(detail=True, methods=['patch'], url_path='decline')
+    @action(detail=True, methods=['post'])
+    def schedule_appointment(self, request, pk=None):
+        """Create an appointment from this referral"""
+        referral = self.get_object()
+        if not referral.receiving_doctor:
+            return Response(
+                {'error': 'Cannot schedule appointment without receiving doctor'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Create appointment from referral
+        appointment = Appointment.objects.create(
+            patient=referral.patient,
+            doctor=Doctor.objects.get(user=referral.receiving_doctor),
+            appointment_date=request.data.get('appointment_date'),  # Get from request
+            appointment_type='referral',
+            status='Scheduled',
+            scheduled_by=referral.referring_doctor,
+            notes=referral.reason,
+            # Link the referral
+        )
+        
+        # Link the appointment to referral
+        referral.appointment = appointment
+        referral.status = 'scheduled'
+        referral.save()
+        
+        serializer = AppointmentSerializer(appointment)
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['patch'])
     def decline_referral(self, request, pk=None):
         """
         Allows the receiving doctor to decline a referral.
-        This also cancels the linked appointment (if it exists).
         """
         referral = self.get_object()
         if referral.receiving_doctor != request.user:
@@ -278,18 +371,13 @@ class AppointmentReferralViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_403_FORBIDDEN
             )
 
-        appointment = getattr(referral, 'appointment', None)
-        if appointment:
-            appointment.status = 'cancelled'
-            appointment.save()
-
-        referral.status = 'cancelled'
+        referral.status = 'canceled'
         referral.save()
         serializer = self.get_serializer(referral)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['get'], url_path='patient-info')
-    def get_patient_info(self, request, pk=None):
+    @action(detail=True, methods=['get'])
+    def patient_info(self, request, pk=None):
         """
         Allows the receiving doctor or the patient to view patient info.
         Restricts unauthorized access.
@@ -304,10 +392,11 @@ class AppointmentReferralViewSet(viewsets.ModelViewSet):
         ):
             return Response({'detail': 'Access denied.'}, status=status.HTTP_403_FORBIDDEN)
 
+        from patient.serializers import PatientSerializer
         serializer = PatientSerializer(referral.patient)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'], url_path='my-referrals')
+    @action(detail=False, methods=['get'])
     def my_referrals(self, request):
         """
         Allows a patient to view all of their referrals.
@@ -323,26 +412,6 @@ class AppointmentReferralViewSet(viewsets.ModelViewSet):
         ).select_related('referring_doctor', 'receiving_doctor', 'appointment')
 
         serializer = self.get_serializer(referrals, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=['get'], url_path='upcoming')
-    def upcoming_appointments(self, request):
-        now = timezone.now()
-        qs = self.get_queryset().filter(
-            appointment__appointment_date__gte=now,
-            status__in=['scheduled', 'pending']
-        )
-        serializer = self.get_serializer(qs, many=True)
-        return Response(serializer.data)
-
-    @action(detail=False, methods=['get'], url_path='past')
-    def past_appointments(self, request):
-        now = timezone.now()
-        qs = self.get_queryset().filter(
-            Q(appointment__appointment_date__lt=now) |
-            Q(status__in=['completed', 'canceled'])
-        )
-        serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data)
     
 # upcoming appointments in registration

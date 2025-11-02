@@ -7,6 +7,11 @@ from user.models import Doctor
 HOLD_MINUTES = 10 
 from django.conf import settings
 class Appointment(models.Model):
+    APPOINTMENT_TYPES = (
+        ('clinic_scheduled', 'Clinic Scheduled'),
+        ('patient_request', 'Patient Request'),
+        ('referral', 'Referral'),
+    )
     STATUS = (
         ('PendingPayment', 'Pending Payment'),
         ('Scheduled', 'Scheduled'),
@@ -23,6 +28,7 @@ class Appointment(models.Model):
         blank=True,       # allow empty forms
         related_name='scheduled_appointments'
     )
+    appointment_type = models.CharField(max_length=20, choices=APPOINTMENT_TYPES, default='patient_request')
     appointment_date = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS, default='PendingPayment')
     notes = models.TextField(max_length=250, blank=True, null=True)
@@ -193,7 +199,7 @@ class AppointmentReferral(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    appointment = models.OneToOneField(Appointment, null=True, blank=True, on_delete=models.SET_NULL)
+    appointment = models.OneToOneField(Appointment, null=True, blank=True, on_delete=models.SET_NULL, related_name='referral')
     
     def __str__(self):
         return f"Referral from {self.referring_doctor} to {self.receiving_doctor or 'Unassigned'} for {self.patient}"
