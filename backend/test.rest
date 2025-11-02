@@ -23,12 +23,12 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzUwNDA4NzQyLCJpYXQiOjE3NDI2MzI3NDIsImp0aSI6IjY5Yjk3YWI3NDY2MjQ1MjJhYzNhZGM4NWFkOGIyMzI0IiwidXNlcl9pZCI6IjUiLCJpc19zdGFmZiI6dHJ1ZSwiaXNfc3VwZXJ1c2VyIjp0cnVlLCJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsImZpcnN0X25hbWUiOiJBZG1pbiJ9.rx2coVwqmYNtT7indqtvkr4bp3qiwJ0WQSau7Zj9b4s
 
 ### Login to obtain JWT tokens
-POST https://thesis-backend.up.railway.app/auth/jwt/create/
+POST http://localhost:8000/auth/jwt/create/
 Content-Type: application/json
 
 {
-  "email": "zuma@gmail.com",
-  "password": "zuma-02000920070320"
+  "email": "secretaryaccount@gmail.com",
+  "password": "nVmTfEkCFeB3APi"
 }
 ###
 
@@ -51,24 +51,25 @@ Content-Type: application/json
 }
 
 ### secretary request
-POST   http://localhost:8000/appointment/42/accept/
+GET   http://localhost:8000/referrals/past/
 Content-Type: application/json  
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY2NzY2NDk5LCJpYXQiOjE3NTg5OTA0OTksImp0aSI6IjEyZGIwYTRhOTFiODRkNzJiZTgzOWY2ZDFmNThhYWM5IiwidXNlcl9pZCI6ImxhbmUtMDIwMDA4IiwiaXNfc3RhZmYiOmZhbHNlLCJpc19zdXBlcnVzZXIiOmZhbHNlLCJlbWFpbCI6InNlY3JldGFyeWFjY291bnRAZ21haWwuY29tIiwicm9sZSI6InNlY3JldGFyeSIsImZpcnN0X25hbWUiOiJQZW5ueSJ9.QsgzJ8zmsmgtvmbwT4k_YMowDOO1sCvrLjJd1DjfEfg
 ### secretary request
-GET    http://localhost:8000/medicine/predict/  
+GET    http://localhost:8000/appointment/doctor-schedule/wolowitz-0200010
 Content-Type: application/json  
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzU5NzU3NjYxLCJpYXQiOjE3NTE5ODE2NjEsImp0aSI6IjVmZDRkYzNlYzMwYzQzNjFhYmEwMDllOTM4ZTQ1ZTY1IiwidXNlcl9pZCI6IkVFMkRZWFlZIiwiaXNfc3RhZmYiOmZhbHNlLCJpc19zdXBlcnVzZXIiOmZhbHNlLCJlbWFpbCI6InNlY3JldGFyeWFjY291bnRAZ21haWwuY29tIiwicm9sZSI6InNlY3JldGFyeSIsImZpcnN0X25hbWUiOiJMYXlsYSJ9.3uv35HQBPiH6_MocJNdehvFq8LfblguBaiV2o5QTnGk 
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5Nzg0Njg5LCJpYXQiOjE3NjIwMDg2ODksImp0aSI6ImVkMWU1ZThiOTNiNDRmYmM5OGM3YTU0YzQ0ZTE3YTJmIiwidXNlcl9pZCI6ImxhbmUtMDIwMDA4IiwiaXNfc3RhZmYiOmZhbHNlLCJpc19zdXBlcnVzZXIiOmZhbHNlLCJlbWFpbCI6InNlY3JldGFyeWFjY291bnRAZ21haWwuY29tIiwicm9sZSI6InNlY3JldGFyeSIsImZpcnN0X25hbWUiOiJQZW5ueSJ9.sF44B3KzNqgkbfmQ3TXvrNMUjIppHzW0w7OKL6S5QWw
+
 ### oncalldoctor request
-GET http://localhost:8000/payments/v1/webhooks
+GET http://localhost:8000/appointment-requests/patient-request/
 Content-Type: application/json  
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5NjIyOTk0LCJpYXQiOjE3NjE4NDY5OTQsImp0aSI6IjY2MDA1YjA1MTJkZDRkNTliYTAwYzE5NTM3MGNhNTE1IiwidXNlcl9pZCI6Inp1bWEtMDIwMDA5IiwiaXNfc3RhZmYiOmZhbHNlLCJpc19zdXBlcnVzZXIiOmZhbHNlLCJlbWFpbCI6Inp1bWFAZ21haWwuY29tIiwicm9sZSI6InBhdGllbnQiLCJmaXJzdF9uYW1lIjoiRGVtYmUifQ.DHOi5Kjx6zIFbsSWak5bGGeQNbOqOCRDBKHCzDxt5w8
 
 ### patient
 
-GET    http://localhost:8000//user/users/whoami/
+GET    http://localhost:8000/referrals/
 Content-Type: application/json  
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY4OTI0NjAwLCJpYXQiOjE3NjExNDg2MDAsImp0aSI6IjE4OWEzZDJiOTQ5YjRiZDc5MGZmYWJiZjk0ZjVhN2FkIiwidXNlcl9pZCI6Inp1bWEtMDIwMDA5IiwiaXNfc3RhZmYiOmZhbHNlLCJpc19zdXBlcnVzZXIiOmZhbHNlLCJlbWFpbCI6Inp1bWFAZ21haWwuY29tIiwicm9sZSI6InBhdGllbnQiLCJmaXJzdF9uYW1lIjoiRGVtYmUifQ.hbXY5d75DwK1vbO3cnBBb9B0XA84nV97JhXCYIzdO5g
-
+ 
 # {
 #   "doctor_id": 20,
 #   "appointment_date": "2025-10-25T10:00:00+08:00",
@@ -84,18 +85,18 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ### Base URL
 ### Base URL
-@baseUrl =  https://thesis-backend.up.railway.app/
+@baseUrl =  http://localhost:8000
 
 ### 1. Check NEW Payment Status (Should be 'Pending')
-GET {{baseUrl}}/payments/test-webhook/33/
+GET {{baseUrl}}/payments/test-webhook/40/
 Content-Type: application/json
 
 ### 2. Test Simple Webhook - Mark as Paid
-POST {{baseUrl}}/payments/test-webhook/33/
+POST {{baseUrl}}/payments/test-webhook/40/
 Content-Type: application/json
 
 ### 3. Verify Payment Updated to 'Paid'
-GET {{baseUrl}}/payments/test-webhook/33/
+GET {{baseUrl}}/payments/test-webhook/40/
 Content-Type: application/json
 
 ### 4. Test Real Webhook with the NEW Reference ID
@@ -104,10 +105,10 @@ Content-Type: application/json
 
 {
   "type": "CHECKOUT_SUCCESS",
-  "id": "e6a12707-b5b7-4543-9803-3af00d41532b",  
+  "id": "a3dadeb1-ecce-4f67-ad2d-4b1c8e85c07b",  
   "status": "PAYMENT_SUCCESS",
   "paymentStatus": "PAYMENT_SUCCESS",
-  "requestReferenceNumber": "33",
+  "requestReferenceNumber": "40",
   "totalAmount": {
     "value": "500.00",
     "currency": "PHP"
@@ -131,7 +132,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 }
 
 ### 2. Note the payment_id from response, then check status (should be Pending)
-GET {{baseUrl}}/payments/test-webhook/35/
+GET {{baseUrl}}/payments/test-webhook/40/
 
 ### 3. Simulate PayMaya Webhook (This happens automatically in production)
 POST {{baseUrl}}/payments/webhook/

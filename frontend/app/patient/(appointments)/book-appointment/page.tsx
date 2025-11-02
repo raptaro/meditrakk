@@ -89,6 +89,7 @@ interface DoctorWithSchedule extends Doctor {
     timeSlots: { [date: string]: ScheduleSlot[] };
   };
   fee: number;
+  timezone: string;
 }
 
 // Updated schema - removed patient fields since backend uses authenticated user
@@ -114,7 +115,7 @@ export default function PatientBookAppointment() {
   const [showSuccess, setShowSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentStep, setPaymentStep] = useState<"form" | "processing" | "redirect" | "polling" | "success" | "error">("form");
+  const [paymentStep, setPaymentStep] = useState<"form" | "processing" | "iframe" | "polling" | "success" | "error">("form");
   const [paymentMethod, setPaymentMethod] = useState<"PayMaya" | "Gcash">("PayMaya");
   const [appointmentData, setAppointmentData] = useState<any>(null);
   const [gcashProof, setGcashProof] = useState<File | null>(null);
@@ -142,6 +143,40 @@ export default function PatientBookAppointment() {
 
   const selectedDoctor = form.watch("doctor");
   const doctorData = doctors.find((d) => d.id === selectedDoctor);
+
+  // Format time exactly as backend provides (UTC)
+  const formatTimeUTC = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      // Use UTC methods to get the exact time from backend
+      const hours = date.getUTCHours();
+      const minutes = date.getUTCMinutes();
+      const ampm = hours >= 12 ? 'PM' : 'AM';
+      const formattedHours = hours % 12 || 12;
+      const formattedMinutes = minutes.toString().padStart(2, '0');
+      return `${formattedHours}:${formattedMinutes} ${ampm}`;
+    } catch (error) {
+      console.error("Error formatting time:", error);
+      return "Invalid time";
+    }
+  };
+
+  // Format date in UTC to match backend
+  const formatDateUTC = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("en-US", {
+        timeZone: "UTC",
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
+  };
 
   // fetch patient profile and doctors
   useEffect(() => {
@@ -264,7 +299,8 @@ export default function PatientBookAppointment() {
       const doctorsWithSchedule: DoctorWithSchedule[] = data.map(doctor => ({
         ...doctor,
         schedule: undefined,
-        fee: 500
+        fee: 500,
+        timezone: "UTC" // Default timezone, will be updated when schedule is fetched
       }));
 
       setDoctors(doctorsWithSchedule);
@@ -313,7 +349,7 @@ export default function PatientBookAppointment() {
         try {
           const startDate = new Date(slot.start);
           const endDate = new Date(slot.end);
-          const dateKey = format(startDate, "yyyy-MM-dd");
+          const dateKey = startDate.toISOString().split('T')[0]; // Use UTC date
 
           if (!slotsByDate[dateKey]) {
             slotsByDate[dateKey] = [];
@@ -344,6 +380,7 @@ export default function PatientBookAppointment() {
         doctor.id === doctorId
           ? {
             ...doctor,
+            timezone: data.timezone,
             schedule: {
               availableDates,
               timeSlots: slotsByDate
@@ -365,29 +402,15 @@ export default function PatientBookAppointment() {
   const isDayDisabled = (date: Date) => {
     if (!doctorData?.schedule?.timeSlots) return true;
 
-    const dateKey = format(date, "yyyy-MM-dd");
+    // Convert local date to UTC date string for comparison
+    const utcDate = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dateKey = utcDate.toISOString().split('T')[0];
     const slotsForDate = doctorData.schedule.timeSlots[dateKey] || [];
     const now = new Date();
 
     return !slotsForDate.some(slot =>
       slot.is_available && new Date(slot.end) > now
     );
-  };
-
-  // Format time in UTC
-  const formatTimeUTC = (dateString: string) => {
-    try {
-      const date = new Date(dateString);
-      return date.toLocaleTimeString("en-US", {
-        timeZone: "UTC",
-        hour: "numeric",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch (error) {
-      console.error("Error formatting time:", error);
-      return "Invalid time";
-    }
   };
 
   // Check if slot is in the past
@@ -397,223 +420,224 @@ export default function PatientBookAppointment() {
     return slotEnd < now;
   };
 
-  // Format date and time for backend
-  const formatDateTime = (date: Date, timeSlot: ScheduleSlot) => {
-    return timeSlot.start;
+  // Book appointment API call
+  const bookAppointment = async (values: z.infer<typeof formSchema>) => {
+    try {
+      setIsSubmitting(true);
+      setError(null);
+
+      console.log('📅 Starting appointment booking process...');
+
+      if (!selectedDate || !doctorData?.schedule?.timeSlots) {
+        throw new Error('Invalid appointment data');
+      }
+
+      // Convert selected date to UTC date string for lookup
+      const utcDate = new Date(Date.UTC(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()));
+      const dateKey = utcDate.toISOString().split('T')[0];
+      const slotsForDate = doctorData.schedule.timeSlots[dateKey] || [];
+      
+      // Find the selected slot using UTC time formatting
+      const selectedSlot = slotsForDate.find(slot => {
+        const slotTimeString = `${formatTimeUTC(slot.start)} - ${formatTimeUTC(slot.end)}`;
+        return slotTimeString === values.appointment_time;
+      });
+
+      if (!selectedSlot) {
+        throw new Error('Selected time slot not found');
+      }
+
+      // Use the slot's start time directly (it's already in UTC from backend)
+      const appointmentDateTime = selectedSlot.start;
+
+      const requestData = {
+        doctor_id: values.doctor,
+        appointment_date: appointmentDateTime,
+        notes: values.note || values.injury || "",
+        payment_method: paymentMethod,
+      };
+
+      console.log('📤 Sending appointment request:', requestData);
+
+      const token = localStorage.getItem("access");
+      if (!token) {
+        throw new Error('Authentication required. Please log in.');
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/appointments/book/`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(requestData)
+      });
+
+      console.log('📥 Received response:', response.status, response.statusText);
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => null);
+        console.error('❌ Booking failed with response:', body);
+        
+        let errorMsg = `Failed to book appointment: ${response.status}`;
+        
+        if (body?.details) {
+          try {
+            const paymayaError = JSON.parse(body.details);
+            errorMsg = `PayMaya Error: ${paymayaError.error || JSON.stringify(paymayaError)}`;
+          } catch {
+            errorMsg = body.details || body.error || errorMsg;
+          }
+        } else if (body?.error) {
+          errorMsg = body.error;
+        }
+        
+        throw new Error(errorMsg);
+      }
+
+      const data = await response.json();
+      console.log('✅ Appointment booked successfully:', data);
+
+      setAppointmentData(data);
+
+      if (data.reservation_expires_at) {
+        const expiresMs = typeof data.reservation_expires_at === "number"
+          ? data.reservation_expires_at
+          : Date.parse(data.reservation_expires_at);
+        if (!isNaN(expiresMs)) {
+          setReservationExpiresAt(expiresMs);
+        }
+      }
+
+      return data;
+
+    } catch (error) {
+      console.error('💥 Booking error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to book appointment. Please try again.';
+      setError(errorMessage);
+      setPaymentStep("error");
+      throw error;
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
-  // Book appointment API call
-// Enhanced bookAppointment function with better logging
-const bookAppointment = async (values: z.infer<typeof formSchema>) => {
-  try {
-    setIsSubmitting(true);
-    setError(null);
-
-    console.log('📅 Starting appointment booking process...');
-
-    if (!selectedDate || !doctorData?.schedule?.timeSlots) {
-      throw new Error('Invalid appointment data');
-    }
-
-    const dateKey = format(selectedDate, "yyyy-MM-dd");
-    const slotsForDate = doctorData.schedule.timeSlots[dateKey] || [];
-    const selectedSlot = slotsForDate.find(slot =>
-      `${formatTimeUTC(slot.start)} - ${formatTimeUTC(slot.end)}` === values.appointment_time
-    );
-
-    if (!selectedSlot) {
-      throw new Error('Selected time slot not found');
-    }
-
-    const appointmentDateTime = formatDateTime(selectedDate, selectedSlot);
-
-    const requestData = {
-      doctor_id: values.doctor,
-      appointment_date: appointmentDateTime,
-      notes: values.note || values.injury || "",
-      payment_method: paymentMethod,
-    };
-
-    console.log('📤 Sending appointment request:', requestData);
-
-    const token = localStorage.getItem("access");
-    if (!token) {
-      throw new Error('Authentication required. Please log in.');
-    }
-
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/appointments/book/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(requestData)
-    });
-
-    console.log('📥 Received response:', response.status, response.statusText);
-
-    if (!response.ok) {
-      const body = await response.json().catch(() => null);
-      console.error('❌ Booking failed with response:', body);
-      
-      let errorMsg = `Failed to book appointment: ${response.status}`;
-      
-      if (body?.details) {
-        try {
-          const paymayaError = JSON.parse(body.details);
-          errorMsg = `PayMaya Error: ${paymayaError.error || JSON.stringify(paymayaError)}`;
-        } catch {
-          errorMsg = body.details || body.error || errorMsg;
-        }
-      } else if (body?.error) {
-        errorMsg = body.error;
-      }
-      
-      throw new Error(errorMsg);
-    }
-
-    const data = await response.json();
-    console.log('✅ Appointment booked successfully:', data);
-
-    setAppointmentData(data);
-
-    if (data.reservation_expires_at) {
-      const expiresMs = typeof data.reservation_expires_at === "number"
-        ? data.reservation_expires_at
-        : Date.parse(data.reservation_expires_at);
-      if (!isNaN(expiresMs)) {
-        setReservationExpiresAt(expiresMs);
-      }
-    }
-
-    return data;
-
-  } catch (error) {
-    console.error('💥 Booking error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to book appointment. Please try again.';
-    setError(errorMessage);
-    setPaymentStep("error");
-    throw error;
-  } finally {
-    setIsSubmitting(false);
-  }
-};
-
   // Check payment status
-// Enhanced checkPaymentStatus function
-const checkPaymentStatus = async (paymentId: string) => {
-  try {
-    const token = localStorage.getItem("access");
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE}/payments/status/${paymentId}/`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-
-    if (response.ok) {
-      const data = await response.json();
-      console.log('🔍 Payment status response:', data);
-      return data;
-    } else {
-      console.error('❌ Failed to fetch payment status:', response.status);
-      throw new Error('Failed to fetch payment status');
-    }
-  } catch (error) {
-    console.error('💥 Error checking payment status:', error);
-    return null;
-  }
-};
-
-// Enhanced polling logic
-const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
-  let attempts = 0;
-  
-  const checkStatus = async (): Promise<boolean> => {
+  const checkPaymentStatus = async (paymentId: string) => {
     try {
-      const statusData = await checkPaymentStatus(paymentId);
-      console.log(`🔄 Payment status check ${attempts + 1}/${maxAttempts}:`, statusData);
-      
-      if (!statusData) {
-        console.log('❌ No status data received');
+      const token = localStorage.getItem("access");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/payments/status/${paymentId}/`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log('🔍 Payment status response:', data);
+        return data;
+      } else {
+        console.error('❌ Failed to fetch payment status:', response.status);
+        throw new Error('Failed to fetch payment status');
+      }
+    } catch (error) {
+      console.error('💥 Error checking payment status:', error);
+      return null;
+    }
+  };
+
+  // Enhanced polling logic
+  const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
+    let attempts = 0;
+    
+    const checkStatus = async (): Promise<boolean> => {
+      try {
+        const statusData = await checkPaymentStatus(paymentId);
+        console.log(`🔄 Payment status check ${attempts + 1}/${maxAttempts}:`, statusData);
+        
+        if (!statusData) {
+          console.log('❌ No status data received');
+          attempts++;
+          return false;
+        }
+
+        // Handle all possible status cases
+        const paymentStatus = statusData.status?.toLowerCase();
+        
+        console.log('🔍 Payment status:', paymentStatus);
+
+        switch (paymentStatus) {
+          case 'paid':
+          case 'success':
+          case 'completed':
+          case 'payment_success':
+            console.log('✅ Payment confirmed!');
+            setShowSuccess(true);
+            setShowPaymentModal(false);
+            setPaymentStep("success");
+            setAppointmentData(null);
+            setReservationExpiresAt(null);
+            clearCountdown();
+            clearPolling();
+            
+            setTimeout(() => {
+              resetForm();
+            }, 3000);
+            return true;
+
+          case 'failed':
+          case 'expired':
+          case 'cancelled':
+          case 'payment_failed':
+            console.log('❌ Payment failed');
+            setError(`Payment ${paymentStatus}. Please try again.`);
+            setPaymentStep("error");
+            clearPolling();
+            return true;
+
+          case 'pending':
+          case 'processing':
+            console.log('⏳ Payment still processing...');
+            attempts++;
+            return false;
+
+          default:
+            console.log('❓ Unknown payment status:', paymentStatus);
+            attempts++;
+            return false;
+        }
+        
+      } catch (error) {
+        console.error('💥 Error in payment status check:', error);
         attempts++;
         return false;
       }
+    };
 
-      // Handle all possible status cases
-      const paymentStatus = statusData.payment_status || statusData.status;
-      
-      switch (paymentStatus?.toLowerCase()) {
-        case 'paid':
-        case 'success':
-        case 'completed':
-          console.log('✅ Payment confirmed!');
-          setShowSuccess(true);
-          setShowPaymentModal(false);
-          setPaymentStep("success");
-          setAppointmentData(null);
-          setReservationExpiresAt(null);
-          clearCountdown();
-          clearPolling();
-          
-          setTimeout(() => {
-            resetForm();
-          }, 3000);
-          return true;
+    // Clear any existing polling
+    clearPolling();
 
-        case 'failed':
-        case 'expired':
-        case 'cancelled':
-          console.log('❌ Payment failed');
-          setError(`Payment ${paymentStatus}. Please try again.`);
+    console.log(`🚀 Starting payment polling for ID: ${paymentId}`);
+
+    // Poll every 5 seconds for up to 5 minutes
+    pollingRef.current = window.setInterval(async () => {
+      const done = await checkStatus();
+      if (done || attempts >= maxAttempts) {
+        clearPolling();
+        if (attempts >= maxAttempts && !done) {
+          console.log('⏰ Payment polling timeout');
+          setError('Payment status check timeout. Please check your appointments page for confirmation.');
           setPaymentStep("error");
-          clearPolling();
-          return true;
-
-        case 'pending':
-        case 'processing':
-          console.log('⏳ Payment still processing...');
-          attempts++;
-          return false;
-
-        default:
-          console.log('❓ Unknown payment status:', paymentStatus);
-          attempts++;
-          return false;
+        }
       }
-      
-    } catch (error) {
-      console.error('💥 Error in payment status check:', error);
-      attempts++;
-      return false;
-    }
+    }, 5000);
+
+    // Initial check immediately
+    checkStatus();
   };
-
-  // Clear any existing polling
-  clearPolling();
-
-  console.log(`🚀 Starting payment polling for ID: ${paymentId}`);
-
-  // Poll every 5 seconds for up to 5 minutes
-  pollingRef.current = window.setInterval(async () => {
-    const done = await checkStatus();
-    if (done || attempts >= maxAttempts) {
-      clearPolling();
-      if (attempts >= maxAttempts && !done) {
-        console.log('⏰ Payment polling timeout');
-        setError('Payment status check timeout. Please check your appointments page for confirmation.');
-        setPaymentStep("error");
-      }
-    }
-  }, 5000);
-
-  // Initial check immediately
-  checkStatus();
-};
-
-
 
   // Cancel endpoint (explicit cancel before payment)
   const cancelAppointmentRequest = async (appointmentRequestId?: number | string) => {
@@ -718,9 +742,9 @@ const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
       const values = form.getValues();
       const result = await bookAppointment(values);
 
-      // For PayMaya, show redirect confirmation and start polling
+      // For PayMaya, show iframe checkout and start polling
       if (paymentMethod === 'PayMaya' && result.checkout_url) {
-        setPaymentStep("redirect");
+        setPaymentStep("iframe");
         setAppointmentData(result);
         
         // Start automatic payment status polling
@@ -739,22 +763,13 @@ const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
     }
   };
 
-  const handlePayMayaRedirect = () => {
-    if (appointmentData?.checkout_url) {
-      // Open in new tab to preserve the current state
-      window.open(appointmentData.checkout_url, '_blank');
-      // Switch to polling state
-      setPaymentStep("polling");
-    }
-  };
-
   const handleManualStatusCheck = async () => {
     if (appointmentData?.payment_id) {
       try {
         const status = await checkPaymentStatus(appointmentData.payment_id);
         console.log('Manual status check:', status);
         
-        if (status?.payment_status === 'Paid') {
+        if (status?.status === 'Paid') {
           setShowSuccess(true);
           setShowPaymentModal(false);
           setPaymentStep("form");
@@ -977,8 +992,7 @@ const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
                         "Loading schedule..."
                       ) : doctorData.schedule ? (
                         <>
-                          Dr. {doctorData.first_name} {doctorData.last_name} is available on{' '}
-                          <strong>{getAvailableDays(doctorData).join(', ')}</strong>. Consultation fee: <strong>₱500</strong>
+                          Dr. {doctorData.first_name} {doctorData.last_name} is available in <strong>UTC timezone</strong>. Consultation fee: <strong>₱500</strong>
                         </>
                       ) : (
                         "Schedule not available"
@@ -1023,7 +1037,9 @@ const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
                         control={form.control}
                         name="appointment_time"
                         render={({ field }) => {
-                          const dateKey = format(selectedDate, "yyyy-MM-dd");
+                          // Convert selected date to UTC for lookup
+                          const utcDate = new Date(Date.UTC(selectedDate.getFullYear(), selectedDate.getMonth(), selectedDate.getDate()));
+                          const dateKey = utcDate.toISOString().split('T')[0];
                           const slotsForDate = doctorData.schedule?.timeSlots[dateKey] || [];
 
                           return (
@@ -1234,7 +1250,7 @@ const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
                         </Button>
                       </DialogTrigger>
 
-                      <DialogContent className="sm:max-w-md">
+                      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                           <DialogTitle className="flex items-center gap-2">
                             <CreditCard className="h-5 w-5" />
@@ -1248,8 +1264,8 @@ const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
                         </DialogHeader>
 
                         {reservationExpiresAt && secondsLeft !== null && (
-                          <div className="mb-4 text-sm text-slate-600">
-                            Reservation holds this slot for: <strong>{formatSeconds(secondsLeft)}</strong>
+                          <div className="mb-4 text-sm text-slate-600 bg-yellow-50 p-3 rounded-lg border border-yellow-200">
+                            ⏰ Reservation expires in: <strong className="text-red-600">{formatSeconds(secondsLeft)}</strong>
                           </div>
                         )}
 
@@ -1259,7 +1275,8 @@ const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
                               <div className="flex items-start gap-3">
                                 <Info className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                                 <div className="text-sm text-yellow-800">
-                                  <strong>Test Mode:</strong> Use test card: 4123450131001381 (Visa)
+                                  <strong>Test Mode:</strong> Use test card: 4123450131001381 (Visa)<br />
+                                  Expiry: 12/30, CVV: 123
                                 </div>
                               </div>
                             </div>
@@ -1288,7 +1305,7 @@ const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
                                   Processing...
                                 </>
                               ) : (
-                                "Pay ₱500"
+                                "Pay ₱500 with PayMaya"
                               )}
                             </Button>
 
@@ -1367,45 +1384,54 @@ const startPaymentPolling = async (paymentId: string, maxAttempts = 60) => {
                           </div>
                         )}
 
-                        {paymentStep === "redirect" && paymentMethod === "PayMaya" && (
-                          <div className="text-center py-6 space-y-4">
-                            <ExternalLink className="h-12 w-12 text-blue-500 mx-auto" />
-                            <div>
-                              <h3 className="font-semibold text-slate-800">Redirecting to PayMaya</h3>
-                              <p className="text-sm text-slate-600 mt-2">
-                                Click the button below to complete your payment in PayMaya.
-                                <br />
-                                <strong>We'll automatically check for payment confirmation.</strong>
-                              </p>
-                            </div>
-                            
-                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left">
+                        {paymentStep === "iframe" && paymentMethod === "PayMaya" && (
+                          <div className="space-y-4">
+                            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-left mb-4">
                               <div className="flex items-start gap-3">
                                 <Info className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
                                 <div className="text-sm text-yellow-800">
-                                  <strong>Test Card Details:</strong><br />
-                                  Card: 4123450131001381 (Visa)<br />
-                                  Expiry: 12/30<br />
-                                  CVV: 123
+                                  <strong>Complete your payment below:</strong><br />
+                                  We'll automatically check for payment confirmation.
                                 </div>
                               </div>
                             </div>
 
-                            <div className="space-y-3">
-                              <Button 
-                                onClick={handlePayMayaRedirect}
-                                className="w-full bg-blue-600 hover:bg-blue-700"
-                              >
-                                <ExternalLink className="mr-2 h-4 w-4" />
-                                Open PayMaya Payment
-                              </Button>
-                              
+                            {/* Embedded PayMaya Checkout */}
+                            <div className="border rounded-lg overflow-hidden">
+                              <iframe 
+                                src={appointmentData.checkout_url}
+                                className="w-full h-[500px] border-0"
+                                title="PayMaya Checkout"
+                                onLoad={() => console.log('PayMaya iframe loaded')}
+                              />
+                            </div>
+
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                              <div className="flex items-center gap-3">
+                                <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                                <div className="text-sm text-blue-800">
+                                  <strong>Auto-checking payment status...</strong>
+                                  <br />
+                                  Please complete the payment in the form above.
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex gap-3">
                               <Button 
                                 variant="outline" 
                                 onClick={() => setPaymentStep("form")}
-                                className="w-full"
+                                className="flex-1"
                               >
                                 Back to Payment
+                              </Button>
+                              <Button 
+                                onClick={handleManualStatusCheck}
+                                variant="outline"
+                                className="flex-1"
+                              >
+                                <RefreshCw className="mr-2 h-4 w-4" />
+                                Check Status
                               </Button>
                             </div>
                           </div>

@@ -3,11 +3,11 @@ from rest_framework.response import Response
 from rest_framework import status, viewsets
 from django.utils.dateparse import parse_datetime
 
-from .services.paymaya import PayMayaService
+from .services import PayMayaService
 
 from .models import HOLD_MINUTES, AppointmentReferral, AppointmentRequest, AppointmentReservation
 from patient.models import Patient
-from .serializers import AppointmentReferralSerializer, AppointmentSerializer
+from .serializers import AppointmentReferralSerializer, AppointmentRequestSerializer, AppointmentSerializer
 from user.permissions import isDoctor, isSecretary
 
 from django.utils import timezone
@@ -864,7 +864,7 @@ class CheckPaymentStatusAPIView(APIView):
         Sync payment status with PayMaya API
         """
         try:
-            from .services.paymaya import PayMayaService
+            from .services import PayMayaService
             paymaya_status = PayMayaService.get_payment_status(payment.paymaya_reference_id)
             
             if paymaya_status and paymaya_status.get('status') in ['PAYMENT_SUCCESS', 'PAYMENT_SUCCESSFUL']:
@@ -1296,7 +1296,7 @@ class SecretaryAppointmentAPIView(APIView):
         """
         Get all appointments for secretary dashboard
         """
-        status_filter = request.GET.get('status', '')
+        status_filter = request.GET.get('status', 'paid')
         payment_status = request.GET.get('payment_status', '')
         
         appointments = Appointment.objects.select_related(
@@ -1585,3 +1585,170 @@ class TestWebhookAPIView(APIView):
                 
         except Exception as e:
             logger.error(f"⚠️ Reservation handling failed: {str(e)}")
+
+class PaymentSuccessAPIView(APIView):
+    """
+    API endpoint for handling payment success redirects
+    """
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, payment_id):  # Add payment_id parameter here
+        """
+        Handle GET request for payment success page
+        """
+        print(f"🔍 Received payment_id from URL path: {payment_id}")
+        
+        try:
+            # Get the payment
+            payment = Payment.objects.select_related(
+                'appointment_request',
+                'appointment_request__doctor',
+                'appointment_request__doctor__user'
+            ).get(id=payment_id)
+            
+            print(f"✅ Found payment: {payment.id}, status: {payment.status}")
+
+            # Check if payment is already processed
+            if payment.status == 'Paid':
+                return Response({
+                    'status': 'already_processed',
+                    'message': 'Payment already completed',
+                    'payment_id': payment.id,
+                    'appointment_request_id': payment.appointment_request.id if payment.appointment_request else None
+                })
+
+            # Try to sync with PayMaya if still pending
+            if payment.status == 'Pending' and payment.payment_method == 'PayMaya':
+                if payment.paymaya_reference_id:
+                    try:
+                        from .services import PayMayaService
+                        paymaya_status = PayMayaService.get_payment_status(payment.paymaya_reference_id)
+                        
+                        if paymaya_status and paymaya_status.get('status') in ['PAYMENT_SUCCESS', 'PAYMENT_SUCCESSFUL']:
+                            payment.status = 'Paid'
+                            payment.paid_at = timezone.now()
+                            payment.save()
+                            
+                            if payment.appointment_request:
+                                payment.appointment_request.status = 'paid'
+                                payment.appointment_request.save()
+                            
+                            logger.info(f"Payment {payment.id} synced to Paid via success page")
+                            
+                            return Response({
+                                'status': 'success',
+                                'message': 'Payment completed successfully',
+                                'payment_id': payment.id,
+                                'appointment_request_id': payment.appointment_request.id if payment.appointment_request else None
+                            })
+                    except Exception as e:
+                        logger.error(f"PayMaya sync failed in success page: {str(e)}")
+                        # Continue to return pending status
+
+            return Response({
+                'status': 'pending',
+                'message': 'Payment is being processed',
+                'payment_id': payment.id,
+                'current_status': payment.status
+            })
+
+        except Payment.DoesNotExist:
+            logger.error(f"Payment not found: {payment_id}")
+            return Response({
+                'error': 'Payment not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            logger.error(f"Error in payment success view: {str(e)}")
+            return Response({
+                'error': 'Internal server error'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class AppointmentRequestViewSet(viewsets.ModelViewSet):
+    permission_classes = [IsAuthenticated, isSecretary]
+    queryset = AppointmentRequest.objects.all()
+    serializer_class = AppointmentRequestSerializer
+    
+    @action(detail=False, methods=['get'], url_path='patient-request')
+    def secretary_paid(self, request):
+        paid_statuses = ['paid', 'pending_payment']
+        qs = self.get_queryset().filter(status__in=paid_statuses)
+        
+        data = []
+        for req in qs:
+            item = {
+                'id': req.id,
+                'patient_name': str(req.patient),
+                'doctor_name': str(req.doctor),
+                'reason': req.reason,
+                'requested_datetime': req.requested_datetime,
+                'status': req.status,
+                'created_at': req.created_at
+            }
+            
+            # Add payment info safely
+            if hasattr(req, 'payment') and req.payment:
+                item['payment'] = {
+                    'id': req.payment.id,
+                    'status': req.payment.status,
+                    'amount': str(req.payment.amount),
+                    'method': req.payment.payment_method,
+                }
+            else:
+                item['payment'] = None
+                
+            data.append(item)
+        
+        return Response(data)
+    
+    @action(detail=True, methods=['post'], url_path='confirm-to-appointment')
+    def confirm_to_appointment(self, request, pk=None):
+        """Secretary confirms a paid appointment request and creates an actual appointment"""
+        try:
+            appointment_request = self.get_object()
+            
+            # Check if request is in a confirmable state
+            if appointment_request.status not in ['paid', 'reserved']:
+                return Response(
+                    {'error': 'Only paid appointment requests can be confirmed'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Check if payment exists and is paid
+            if not hasattr(appointment_request, 'payment') or appointment_request.payment.status != 'Paid':
+                return Response(
+                    {'error': 'Cannot confirm appointment without successful payment'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Create the appointment
+            appointment = Appointment.objects.create(
+                patient=appointment_request.patient,
+                doctor=appointment_request.doctor,
+                appointment_date=appointment_request.requested_datetime,
+                status='Scheduled',
+                scheduled_by=request.user,
+                notes=f"Confirmed from appointment request #{appointment_request.id}"
+            )
+            
+            # Link payment to appointment
+            payment = appointment_request.payment
+            payment.appointment = appointment
+            payment.appointment_request = None  # Remove link to request
+            payment.save()
+            
+            # Update appointment request status
+            appointment_request.status = 'scheduled'
+            appointment_request.save()
+            
+            return Response({
+                'message': 'Appointment confirmed and scheduled successfully',
+                'appointment_id': appointment.id,
+                'appointment_date': appointment.appointment_date
+            })
+            
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to create appointment: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

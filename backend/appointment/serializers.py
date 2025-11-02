@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from patient.serializers import PatientSerializer
 from patient.models import Patient
-from .models import Appointment, AppointmentReferral, Payment
+from .models import Appointment, AppointmentReferral, AppointmentRequest, Payment
 from user.models import Doctor, UserAccount
 from queueing.models import TemporaryStorageQueue
 
@@ -31,15 +31,7 @@ class UserAccountSerializer(serializers.ModelSerializer):
         fields = ['id', 'full_name', 'email', 'role']
 
 
-class DoctorSerializer(serializers.ModelSerializer):
-    full_name = serializers.CharField(source='user.get_full_name')
-    email = serializers.CharField(source='user.email')
-    id = serializers.IntegerField(source='user.id')
-    role = serializers.IntegerField(source='user.role')   
-    class Meta:
-        model = Doctor
-        fields = ['id', 'full_name', 'specialization', 'role','email']
-        
+
 class AppointmentReferralSerializer(serializers.ModelSerializer):
     referring_doctor = UserAccountSerializer(read_only=True)
     receiving_doctor = serializers.SlugRelatedField(
@@ -222,41 +214,99 @@ class AppointmentBookingSerializer(serializers.ModelSerializer):
         )
         
         return appointment
+class AppointmentDetailSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer(read_only=True)
+    doctor_name = serializers.CharField(source='doctor.user.get_full_name', read_only=True)
+    payment = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Appointment
+        fields = [
+            'id', 'patient', 'doctor', 'doctor_name',
+            'appointment_date', 'status', 'notes', 'created_at',
+            'payment'
+        ]
+
+    def get_payment(self, obj):
+        try:
+            # Use filter().first() instead of direct access to avoid RelatedObjectDoesNotExist
+            payment = Payment.objects.filter(appointment=obj).first()
+            if payment:
+                return PaymentSerializer(payment).data
+            return None
+        except Exception:
+            return None
+import logging
+
+logger = logging.getLogger(__name__)
+
 class PaymentSerializer(serializers.ModelSerializer):
-    appointment_id = serializers.IntegerField(write_only=True)
-    
     class Meta:
         model = Payment
         fields = [
-            'id', 'appointment_id', 'payment_method', 'amount',
-            'status', 'paymaya_reference_id', 'paymaya_checkout_url',
+            'id', 'payment_method', 'amount', 'status',
+            'paymaya_reference_id', 'paymaya_checkout_url',
             'gcash_proof', 'created_at'
         ]
         read_only_fields = ['id', 'status', 'paymaya_reference_id', 
                           'paymaya_checkout_url', 'created_at']
 
-class AppointmentDetailSerializer(serializers.ModelSerializer):
-    patient = PatientSerializer()
-    doctor_name = serializers.CharField(source='doctor.user.get_full_name', read_only=True)
-    payment = serializers.SerializerMethodField()
+class DoctorSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(source='user.get_full_name')
+    email = serializers.CharField(source='user.email')
+    id = serializers.CharField(source='user.id')
+    role = serializers.CharField(source='user.role')   
     
     class Meta:
-        model = Appointment
+        model = Doctor
+        fields = ['id', 'full_name', 'specialization', 'role','email']
+
+class AppointmentRequestSerializer(serializers.ModelSerializer):
+    patient = PatientSerializer(read_only=True)
+    doctor = DoctorSerializer(read_only=True)
+    payment = serializers.SerializerMethodField()
+    patient_name = serializers.CharField(source='patient.get_full_name', read_only=True)
+    doctor_name = serializers.CharField(source='doctor.user.get_full_name', read_only=True)
+
+    class Meta:
+        model = AppointmentRequest
         fields = [
-            'id', 'patient', 'doctor', 'doctor_name', 'appointment_date',
-            'status', 'notes', 'created_at', 'payment'
+            'id',
+            'patient',
+            'doctor',
+            'patient_name',
+            'doctor_name',
+            'requested_datetime',
+            'reason',
+            'status',
+            'payment',
+            'created_at',
+            'updated_at',
         ]
-    
+        read_only_fields = [
+            'id',
+            'patient',
+            'doctor',
+            'patient_name',
+            'doctor_name',
+            'payment',
+            'created_at',
+            'updated_at',
+        ]
+
     def get_payment(self, obj):
-        try:
-            payment = obj.payment
-            return PaymentSerializer(payment).data
-        except Payment.DoesNotExist:
-            return None
-
-
-
-
+        """Safe method to get payment data"""
+        if hasattr(obj, 'payment') and obj.payment:
+            return {
+                'id': obj.payment.id,
+                'payment_method': obj.payment.payment_method,
+                'amount': str(obj.payment.amount),
+                'status': obj.payment.status,
+                'paymaya_reference_id': obj.payment.paymaya_reference_id,
+                'paymaya_checkout_url': obj.payment.paymaya_checkout_url,
+                'created_at': obj.payment.created_at,
+            }
+        return None
 class DoctorAvailabilitySerializer(serializers.Serializer):
     date = serializers.DateField()
     day_of_week = serializers.CharField()

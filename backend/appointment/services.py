@@ -252,7 +252,7 @@ class PayMayaService:
                     }
                 ],
                 "redirectUrl": {
-                    "success": f"{frontend_url}/payment/success?payment_id={payment.id}",
+                    "success": f"{frontend_url}/payments/success/{payment.id}",
                     "failure": f"{frontend_url}/payment/failed?payment_id={payment.id}",
                     "cancel": f"{frontend_url}/payment/cancelled?payment_id={payment.id}"
                 },
