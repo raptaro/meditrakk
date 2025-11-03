@@ -7,7 +7,7 @@ from .services import PayMayaService
 
 from .models import HOLD_MINUTES, AppointmentReferral, AppointmentRequest, AppointmentReservation
 from patient.models import Patient
-from .serializers import AppointmentReferralSerializer, AppointmentRequestSerializer, AppointmentSerializer
+from .serializers import AppointmentReferralSerializer, AppointmentReferralWriteSerializer, AppointmentRequestSerializer, AppointmentSerializer
 from user.permissions import IsDoctorOrOnCallDoctor, isDoctor, isSecretary
 
 from django.utils import timezone
@@ -44,7 +44,7 @@ class DoctorCreateReferralView(APIView):
         # check if payload is bulk or dict
         is_bulk = isinstance(payload, list)
 
-        serializer = AppointmentReferralSerializer(
+        serializer = AppointmentReferralWriteSerializer(
             data = payload,
             many=is_bulk,
             context={'request': request}
@@ -54,9 +54,9 @@ class DoctorCreateReferralView(APIView):
         created = serializer.save()
         
         if is_bulk:
-            output = AppointmentReferralSerializer(created, many=True).data
+            output = AppointmentReferralWriteSerializer(created, many=True).data
         else:
-            output = AppointmentReferralSerializer(created).data
+            output = AppointmentReferralWriteSerializer(created).data
         
         return Response(output, status=status.HTTP_201_CREATED)
         

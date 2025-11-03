@@ -31,7 +31,67 @@ class UserAccountSerializer(serializers.ModelSerializer):
         fields = ['id', 'full_name', 'email', 'role']
 
 
+class AppointmentReferralWriteSerializer(serializers.ModelSerializer):
+    referring_doctor = UserAccountSerializer(read_only=True)
+    receiving_doctor = serializers.SlugRelatedField(
+        slug_field='id',  # UserAccount ID
+        queryset=UserAccount.objects.filter(role__in=['doctor', 'on-call-doctor'])
+    )
+    patient = serializers.SlugRelatedField(
+        slug_field='patient_id',
+        queryset=Patient.objects.all()
+    )
+    appointment_date = serializers.DateTimeField(
+        source='appointment.appointment_date',
+        read_only=True,
+        format='%Y-%m-%dT%H:%M:%S'
+    )
 
+    class Meta:
+        model = AppointmentReferral
+        fields = [
+            'id', 'patient', 'receiving_doctor', 'reason', 'notes',
+            'referring_doctor', 'status', 'created_at', 'appointment_date'
+        ]
+        read_only_fields = ['id', 'referring_doctor']
+        list_serializer_class = BulkReferralListSerializer
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+
+        # Handling receiving_doctor
+        if instance.receiving_doctor:
+            try:
+                doctor_profile = instance.receiving_doctor.doctor_profile
+                ret['receiving_doctor'] = {
+                    "id": doctor_profile.user.id,
+                    "full_name": doctor_profile.user.get_full_name(),
+                    "email": doctor_profile.user.email,
+                    "role": doctor_profile.user.role,
+                    "specialization": doctor_profile.specialization
+                }
+            except Doctor.DoesNotExist:
+                ret['receiving_doctor'] = UserAccountSerializer(instance.receiving_doctor).data
+        else:
+            ret['receiving_doctor'] = None
+
+        # Handling referring_doctor
+        if instance.referring_doctor:
+            try:
+                doctor_profile = instance.referring_doctor.doctor_profile
+                ret['referring_doctor'] = {
+                    "id": doctor_profile.user.id,
+                    "full_name": doctor_profile.user.get_full_name(),
+                    "email": doctor_profile.user.email,
+                    "role": doctor_profile.user.role,
+                    "specialization": doctor_profile.specialization
+                }
+            except Doctor.DoesNotExist:
+                ret['referring_doctor'] = UserAccountSerializer(instance.referring_doctor).data
+        else:
+            ret['referring_doctor'] = None
+
+        return ret
 class AppointmentReferralSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source='patient.user.get_full_name', read_only=True)
     referring_doctor_name = serializers.CharField(source='referring_doctor.get_full_name', read_only=True)

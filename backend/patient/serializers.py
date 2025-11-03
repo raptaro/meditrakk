@@ -1,5 +1,6 @@
 
 from datetime import datetime, date
+import os
 from rest_framework import serializers
 from .models import Patient, Diagnosis, Prescription, LabRequest, LabResult
 
@@ -14,6 +15,7 @@ from medicine.serializers import MedicineSerializer
 
 from queueing.models import TemporaryStorageQueue, Treatment
 from appointment.models import Appointment
+from urllib.parse import quote
 
 
 class PatientSerializer(serializers.Serializer):
@@ -221,18 +223,26 @@ class LabRequestSerializer(serializers.Serializer):
         return None
 
 class LabResultSerializer(serializers.ModelSerializer):
-    image = serializers.ImageField(write_only=True)  # Allow file upload
-    image_url = serializers.SerializerMethodField(read_only=True)  # For outputting URL
+    image_url = serializers.SerializerMethodField()
     submitted_by = UserAccountReadSerializer(read_only=True)
 
     def get_image_url(self, obj):
-        request = self.context.get("request")
-        return request.build_absolute_uri(obj.image.url) if obj.image else None
-
+        if obj.image:
+            supabase_url = os.getenv("SUPABASE_URL")
+            bucket_name = "lab_results"
+            
+            # Use the full path exactly as stored in Supabase
+            # If the file is stored in lab_results/lab_results/filename.png
+            file_path = obj.image.name  # This should be "lab_results/Screenshot 2025-09-16 164802.png"
+            
+            # Properly encode the filename
+            encoded_file_path = quote(file_path)
+            return f"{supabase_url}/storage/v1/object/public/lab_results/{bucket_name}/{encoded_file_path}"
+        return None
+    
     class Meta:
         model = LabResult
         fields = ['id', 'lab_request', 'image', 'image_url', 'uploaded_at', 'submitted_by']
-
 
 class PatientReportSerializer(serializers.Serializer):    
     patient_id = serializers.CharField(max_length=8)

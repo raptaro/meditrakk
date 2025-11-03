@@ -103,7 +103,7 @@ class LabResult(models.Model):
     lab_request = models.OneToOneField(LabRequest, on_delete=models.CASCADE, related_name="result",         
         null=True,
         blank=True)
-    image = models.ImageField(upload_to="lab_results/")
+    image = models.ImageField(upload_to="")
     uploaded_at = models.DateTimeField(auto_now_add=True)
     submitted_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="lab_results",

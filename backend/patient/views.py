@@ -24,7 +24,7 @@ from backend.supabase_client import supabase
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from user.permissions import IsMe, IsMedicalStaff, IsParticipant, isDoctor, isSecretary, isAdmin
+from user.permissions import IsDoctorOrOnCallDoctor, IsMe, IsMedicalStaff, IsParticipant, isDoctor, isSecretary, isAdmin
 from rest_framework.permissions import IsAuthenticated
 
 from rest_framework import generics
@@ -47,6 +47,7 @@ from queueing.utils import compute_queue_snapshot
 class PatientListView(APIView):
     permission_classes = [IsMedicalStaff]
 
+
     def get(self, request):
         try:
             role = getattr(request.user, "role", None)
@@ -54,13 +55,29 @@ class PatientListView(APIView):
             user_id = request.user.id
             print(f"User ID: {user_id}")
             
+            # Check if Supabase client is properly initialized
+            if supabase is None:
+                return Response(
+                    {"error": "Supabase client not configured"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+            
             if role == "on-call-doctor" and user_id != "cooper-020006":
                 # Get unique patient IDs first from treatments
                 treatment_response = supabase.table("queueing_treatment").select(
                     "patient_id"
                 ).eq("doctor_id", user_id).execute()
                 
-                patient_ids = list(set([t['patient_id'] for t in treatment_response.data if 'patient_id' in t]))
+                # Handle both response object and dict
+                if hasattr(treatment_response, 'data'):
+                    treatment_data = treatment_response.data
+                elif isinstance(treatment_response, dict) and 'data' in treatment_response:
+                    treatment_data = treatment_response['data']
+                else:
+                    print(f"Unexpected treatment response: {treatment_response}")
+                    treatment_data = []
+                
+                patient_ids = list(set([t['patient_id'] for t in treatment_data if 'patient_id' in t]))
                 print(f"Found patient IDs for doctor {user_id}: {patient_ids}")
                 
                 if patient_ids:
@@ -68,10 +85,18 @@ class PatientListView(APIView):
                     response = (
                         supabase.table("patient_patient")
                         .select("*, queueing_temporarystoragequeue(id, status, created_at, priority_level, queue_number, complaint)")
-                        .in_("patient_id", patient_ids)  # Use patient_id instead of id
+                        .in_("patient_id", patient_ids)
                         .execute()
                     )
-                    patients = response.data
+                    
+                    # Handle both response object and dict
+                    if hasattr(response, 'data'):
+                        patients = response.data
+                    elif isinstance(response, dict) and 'data' in response:
+                        patients = response['data']
+                    else:
+                        print(f"Unexpected patient response: {response}")
+                        patients = []
                 else:
                     patients = []
                     
@@ -82,7 +107,15 @@ class PatientListView(APIView):
                     .select("*, queueing_temporarystoragequeue(id, status, created_at, priority_level, queue_number, complaint)")
                     .execute()
                 )
-                patients = response.data
+                
+                # Handle both response object and dict
+                if hasattr(response, 'data'):
+                    patients = response.data
+                elif isinstance(response, dict) and 'data' in response:
+                    patients = response['data']
+                else:
+                    print(f"Unexpected all patients response: {response}")
+                    patients = []
                 
             else: 
                 return Response(
@@ -93,7 +126,7 @@ class PatientListView(APIView):
             # Remove duplicates using patient_id (the primary key)
             unique_patients = {}
             for patient in patients:
-                patient_id = patient.get('patient_id')  # Use patient_id instead of id
+                patient_id = patient.get('patient_id')
                 if patient_id and patient_id not in unique_patients:
                     unique_patients[patient_id] = patient
             
@@ -124,7 +157,6 @@ class PatientListView(APIView):
         except Exception as e:
             print("Exception occurred:", e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-        
 class PatientInfoView(APIView):
     permission_classes = [IsMedicalStaff]
     
@@ -1047,7 +1079,7 @@ class SaveButton(APIView):
 class LabRequestCreateView(generics.CreateAPIView):
     queryset = LabRequest.objects.all()
     serializer_class = LabRequestSerializer
-    permission_classes = [isDoctor]
+    permission_classes = [IsDoctorOrOnCallDoctor]
     
     def perform_create(self, serializer):
         serializer.save()
@@ -1056,10 +1088,27 @@ class LabResultCreateView(generics.CreateAPIView):
     queryset = LabResult.objects.all()
     serializer_class = LabResultSerializer
     permission_classes = [isSecretary]
-    parser_classes = [MultiPartParser, FormParser]  # Add these to handle file uploads
+    parser_classes = [MultiPartParser, FormParser]
 
     def perform_create(self, serializer):
-        lab_result = serializer.save(submitted_by=self.request.user)
+        file = self.request.FILES.get('image')
+        if not file:
+            raise ValueError("No image file provided")
+
+        # Upload to Supabase Storage
+        file_path = f"lab_results/{file.name}"
+        supabase.storage.from_("lab_results").upload(file_path, file.read())
+
+        # Generate public URL
+        public_url = supabase.storage.from_("lab_results").get_public_url(file_path)
+
+        lab_result = serializer.save(
+            submitted_by=self.request.user,
+            image=file.name  # or store in a separate field like `file_name`
+        )
+        lab_result.image_url = public_url
+        lab_result.save()
+
         if lab_result.lab_request:
             lab_result.lab_request.status = "Completed"
             lab_result.lab_request.save()

@@ -28,6 +28,8 @@ urlpatterns = [
     path('patient/lab-request/', views.LabRequestCreateView.as_view(), name='lab-request-create'),
     path('patient/lab-request/list/', views.LabRequestListView.as_view(), name='lab-request-list'),
     path('patient/lab-request/<str:pk>/', views.LabRequestDetailView.as_view(), name='lab-request-detail'),
+
+    # upload lab result
     path('patient/lab-result/', views.LabResultCreateView.as_view(), name='lab-result'),
     path('patient/lab-results/<str:patient_id>/', views.LabResultListView.as_view(), name='lab-result-detail'),
     
