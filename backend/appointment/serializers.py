@@ -150,32 +150,36 @@ class AppointmentSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source='patient.user.get_full_name', read_only=True)
     doctor_name = serializers.CharField(source='doctor.user.get_full_name', read_only=True)
     scheduled_by_name = serializers.CharField(source='scheduled_by.get_full_name', read_only=True)
+    referral_info = serializers.SerializerMethodField()
+    is_my_appointment = serializers.SerializerMethodField()
     
     class Meta:
         model = Appointment
         fields = [
             'id', 'patient', 'patient_name', 'doctor', 'doctor_name', 
             'appointment_date', 'status', 'appointment_type', 'notes',
-            'scheduled_by', 'scheduled_by_name', 'created_at', 'updated_at'
+            'scheduled_by', 'scheduled_by_name', 'created_at', 'updated_at',
+            'referral_info', 'is_my_appointment'
         ]
         read_only_fields = ['created_at', 'updated_at']
 
-    def get_patient_name(self, obj):
-        patient = getattr(obj, "patient", None)
-        if not patient:
-            return ""
-        # try common methods/attributes safely
-        if callable(getattr(patient, "get_full_name", None)):
-            try:
-                return patient.get_full_name()
-            except Exception:
-                pass
-        for attr in ("full_name", "name", "first_name", "display_name"):
-            val = getattr(patient, attr, None)
-            if val:
-                return val
-        return str(patient)
+    def get_referral_info(self, obj):
+        """Get referral information if this is a referral appointment"""
+        if hasattr(obj, 'referral') and obj.referral:
+            return {
+                'referral_id': obj.referral.id,
+                'referring_doctor': obj.referral.referring_doctor.get_full_name(),
+                'referral_status': obj.referral.status,
+                'reason': obj.referral.reason
+            }
+        return None
 
+    def get_is_my_appointment(self, obj):
+        """Check if current user is the treating doctor for this appointment"""
+        request = self.context.get('request')
+        if not request or not request.user:
+            return False
+        return obj.doctor.user == request.user
 
 class QueueSerializer(serializers.ModelSerializer):
     # represent patient as a scalar PK (safe) OR nest PatientSerializer if you need more fields
