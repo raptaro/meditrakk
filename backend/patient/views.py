@@ -21,6 +21,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from backend.supabase_client import supabase
+from uuid import uuid4
+import os
+from rest_framework.exceptions import APIException
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -43,6 +46,10 @@ from user.models import UserAccount
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 from queueing.utils import compute_queue_snapshot
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class PatientListView(APIView):
     permission_classes = [IsMedicalStaff]
@@ -1084,6 +1091,7 @@ class LabRequestCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         serializer.save()
         
+
 class LabResultCreateView(generics.CreateAPIView):
     queryset = LabResult.objects.all()
     serializer_class = LabResultSerializer
@@ -1091,28 +1099,158 @@ class LabResultCreateView(generics.CreateAPIView):
     parser_classes = [MultiPartParser, FormParser]
 
     def perform_create(self, serializer):
-        file = self.request.FILES.get('image')
-        if not file:
-            raise ValueError("No image file provided")
+        """
+        Upload the provided image file to Supabase Storage using the SERVICE ROLE client,
+        save the LabResult instance, attach an accessible URL, and mark related lab_request completed.
+        """
+        file_obj = self.request.FILES.get("image")
+        if not file_obj:
+            raise APIException("No image file provided")
 
-        # Upload to Supabase Storage
-        file_path = f"lab_results/{file.name}"
-        supabase.storage.from_("lab_results").upload(file_path, file.read())
+        if supabase is None:
+            logger.error("Supabase service client is not configured.")
+            raise APIException("Server storage misconfiguration")
 
-        # Generate public URL
-        public_url = supabase.storage.from_("lab_results").get_public_url(file_path)
+        # Build a unique path to avoid collisions
+        ext = os.path.splitext(file_obj.name)[1] or ""
+        unique_name = f"{uuid4().hex}{ext}"
+        bucket = os.getenv("SUPABASE_STORAGE_BUCKET", "lab-results")
+        patient_segment = str(self.request.data.get("patient_id", "unknown"))
+        file_path = f"lab_results/{patient_segment}/{unique_name}"
 
-        lab_result = serializer.save(
-            submitted_by=self.request.user,
-            image=file.name  # or store in a separate field like `file_name`
-        )
-        lab_result.image_url = public_url
-        lab_result.save()
+        # Read bytes once for upload (some SDKs expect bytes)
+        file_bytes = file_obj.read()
 
-        if lab_result.lab_request:
-            lab_result.lab_request.status = "Completed"
-            lab_result.lab_request.save()
+        try:
+            # Handle storage being either callable or an object on the client
+            storage_attr = getattr(supabase, "storage", None)
+            if storage_attr is None:
+                logger.error("supabase_service.storage attribute not found.")
+                raise APIException("Storage client unavailable")
 
+            storage = storage_attr() if callable(storage_attr) else storage_attr
+
+            upload_result = None
+            bucket_client = None
+
+            # Preferred pattern: storage.from_(bucket).upload(path, data, options)
+            if hasattr(storage, "from_"):
+                bucket_client = storage.from_(bucket)
+                if hasattr(bucket_client, "upload"):
+                    try:
+                        upload_result = bucket_client.upload(file_path, file_bytes, {"content-type": file_obj.content_type})
+                    except TypeError:
+                        upload_result = bucket_client.upload(file_path, file_bytes)
+                elif hasattr(bucket_client, "put_object"):
+                    upload_result = bucket_client.put_object(file_path, file_bytes)
+            # Alternate shapes: storage.upload(bucket, path, data) or storage.put_object(...)
+            elif hasattr(storage, "upload"):
+                try:
+                    upload_result = storage.upload(bucket, file_path, file_bytes, {"content-type": file_obj.content_type})
+                except TypeError:
+                    upload_result = storage.upload(bucket, file_path, file_bytes)
+            elif hasattr(storage, "put_object"):
+                upload_result = storage.put_object(bucket, file_path, file_bytes)
+            elif hasattr(storage, "upload_fileobj"):
+                # Some SDKs accept file-like objects
+                try:
+                    upload_result = storage.upload_fileobj(bucket, file_path, file_obj)
+                except TypeError:
+                    upload_result = storage.upload_fileobj(file_obj, bucket, file_path)
+            else:
+                logger.error("No known upload method found on storage client. Methods: %s", dir(storage))
+                raise APIException("Unsupported storage client")
+
+            # Check for common error shapes
+            if upload_result is None:
+                logger.debug("upload_result is None; continuing (some SDKs return None on success).")
+            elif isinstance(upload_result, dict) and upload_result.get("error"):
+                raise APIException(f"Storage upload failed: {upload_result.get('error')}")
+            elif hasattr(upload_result, "error") and getattr(upload_result, "error"):
+                raise APIException(f"Storage upload failed: {getattr(upload_result, 'error')}")
+
+            # Try to obtain a signed URL first (preferred for private buckets)
+            signed_url = None
+            try:
+                signer = bucket_client if bucket_client is not None else storage
+                if hasattr(signer, "create_signed_url"):
+                    signed = signer.create_signed_url(file_path, 60 * 60)
+                    if isinstance(signed, dict):
+                        signed_url = signed.get("signedURL") or signed.get("signed_url") or signed.get("signedUrl")
+                    elif isinstance(signed, str):
+                        signed_url = signed
+            except Exception as exc:
+                logger.warning("create_signed_url failed: %s", exc)
+
+            # Fallback to public URL when no signed URL available
+            public_url = None
+            if not signed_url:
+                try:
+                    pub_target = bucket_client if bucket_client is not None else storage
+                    if hasattr(pub_target, "get_public_url"):
+                        pub = pub_target.get_public_url(file_path)
+                        if isinstance(pub, dict):
+                            public_url = pub.get("publicURL") or pub.get("public_url") or pub.get("publicUrl")
+                        elif isinstance(pub, str):
+                            public_url = pub
+                    elif hasattr(storage, "get_public_url"):
+                        pub = storage.get_public_url(bucket, file_path)
+                        if isinstance(pub, dict):
+                            public_url = pub.get("publicURL") or pub.get("public_url") or pub.get("publicUrl")
+                        elif isinstance(pub, str):
+                            public_url = pub
+                except Exception as exc:
+                    logger.warning("get_public_url failed: %s", exc)
+
+            final_url = signed_url or public_url or ""
+
+            # Save LabResult via serializer (keep original behavior)
+            lab_result = serializer.save(
+                submitted_by=self.request.user,
+                image=file_obj.name
+            )
+
+            # Attach storage metadata to model if fields exist
+            try:
+                if hasattr(lab_result, "image_url"):
+                    lab_result.image_url = final_url
+                if hasattr(lab_result, "file_path"):
+                    lab_result.file_path = file_path
+                if hasattr(lab_result, "storage_bucket"):
+                    lab_result.storage_bucket = bucket
+                lab_result.save()
+            except Exception as db_exc:
+                logger.exception("Failed to save LabResult after upload; attempting to remove uploaded file: %s", db_exc)
+                # attempt cleanup of uploaded object
+                try:
+                    if bucket_client is not None and hasattr(bucket_client, "remove"):
+                        bucket_client.remove([file_path])
+                    elif hasattr(storage, "remove"):
+                        storage.remove([file_path])
+                    elif hasattr(storage, "delete"):
+                        # some SDK shapes use delete(bucket, path)
+                        storage.delete(bucket, file_path)
+                except Exception as cleanup_exc:
+                    logger.exception("Failed to remove uploaded object during cleanup: %s", cleanup_exc)
+                raise APIException("Failed to persist lab result after upload")
+
+            # Mark related lab_request completed if present
+            try:
+                if getattr(lab_result, "lab_request", None):
+                    lab_req = lab_result.lab_request
+                    lab_req.status = "Completed"
+                    lab_req.save()
+            except Exception as lr_exc:
+                logger.exception("Failed updating related lab_request: %s", lr_exc)
+
+            return lab_result
+
+        except APIException:
+            # Let DRF handle APIException directly
+            raise
+        except Exception as exc:
+            logger.exception("Unhandled exception in LabResult upload: %s", exc)
+            raise APIException("Upload failed — see server logs")
         
 class LabRequestListView(generics.ListAPIView):
     queryset = LabRequest.objects.all()
