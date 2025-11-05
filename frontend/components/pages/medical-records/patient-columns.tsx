@@ -1,5 +1,4 @@
 "use client";
-
 import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { Edit, EllipsisVertical, Eye } from "lucide-react";
@@ -68,7 +67,6 @@ export const PatientColumns: ColumnDef<Patient>[] = [
     cell: ({ row }) => {
       const latestQueue = row.original.queue_data?.[0];
       if (!latestQueue?.created_at) return "-";
-
       const date = new Date(latestQueue.created_at);
       return date.toISOString().split("T")[0];
     },
@@ -83,15 +81,15 @@ export const PatientColumns: ColumnDef<Patient>[] = [
   },
   {
     id: "status",
+    // Just a placeholder; we will override this header in MedicalRecords
     header: "Status",
     cell: ({ row }) => {
       const latestQueue = row.original.queue_data?.[0];
-      const status = latestQueue ? latestQueue.status : null;
-      if (!status) return "-";
+      const status = latestQueue?.status ?? "-";
 
       const statusColor =
         status.toLowerCase() === "completed"
-          ? " border-green-500 bg-green-100 dark:text-muted"
+          ? "border-green-500 bg-green-100 dark:text-muted"
           : status.toLowerCase() === "queued for treatment"
           ? "border-amber-500 bg-amber-100 dark:text-muted"
           : status.toLowerCase() === "queued for assessment"
@@ -104,7 +102,12 @@ export const PatientColumns: ColumnDef<Patient>[] = [
         </Badge>
       );
     },
+    filterFn: (row, columnId, filterValue) => {
+      const status = row.original.queue_data?.[0]?.status;
+      return filterValue === undefined || status === filterValue;
+    },
   },
+
   {
     id: "actions",
     header: "Actions",
