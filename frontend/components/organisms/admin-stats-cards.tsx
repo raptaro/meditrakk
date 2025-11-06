@@ -75,12 +75,12 @@ function StatsCard({ icon: Icon, title, value, footer }: StatsCardProps) {
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <Icon className="me-2 text-primary" />
-          <p className="text-lg tracking-tight">{title}</p>
+          <p className="tracking-tight">{title}</p>
         </div>
         <FaEllipsis className="me-2 opacity-0 lg:opacity-100" />
       </div>
-      <p className="text-3xl font-bold">{value}</p>
-      <p className="flex items-center justify-center md:justify-normal">
+      <p className="text-2xl font-bold">{value}</p>
+      <p className="flex items-center justify-center text-sm md:justify-normal">
         {footer.trend ? (
           <>
             <span
@@ -112,7 +112,7 @@ function StatsCard({ icon: Icon, title, value, footer }: StatsCardProps) {
 
 export default function AdminStatsCards() {
   return (
-    <div className="grid grid-cols-1 place-items-center gap-4 text-card-foreground md:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 place-items-center gap-4 text-center text-card-foreground md:grid-cols-2 md:text-left xl:grid-cols-4">
       {statsData.map((stat, index) => (
         <StatsCard key={index} {...stat} />
       ))}

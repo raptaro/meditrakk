@@ -16,8 +16,8 @@ export default function StaffDashboard() {
   const patients = usePatients();
 
   return (
-    <div className="m-6 space-y-4 text-center md:text-left">
-      <div className="mx-2 py-4">
+    <div className="m-6 space-y-4">
+      <div className="mx-2 py-4 text-left">
         <div className="flex flex-row space-x-1 text-2xl font-bold">
           <span>Good Day,</span>
           <span className="text-blue-500">
@@ -32,14 +32,14 @@ export default function StaffDashboard() {
 
       <StatsCard />
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-6">
+      <div className="grid grid-cols-1 items-center gap-4 lg:grid-cols-3 lg:gap-6">
         {/* Visitors chart spans 2 columns */}
         <div className="lg:col-span-2">
           <VisitorsChart />
         </div>
 
         {/* Sidebar spaced out to align bottom */}
-        <div className="flex flex-col justify-between">
+        <div className="flex flex-col justify-between space-y-4">
           <CommonDiseasesChart />
           <CommonMedicinesChart />
         </div>
