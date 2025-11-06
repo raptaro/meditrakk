@@ -4,9 +4,9 @@ import ProfileDropdown from "@/components/molecules/header/profile-dropdown";
 
 const Header = () => {
   return (
-    <div className="sticky top-0 z-50 bg-card p-3 shadow-md">
+    <div className="sticky top-0 bg-card p-3 shadow-md">
       <div className="flex justify-between">
-        <span className="ms-2 whitespace-nowrap text-3xl font-bold tracking-tight">
+        <span className="ms-4 whitespace-nowrap text-3xl font-bold tracking-tight">
           Malibiran Medical Clinic
         </span>
         <div className="flex items-center space-x-1">
