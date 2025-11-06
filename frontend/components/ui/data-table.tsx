@@ -1,5 +1,4 @@
 "use client";
-
 import * as React from "react";
 
 import {
@@ -30,7 +29,6 @@ interface DataTableProps<TData, TValue> {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users } from "lucide-react";
 
 export function DataTable<TData, TValue>({
   columns,
@@ -56,7 +54,6 @@ export function DataTable<TData, TValue>({
     <div className="card m-6 space-y-6">
       <div className="flex items-center justify-between">
         <div className="flex flex-row items-center space-x-2">
-          <Users className="text-primary" />
           <h1 className="font-bold">{title}</h1>
           <Input
             placeholder="Search Name"
@@ -119,21 +116,22 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      
-      {/* Pagination and patient count */}
+
+      {/* Pagination and item count */}
       <div className="flex items-center justify-between pt-4">
-        {/* Patient count on the left */}
+        {/* Item count on the left */}
         <div className="text-sm text-muted-foreground">
-          Total: {table.getFilteredRowModel().rows.length} patient(s)
+          Total: {table.getFilteredRowModel().rows.length} item(s)
         </div>
-        
+
         {/* Pagination controls on the right */}
         <div className="flex items-center space-x-6">
           {/* Page info */}
           <div className="text-sm text-muted-foreground">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
           </div>
-          
+
           {/* Navigation buttons */}
           <div className="flex items-center space-x-2">
             <Button
