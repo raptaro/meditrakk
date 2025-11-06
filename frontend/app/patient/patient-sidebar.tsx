@@ -50,10 +50,6 @@ const appointment_items = [
     url: "/patient/book-appointment",
   },
   {
-    title: "Todays Appointment",
-    url: "/patient/todays-appointment",
-  },
-  {
     title: "Upcoming Appointment",
     url: "/patient/upcoming-appointment",
   },
