@@ -10,7 +10,6 @@ import { columns } from "./columns";
 import { registrations } from "@/lib/placeholder-data";
 import PatientRoutingModal from "@/components/pages/PatientRoutingModal";
 
-// PatientQueueItem interface - UPDATED to match backend response
 export interface PatientQueueItem {
   id: number;
   patient_id: string | null;
@@ -27,7 +26,6 @@ export interface PatientQueueItem {
   is_new_patient?: boolean;
 }
 
-// Patient interface that matches exactly what PatientRoutingModal expects
 interface Patient {
   id: number;
   patient_id: string | null;
@@ -52,15 +50,16 @@ export default function RegistrationQueue() {
     next1: null as PatientQueueItem | null,
     next2: null as PatientQueueItem | null,
   });
-  
-  const [selectedPatient, setSelectedPatient] = useState<PatientQueueItem | null>(null);
+
+  const [selectedPatient, setSelectedPatient] =
+    useState<PatientQueueItem | null>(null);
   const [isRoutingModalOpen, setIsRoutingModalOpen] = useState(false);
   const router = useRouter();
 
-  // Function to convert PatientQueueItem to Patient (matching the modal's expected type)
-  const convertToPatient = (queueItem: PatientQueueItem | null): Patient | null => {
+  const convertToPatient = (
+    queueItem: PatientQueueItem | null
+  ): Patient | null => {
     if (!queueItem) return null;
-    
     return {
       id: queueItem.id,
       patient_id: queueItem.patient_id,
@@ -74,7 +73,6 @@ export default function RegistrationQueue() {
     };
   };
 
-  // Function to safely display age
   const displayAge = (age: number | null | undefined): string => {
     if (age === null || age === undefined) return "N/A";
     return `${age}`;
@@ -94,16 +92,20 @@ export default function RegistrationQueue() {
             },
           }
         );
-        if (!resp.ok) {
-          throw new Error(`HTTP error! status: ${resp.status}`);
-        }
+        if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
         const data = await resp.json();
-        
-        console.log("🔍 Initial queue data:", data);
-        
-        const pr = [data.priority_current, data.priority_next1, data.priority_next2].filter(p => p !== null);
-        const rg = [data.regular_current, data.regular_next1, data.regular_next2].filter(p => p !== null);
-        
+
+        const pr = [
+          data.priority_current,
+          data.priority_next1,
+          data.priority_next2,
+        ].filter(Boolean);
+        const rg = [
+          data.regular_current,
+          data.regular_next1,
+          data.regular_next2,
+        ].filter(Boolean);
+
         setPriorityQueue({
           current: pr[0] ?? null,
           next1: pr[1] ?? null,
@@ -121,32 +123,30 @@ export default function RegistrationQueue() {
 
     fetchQueueData();
 
-  const protocol = window.location.protocol === "https:" ? "wss" : "ws";
-  const backendHost =
-    process.env.NODE_ENV === "production"
-      ? "thesis-backend.up.railway.app"
-      : "localhost:8000";
+    const protocol = window.location.protocol === "https:" ? "wss" : "ws";
+    const backendHost =
+      process.env.NODE_ENV === "production"
+        ? "thesis-backend.up.railway.app"
+        : "localhost:8000";
 
-  const socket = new WebSocket(`${protocol}://${backendHost}/ws/queue/registration/`);
-
-
-
-    socket.onopen = () => {
-      console.log("✅ WebSocket connected to registration queue");
-    };
+    const socket = new WebSocket(
+      `${protocol}://${backendHost}/ws/queue/registration/`
+    );
 
     socket.onmessage = (ev) => {
-      console.log("📨 Received WebSocket message:", ev.data);
       try {
         const msg = JSON.parse(ev.data);
-        console.log("🔄 Parsed WebSocket data:", msg);
-        
-        const pr = [msg.priority_current, msg.priority_next1, msg.priority_next2].filter(p => p !== null);
-        const rg = [msg.regular_current, msg.regular_next1, msg.regular_next2].filter(p => p !== null);
-        
-        console.log("🎯 Setting Priority Queue:", pr);
-        console.log("🎯 Setting Regular Queue:", rg);
-        
+        const pr = [
+          msg.priority_current,
+          msg.priority_next1,
+          msg.priority_next2,
+        ].filter(Boolean);
+        const rg = [
+          msg.regular_current,
+          msg.regular_next1,
+          msg.regular_next2,
+        ].filter(Boolean);
+
         setPriorityQueue({
           current: pr[0] ?? null,
           next1: pr[1] ?? null,
@@ -157,24 +157,12 @@ export default function RegistrationQueue() {
           next1: rg[1] ?? null,
           next2: rg[2] ?? null,
         });
-        
-        console.log("✅ Queue state updated via WebSocket");
       } catch (err) {
-        console.error("❌ Error parsing WS message:", err);
+        console.error("Error parsing WS message:", err);
       }
     };
 
-    socket.onclose = (ev) => {
-      console.warn("❌ WebSocket closed:", ev);
-    };
-
-    socket.onerror = (err) => {
-      console.error("💥 WebSocket error:", err);
-    };
-
-    // Fallback polling every 30 seconds
     const intervalId = setInterval(fetchQueueData, 30000);
-
     return () => {
       clearInterval(intervalId);
       socket.close();
@@ -182,29 +170,18 @@ export default function RegistrationQueue() {
   }, []);
 
   const handleAccept = (queueItem: PatientQueueItem) => {
-    console.log("✅ Accepting patient with queue_entry_id:", queueItem.id);
     setSelectedPatient(queueItem);
     setIsRoutingModalOpen(true);
   };
 
-  const handleRoutePatient = async (queueItem: PatientQueueItem | null, action: string) => {
-    if (!queueItem) {
-      console.error("❌ Queue item is null. Cannot proceed.");
-      return;
-    }
-
+  const handleRoutePatient = async (
+    queueItem: PatientQueueItem | null,
+    action: string
+  ) => {
+    if (!queueItem) return;
     try {
-      console.log("📤 Sending request with queue_entry_id:", queueItem.id);
-      
       const token = localStorage.getItem("access");
-      const requestBody = {
-        queue_entry_id: queueItem.id,
-        action: action,
-      };
-      
-      console.log("📤 Request Body:", requestBody);
-
-      const response = await fetch(
+      await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/patient/update-status/`,
         {
           method: "POST",
@@ -212,188 +189,201 @@ export default function RegistrationQueue() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify(requestBody),
+          body: JSON.stringify({
+            queue_entry_id: queueItem.id,
+            action,
+          }),
         }
       );
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("❌ Server error:", errorText);
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-      
-      const responseData = await response.json();
-      console.log("✅ Success response:", responseData);
-      
-      // Close the modal - THAT'S IT!
-      // The WebSocket will automatically push the updated queue data
       setIsRoutingModalOpen(false);
       setSelectedPatient(null);
-      
-      // REMOVED: The manual GET request that was causing conflicts
-      
     } catch (error) {
-      console.error("❌ Error updating queue:", error);
+      console.error("Error updating queue:", error);
     }
   };
 
   const renderPatientInfo = (queueItem: PatientQueueItem | null) => {
-    if (!queueItem) return null;
-    
-    return (
-      <div className="flex justify-center pt-8">
-        <div className="card flex w-96 max-w-sm flex-col rounded-lg p-6 bg-white shadow-md">
-          <p className="mb-2 text-lg font-semibold tracking-tight">
+    if (!queueItem) {
+      return (
+        <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+          <h3 className="mb-4 border-b border-blue-100 pb-2 text-xl font-semibold text-blue-700">
             Patient Information
+          </h3>
+          <p className="text-gray-600">No current patient in the queue.</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
+        <h3 className="mb-4 border-b border-blue-100 pb-2 text-xl font-semibold text-blue-700">
+          Patient Information
+        </h3>
+
+        <div className="mb-3 space-y-1">
+          <p>
+            <span className="font-semibold text-gray-700">Name: </span>
+            {queueItem.first_name} {queueItem.last_name}
           </p>
-          <div className="flex justify-between mb-4">
-            <p className="text-sm">
-              <span className="font-medium">Name: </span>
-              {queueItem.first_name} {queueItem.last_name}
-            </p>
-            <p className="text-sm">
-              <span className="font-medium">Age: </span>
-              {displayAge(queueItem.age)}
-            </p>
-          </div>
-          <hr className="my-2" />
-          <p className="my-2 text-lg font-semibold tracking-tight">
-            Additional Information
+          <p>
+            <span className="font-semibold text-gray-700">Age: </span>
+            {displayAge(queueItem.age)}
           </p>
-          <p className="text-sm mb-2">
-            <span className="font-medium">Phone number: </span>
+        </div>
+
+        <div className="mb-4 border-t border-gray-200 pt-3">
+          <p>
+            <span className="font-semibold text-gray-700">Phone Number: </span>
             {queueItem.phone_number || "N/A"}
           </p>
-          <p className="text-sm mb-2">
-            <span className="font-medium">Queue ID: </span>
-            {queueItem.id}
-          </p>
-          <p className="text-sm mb-4">
-            <span className="font-medium">Reason: </span>
+          <p>
+            <span className="font-semibold text-gray-700">Reason: </span>
             {queueItem.complaint || "N/A"}
           </p>
-          <div className="flex flex-col gap-3">
-            <div className="flex justify-between">
-              <button
-                onClick={() => handleAccept(queueItem)}
-                className={buttonVariants({ variant: "default" })}
-              >
-                Accept
-              </button>
-              <button
-                className={buttonVariants({ variant: "outline" })}
-                onClick={() => router.push("/payments")}
-              >
-                Edit
-              </button>
-            </div>
-            <button
-              className={buttonVariants({ variant: "outline" })}
-              onClick={() => router.push("/payments")}
-            >
-              Cancel
-            </button>
-          </div>
+        </div>
+
+        <div className="flex flex-wrap justify-end gap-3">
+          <button
+            onClick={() => handleAccept(queueItem)}
+            className={buttonVariants({ variant: "default" })}
+          >
+            Accept
+          </button>
+          <button
+            onClick={() => router.push("/payments")}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            Edit
+          </button>
+          <button
+            onClick={() => router.push("/payments")}
+            className={buttonVariants({ variant: "destructive" })}
+          >
+            Cancel
+          </button>
         </div>
       </div>
     );
   };
+
+  const QueueCard = ({
+    queueItem,
+    label,
+    status,
+  }: {
+    queueItem: PatientQueueItem | null;
+    label: string;
+    status: "current" | "next";
+  }) => (
+    <div
+      className={`flex flex-col items-center justify-center rounded-xl border
+        ${
+          status === "current"
+            ? "border-blue-500 bg-blue-50 shadow-lg"
+            : "border-gray-300 bg-white hover:shadow-md transition-shadow duration-300"
+        }
+        w-64 h-72 p-6 cursor-default select-none`}
+      title={
+        queueItem
+          ? `${queueItem.first_name} ${queueItem.last_name} - ${queueItem.complaint}`
+          : undefined
+      }
+    >
+      <p
+        className={`text-7xl font-extrabold mb-4 ${
+          status === "current" ? "text-blue-600" : "text-gray-400"
+        }`}
+      >
+        {queueItem ? `#${queueItem.queue_number}` : "N/A"}
+      </p>
+      <span className="text-lg font-semibold text-gray-800">{label}</span>
+      <span
+        className={`text-sm mt-1 ${
+          status === "current" ? "text-blue-600" : "text-gray-500"
+        }`}
+      >
+        {status === "current" ? "Current Patient" : "Next in Queue"}
+      </span>
+    </div>
+  );
 
   const user = userInfo();
   const userRole = user?.role;
 
   if (userRole && !["secretary"].includes(userRole)) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
-        <p className="text-xl font-bold text-red-600">
-          You are not authorized to access this page.
-        </p>
+      <div className="flex min-h-screen items-center justify-center text-xl font-semibold text-gray-600">
+        Not Authorized
       </div>
     );
   }
-  
-  if (!userRole) {
-    return <div>Loading...</div>;
-  }
+
+  if (!userRole) return <div>Loading...</div>;
 
   return (
-    <div className="flex-1 space-y-6 px-8 py-8">
+    <main className="flex min-h-screen flex-col gap-12 bg-gray-50 px-10 py-10">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Patient Registration Queue</h1>
+        <h1 className="text-3xl font-bold tracking-tight text-blue-800">
+          Patient Registration Queue
+        </h1>
         <QueueTableToggle />
       </div>
-      
-      <h2 className="text-xl font-semibold">Priority Queue</h2>
-      <div className="flex flex-row justify-center gap-4">
-        {/* Priority Queue Cards */}
-        <div className="card flex h-96 w-80 max-w-sm flex-col items-center justify-center">
-          <p className="text-6xl font-bold">
-            {priorityQueue.current
-              ? `#${priorityQueue.current.queue_number}`
-              : "N/A"}
-          </p>
-          <span>Queuing Number</span>
-          <span>Current</span>
+
+      <section>
+        <h2 className="mb-6 text-2xl font-semibold text-blue-700">
+          Priority Queue
+        </h2>
+        <div className="flex flex-wrap justify-center gap-8">
+          <QueueCard
+            queueItem={priorityQueue.current}
+            label="Priority"
+            status="current"
+          />
+          <QueueCard
+            queueItem={priorityQueue.next1}
+            label="Priority"
+            status="next"
+          />
+          <QueueCard
+            queueItem={priorityQueue.next2}
+            label="Priority"
+            status="next"
+          />
+          {renderPatientInfo(priorityQueue.current)}
         </div>
+      </section>
 
-        <div className="card flex h-96 w-80 max-w-sm flex-col items-center justify-center">
-          <p className="text-6xl font-bold">
-            {priorityQueue.next1
-              ? `#${priorityQueue.next1.queue_number}`
-              : "N/A"}
-          </p>
-          <span>Queuing Number</span>
-          <span>Next</span>
+      <section>
+        <h2 className="mb-6 text-2xl font-semibold text-gray-700">
+          Regular Queue
+        </h2>
+        <div className="flex flex-wrap justify-center gap-8">
+          <QueueCard
+            queueItem={regularQueue.current}
+            label="Regular"
+            status="current"
+          />
+          <QueueCard
+            queueItem={regularQueue.next1}
+            label="Regular"
+            status="next"
+          />
+          <QueueCard
+            queueItem={regularQueue.next2}
+            label="Regular"
+            status="next"
+          />
+          {renderPatientInfo(regularQueue.current)}
         </div>
+      </section>
 
-        <div className="card flex h-96 w-80 max-w-sm flex-col items-center justify-center">
-          <p className="text-6xl font-bold">
-            {priorityQueue.next2
-              ? `#${priorityQueue.next2.queue_number}`
-              : "N/A"}
-          </p>
-          <span>Queuing Number</span>
-          <span>Next</span>
-        </div>
+      <section>
+        <h2 className="mb-6 text-2xl font-semibold text-gray-700">
+          All Registrations
+        </h2>
+        <DashboardTable columns={columns} data={registrations ?? []} />
+      </section>
 
-        {renderPatientInfo(priorityQueue.current)}
-      </div>
-
-      <h2 className="text-xl font-semibold">Regular Queue</h2>
-      <div className="flex flex-row justify-center gap-4">
-        {/* Regular Queue Cards */}
-        <div className="card flex h-96 w-80 max-w-sm flex-col items-center justify-center">
-          <p className="text-6xl font-bold">
-            {regularQueue.current
-              ? `#${regularQueue.current.queue_number}`
-              : "N/A"}
-          </p>
-          <span>Queuing Number</span>
-          <span>Current</span>
-        </div>
-
-        <div className="card flex h-96 w-80 max-w-sm flex-col items-center justify-center">
-          <p className="text-6xl font-bold">
-            {regularQueue.next1 ? `#${regularQueue.next1.queue_number}` : "N/A"}
-          </p>
-          <span>Queuing Number</span>
-          <span>Next</span>
-        </div>
-
-        <div className="card flex h-96 w-80 max-w-sm flex-col items-center justify-center">
-          <p className="text-6xl font-bold">
-            {regularQueue.next2 ? `#${regularQueue.next2.queue_number}` : "N/A"}
-          </p>
-          <span>Queuing Number</span>
-          <span>Next</span>
-        </div>
-
-        {renderPatientInfo(regularQueue.current)}
-      </div>
-      
-      <DashboardTable columns={columns} data={registrations ?? []} />
-      
-      {/* Patient Routing Modal */}
       <PatientRoutingModal
         isOpen={isRoutingModalOpen}
         onClose={() => {
@@ -402,10 +392,9 @@ export default function RegistrationQueue() {
         }}
         patient={convertToPatient(selectedPatient)}
         onRoutePatient={(patient, action) => {
-          // Pass the original selectedPatient (PatientQueueItem) to the handler
           handleRoutePatient(selectedPatient, action);
         }}
       />
-    </div>
+    </main>
   );
 }
