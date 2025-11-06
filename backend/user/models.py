@@ -1,3 +1,4 @@
+import re
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser, PermissionsMixin
 import random
@@ -23,7 +24,7 @@ class UserAccountManager(BaseUserManager):
         return self.create_user(email, password, **kwargs)
 
 class UserAccount(AbstractBaseUser, PermissionsMixin):
-    id = models.CharField(max_length=50, unique=True, primary_key=True, editable=False)
+    id = models.CharField(unique=True, primary_key=True, editable=False, max_length=64)
     ROLE_CHOICES = [
         ('patient', 'Patient'),
         ('doctor', 'Doctor'),
@@ -54,20 +55,26 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
 def create_user_id(sender, instance, **kwargs):
     if not instance.id:
         prefix = "02000"
-        start_num = 100
+        start_num = 10
+        
+        # Get the highest ID by creation date or primary key
+        last_user = UserAccount.objects.order_by('-pk').first()
+        
+        if last_user and last_user.pk:
+            # Use the primary key to determine next number
+            # This assumes primary keys are sequential
+            next_num = last_user.pk + start_num
+        else:
+            next_num = start_num
 
-        # Get last used ID
-        last_user = UserAccount.objects.aggregate(max_id=Max("id"))
-        last_num = start_num
-        if last_user["max_id"]:
-            try:
-                last_num = int(last_user["max_id"].split(prefix)[-1]) + 1
-            except ValueError:
-                last_num += 1
-
-        # Build new ID using last_name
-        instance.id = f"{slugify(instance.last_name)}-{prefix}{last_num}"
-
+        # Create the new ID - Ensure everything is string
+        from django.utils.text import slugify
+        last_name_slug = slugify(instance.last_name) or "user"
+        prefix_str = str(prefix)
+        next_num_str = str(next_num)
+        
+        instance.id = f"{last_name_slug}-{prefix_str}{next_num_str}"
+        
 class BaseProfile(models.Model):
     role_id = models.CharField(max_length=50, null=True, editable=False)
 

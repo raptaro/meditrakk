@@ -14,13 +14,13 @@ from medicine.models import Medicine
 
 # Create your models here.'
 class Patient(BaseProfile):
-    patient_id = models.CharField(max_length=50, unique=True, primary_key=True, editable=False)
+    patient_id = models.CharField(max_length=64, unique=True, primary_key=True, editable=False)
     first_name = models.CharField(max_length=200, blank=True, null=True)
     middle_name = models.CharField(max_length=100, blank=True, null=True)
     last_name = models.CharField(max_length=200)
     gender = models.CharField(max_length=10, blank=True, null=True)
     email = models.EmailField()
-    phone_number = models.CharField(max_length=11)
+    phone_number = models.CharField(max_length=15)
     date_of_birth = models.DateField(blank=True, null=True)
     street_address = models.CharField(max_length=100, blank=True, null=True)
     barangay = models.CharField(max_length=100, blank=True, null=True)

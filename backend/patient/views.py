@@ -41,7 +41,7 @@ from django.utils.dateparse import parse_date
 from collections import defaultdict
 
 # create user
-from user.models import UserAccount
+from user.models import UserAccount, create_user_id
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -935,7 +935,6 @@ class GetQueue(APIView):
             return Response(data, status=status.HTTP_200_OK)
         except TemporaryStorageQueue.DoesNotExist:
             return Response({'complaint': "General Illness"}, status=status.HTTP_200_OK)
-
 class AcceptButton(APIView):
     permission_classes = [IsMedicalStaff]
     
@@ -955,7 +954,7 @@ class AcceptButton(APIView):
                 return Response({"error": "Invalid queue_entry_id format."}, status=status.HTTP_400_BAD_REQUEST)
             
             print("✅ Action:", action)
-            print("✅ Queue Entry ID:", queue_entry_id, "Type:", type(queue_entry_id))
+            print("✅ Queue Entry ID: " + str(queue_entry_id) + " Type: " + str(type(queue_entry_id)))
 
             # Try to convert to integer
             try:
@@ -971,42 +970,65 @@ class AcceptButton(APIView):
             # If this is a new patient, create the Patient record first
             if queue_entry.is_new_patient:
                 print("🆕 Creating new patient record...")
-                # Create UserAccount for the new patient
-                raw_dob = queue_entry.temp_date_of_birth
-                user = UserAccount.objects.create_user(
-                    email=queue_entry.temp_email,
-                    password='temp-password',  # Will be set properly below
-                    first_name=queue_entry.temp_first_name,
-                    last_name=queue_entry.temp_last_name,
-                    role='patient'               
-                )
+                from django.db.models.signals import pre_save
+                pre_save.disconnect(create_user_id, sender=UserAccount)
                 
-                # Create Patient record
-                patient = Patient.objects.create(
-                    first_name=queue_entry.temp_first_name,
-                    middle_name=queue_entry.temp_middle_name,
-                    last_name=queue_entry.temp_last_name,
-                    email=queue_entry.temp_email,
-                    phone_number=queue_entry.temp_phone_number,
-                    date_of_birth=queue_entry.temp_date_of_birth,
-                    gender=queue_entry.temp_gender,
-                    street_address=queue_entry.temp_street_address,
-                    barangay=queue_entry.temp_barangay,
-                    municipal_city=queue_entry.temp_municipal_city,
-                    user=user               
-                )
-                
-                # Set proper password
-                password = f"{patient.patient_id}{raw_dob.strftime('%Y%m%d')}"
-                user.set_password(password)
-                user.save()
-                
-                # Link the queue entry to the newly created patient
-                queue_entry.patient = patient
-                queue_entry.is_new_patient = False  # Mark as processed
-                queue_entry.save()
-                print("✅ New patient created: patient_id =", patient.patient_id)            
-                
+                try:
+                    raw_dob = queue_entry.temp_date_of_birth
+                    
+                    # Generate a user ID manually since we disconnected the signal
+                    from django.utils.text import slugify
+                    import uuid
+                    import time
+                    
+                    last_name_slug = slugify(queue_entry.temp_last_name) or "patient"
+                    timestamp = str(int(time.time()))[-6:]
+                    unique_id = uuid.uuid4().hex[:4]
+                    user_id = f"{last_name_slug}-02000{unique_id}"
+                    
+                    # Create UserAccount with the manually generated ID
+                    user = UserAccount.objects.create_user(
+                        id=user_id,  # Set the ID explicitly
+                        email=queue_entry.temp_email,
+                        password='temp-password',
+                        first_name=queue_entry.temp_first_name,
+                        last_name=queue_entry.temp_last_name,
+                        role='patient'               
+                    )
+                    
+                    # Create Patient record
+                    patient = Patient.objects.create(
+                        first_name=queue_entry.temp_first_name,
+                        middle_name=queue_entry.temp_middle_name,
+                        last_name=queue_entry.temp_last_name,
+                        email=queue_entry.temp_email,
+                        phone_number=queue_entry.temp_phone_number,
+                        date_of_birth=queue_entry.temp_date_of_birth,
+                        gender=queue_entry.temp_gender,
+                        street_address=queue_entry.temp_street_address,
+                        barangay=queue_entry.temp_barangay,
+                        municipal_city=queue_entry.temp_municipal_city,
+                        user=user               
+                    )
+                    
+                    # The patient_id should now be set automatically in the save method
+                    # But let's verify and refresh if needed
+                    if not patient.patient_id:
+                        patient.refresh_from_db()
+                    
+                    # Set proper password using the actual patient_id
+                    password = f"{patient.patient_id}{raw_dob.strftime('%Y%m%d')}"
+                    user.set_password(password)
+                    user.save()
+                    
+                    # Link the queue entry to the newly created patient
+                    queue_entry.patient = patient
+                    queue_entry.is_new_patient = False  # Mark as processed
+                    queue_entry.save()
+                    print("✅ New patient created: patient_id =", patient.patient_id)            
+                finally:
+                    pre_save.connect(create_user_id, sender=UserAccount)
+                    
             # Update status based on action
             if action == 'preliminary':
                 queue_entry.status = "Queued for Assessment"

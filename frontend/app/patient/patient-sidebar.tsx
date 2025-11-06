@@ -4,6 +4,7 @@ import {
   FileText,
   LayoutDashboard,
   ChevronUp,
+  Hospital
 } from "lucide-react";
 
 import {
@@ -78,7 +79,14 @@ export function PatientSidebar() {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link href="/register">
+                    <Hospital/>
+                    <span>Register</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
               {/* Appointments Collapsible */}
               <Collapsible className="group/collapsible">
                 <SidebarMenuItem>
