@@ -1,0 +1,202 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  // ID
+  id String @id
+
+  // Rows
+  name String
+  role String
+
+  // Relation to the user's role (one-to-one)
+  patient Patient?
+  doctor  Doctor?
+}
+
+model Patient {
+  id     String  @id @default(cuid())
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id])
+
+  name        String
+  gender      String?
+  dateOfBirth DateTime? @db.Date
+  city        String?
+  barangay    String?
+
+  patientVisit   PatientVisit[]
+  assessment     Assessment[]
+  treatment      Treatment[]
+  medicalRecords MedicalRecord[]
+  appointment    Appointment[]
+  prescription   Prescription[]
+}
+
+model PatientVisit {
+  id        String  @id @default(cuid())
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  reason String
+  status String
+  date   DateTime @default(now())
+
+  treatment Treatment[]
+}
+
+model Assessment {
+  id        String  @id @default(cuid())
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  symptoms         String
+  assessment       String?
+  diagnosis        String?
+  bloodPressure    String
+  pulseRate        Int
+  respiratoryRate  Int
+  oxygenSaturation Float?
+  alcoholUse       Boolean
+  smoker           Boolean?
+  allergies        String?
+  painLocation     String?
+  painScale        Int?
+  createdAt        DateTime @default(now())
+
+  treatment Treatment[]
+}
+
+model Treatment {
+  id           String        @id @default(cuid())
+  patientId    String
+  patient      Patient       @relation(fields: [patientId], references: [id])
+  visitId      String?
+  visit        PatientVisit? @relation(fields: [visitId], references: [id])
+  assessmentId String?
+  assessment   Assessment?   @relation(fields: [assessmentId], references: [id])
+
+  medications    Json?
+  procedures     String?
+  painScale      Int?
+  remarks        String?
+  status         TreatmentStatus @default(PENDING)
+  priority       Int?
+  followUps      FollowUp[]
+  nextFollowUpAt DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+}
+
+model FollowUp {
+  id           String    @id @default(cuid())
+  treatmentId  String
+  treatment    Treatment @relation(fields: [treatmentId], references: [id])
+  note         String?
+  findings     String?
+  outcome      String?
+  nextAction   String?
+  painScale    Int?
+  vitals       Json?
+  followUpDate DateTime  @default(now())
+  nextFollowUp DateTime?
+  resolved     Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}
+
+model MedicalRecord {
+  id        String  @id @default(cuid())
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  diagnosis String
+  treatment String
+  notes     String?
+}
+
+model Doctor {
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id])
+
+  field String
+
+  appointment  Appointment[]
+  prescription Prescription[]
+}
+
+model Appointment {
+  id        String  @id @default(cuid())
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+  doctorId  String
+  doctor    Doctor  @relation(fields: [doctorId], references: [id])
+
+  date   DateTime
+  status String
+}
+
+model Supplier {
+  id      String @id @default(cuid())
+  name    String
+  contact String
+
+  medicine Medicine[]
+}
+
+model Medicine {
+  id         String    @id @default(cuid())
+  supplierId String?
+  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+
+  name        String
+  description String?
+  category    String?
+  form        String?
+  strength    String?
+  batchNumber String?
+  ExpiryDate  DateTime?
+  Quantity    Int?
+
+  prescription Prescription[]
+}
+
+model Prescription {
+  id         String   @id @default(cuid())
+  patientId  String
+  patient    Patient  @relation(fields: [patientId], references: [id])
+  doctorId   String
+  doctor     Doctor   @relation(fields: [doctorId], references: [id])
+  medicineId String
+  medicine   Medicine @relation(fields: [medicineId], references: [id])
+
+  dosage    String
+  duration  String
+  createdAt DateTime @default(now())
+}
+
+model Post {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String
+  published Boolean? @default(false)
+  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now())
+}
+
+enum TreatmentStatus {
+  PENDING
+  ONGOING
+  COMPLETED
+  CANCELLED
+}
