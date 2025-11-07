@@ -233,28 +233,21 @@ exports.Prisma.AppointmentScalarFieldEnum = {
   status: 'status'
 };
 
-exports.Prisma.SupplierScalarFieldEnum = {
+exports.Prisma.MedicineTypeScalarFieldEnum = {
   id: 'id',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
   name: 'name',
-  contact: 'contact'
+  form: 'form',
+  strength: 'strength'
 };
 
-exports.Prisma.MedicineScalarFieldEnum = {
+exports.Prisma.MedicineBatchScalarFieldEnum = {
   id: 'id',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt',
-  archived: 'archived',
-  supplierId: 'supplierId',
-  name: 'name',
-  description: 'description',
-  category: 'category',
-  form: 'form',
-  strength: 'strength',
+  medicineId: 'medicineId',
   batchNumber: 'batchNumber',
   expiryDate: 'expiryDate',
-  quantity: 'quantity'
+  quantity: 'quantity',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.PrescriptionScalarFieldEnum = {
@@ -320,8 +313,8 @@ exports.Prisma.ModelName = {
   MedicalRecord: 'MedicalRecord',
   Doctor: 'Doctor',
   Appointment: 'Appointment',
-  Supplier: 'Supplier',
-  Medicine: 'Medicine',
+  MedicineType: 'MedicineType',
+  MedicineBatch: 'MedicineBatch',
   Prescription: 'Prescription',
   Post: 'Post'
 };

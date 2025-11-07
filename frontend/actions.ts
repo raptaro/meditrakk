@@ -15,40 +15,37 @@ export async function createPatient(formData: FormData) {
   });
 }
 
-export async function addMedicine(formData: FormData) {
-  await prisma.medicine.create({
+export async function addMedicineBatch(formData: FormData) {
+  const medicineTypeId = formData.get("medicineTypeId") as string;
+  const batchNumber = formData.get("batchNumber") as string;
+  const expiryDate = formData.get("expiryDate") as string;
+  const quantity = Number(formData.get("quantity"));
+
+  if (!medicineTypeId || !batchNumber || !expiryDate || !quantity) {
+    throw new Error("All fields are required");
+  }
+
+  await prisma.medicineBatch.create({
     data: {
-      name: formData.get("name") as string,
+      medicine: { connect: { id: medicineTypeId } },
+      batchNumber,
+      expiryDate: new Date(expiryDate),
+      quantity,
     },
   });
 
-  revalidatePath("/posts");
+  revalidatePath("/medicines");
 }
 
-export async function editMedicine(id: string, data: { name: string; description: string }) {
-  await prisma.medicine.update({
+export async function editMedicineBatch(
+  id: string,
+  data: { batchNumber: string; quantity: number; expiryDate: Date }
+) {
+  await prisma.medicineBatch.update({
     where: { id },
     data,
   });
 
-  revalidatePath("/medicines");
-}
-
-export async function archiveMedicine(formData: FormData) {
-  const id = formData.get("id") as string;
-  await prisma.medicine.update({
-    where: { id },
-    data: { archived: true },
-  });
-  revalidatePath("/medicines");
-}
-
-export async function restoreMedicine(formData: FormData) {
-  const id = formData.get("id") as string;
-  await prisma.medicine.update({
-    where: { id },
-    data: { archived: false },
-  });
   revalidatePath("/medicines");
 }
 
