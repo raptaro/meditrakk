@@ -166,36 +166,27 @@ model Appointment {
   status String
 }
 
-model Supplier {
-  id        String   @id @default(cuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+model MedicineType {
+  id       String @id @default(cuid())
+  name     String @unique
+  form     String
+  strength String
 
-  name    String
-  contact String
-
-  medicine Medicine[]
+  medicineBatch MedicineBatch[]
+  prescription  Prescription[]
 }
 
-model Medicine {
+model MedicineBatch {
   id        String   @id @default(cuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  archived  Boolean  @default(false)
 
-  supplierId String?
-  supplier   Supplier? @relation(fields: [supplierId], references: [id])
+  medicineId String
+  medicine   MedicineType @relation(fields: [medicineId], references: [id])
 
-  name        String
-  description String?
-  category    String?
-  form        String?
-  strength    String?
-  batchNumber String?
-  expiryDate  DateTime?
-  quantity    Int?
-
-  prescription Prescription[]
+  batchNumber String
+  quantity    Int
+  expiryDate  DateTime
 }
 
 model Prescription {
@@ -204,11 +195,11 @@ model Prescription {
   updatedAt DateTime @updatedAt
 
   patientId  String
-  patient    Patient  @relation(fields: [patientId], references: [id])
+  patient    Patient      @relation(fields: [patientId], references: [id])
   doctorId   String
-  doctor     Doctor   @relation(fields: [doctorId], references: [id])
+  doctor     Doctor       @relation(fields: [doctorId], references: [id])
   medicineId String
-  medicine   Medicine @relation(fields: [medicineId], references: [id])
+  medicine   MedicineType @relation(fields: [medicineId], references: [id])
 
   dosage   String
   duration String
