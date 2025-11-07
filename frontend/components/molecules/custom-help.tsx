@@ -5,7 +5,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
-import { CustomHelpProps } from "@/app/types/types";
+import { CustomHelpProps } from "@/app/types";
 
 export default function CustomHelp({ items }: { items: CustomHelpProps[] }) {
   return (

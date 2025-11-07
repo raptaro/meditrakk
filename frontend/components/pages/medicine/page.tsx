@@ -1,34 +1,50 @@
 import { prisma } from "@/lib/prisma";
-import { DataTable } from "@/components/ui/data-table";
 import { MedicineColumns } from "./medicine-columns";
-import { AddMedicine } from "./components/add-medicine";
-import MedicineArchive from "./components/medicine-archive";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import MedicineSummaryCards from "./components/medicine-summary-cards";
+import { AddMedicineBatch } from "./components/add-medicine-batch";
+import { DataTable } from "@/components/ui/data-table";
+import { MedicineBatchColumns } from "./medicine-batch-columns";
 
 export default async function MedicineList() {
-  const medicines = await prisma.medicine.findMany({
-    where: { archived: false },
+  const medicineTypes = await prisma.medicineType.findMany();
+  const medicineBatch = await prisma.medicineBatch.findMany({
+    select: {
+      id: true,
+      batchNumber: true,
+      quantity: true,
+      expiryDate: true,
+      medicine: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
+
+  const batches = medicineBatch.map((batch) => ({
+    id: batch.id,
+    batchNumber: batch.batchNumber,
+    quantity: batch.quantity,
+    expiryDate: batch.expiryDate,
+    name: batch.medicine.name,
+  }));
 
   return (
     <>
-      <AddMedicine />
-      <Tabs defaultValue="medicine">
-        <TabsList>
-          <TabsTrigger value="medicine">Medicines</TabsTrigger>
-          <TabsTrigger value="archived">Archived Medicines</TabsTrigger>
-        </TabsList>
-        <TabsContent value="medicine">
-          <DataTable
-            title="Medicine List"
-            columns={MedicineColumns}
-            data={medicines ?? []}
-          />
-        </TabsContent>
-        <TabsContent value="archived">
-          <MedicineArchive />
-        </TabsContent>
-      </Tabs>
+      <MedicineSummaryCards />
+      <AddMedicineBatch />
+
+      <DataTable
+        title="Medicine List"
+        columns={MedicineColumns}
+        data={medicineTypes ?? []}
+      />
+
+      <DataTable
+        title="Medicine Batch"
+        columns={MedicineBatchColumns}
+        data={batches ?? []}
+      />
     </>
   );
 }
