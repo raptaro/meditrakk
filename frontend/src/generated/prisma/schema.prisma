@@ -23,6 +23,8 @@ model User {
 }
 
 model Patient {
+  archived Boolean @default(false)
+
   id     String  @id @default(cuid())
   userId String? @unique
   user   User?   @relation(fields: [userId], references: [id])
@@ -124,6 +126,8 @@ model MedicalRecord {
 }
 
 model Doctor {
+  archived Boolean @default(false)
+
   id     String @id @default(cuid())
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
@@ -135,6 +139,8 @@ model Doctor {
 }
 
 model Appointment {
+  archived Boolean @default(false)
+
   id        String  @id @default(cuid())
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
@@ -154,6 +160,8 @@ model Supplier {
 }
 
 model Medicine {
+  archived Boolean @default(false)
+
   id         String    @id @default(cuid())
   supplierId String?
   supplier   Supplier? @relation(fields: [supplierId], references: [id])
