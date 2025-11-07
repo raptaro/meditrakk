@@ -2254,18 +2254,24 @@ export namespace Prisma {
 
   export type UserMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     name: string | null
     role: string | null
   }
 
   export type UserMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     name: string | null
     role: string | null
   }
 
   export type UserCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
     name: number
     role: number
     _all: number
@@ -2274,18 +2280,24 @@ export namespace Prisma {
 
   export type UserMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     name?: true
     role?: true
   }
 
   export type UserMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     name?: true
     role?: true
   }
 
   export type UserCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     name?: true
     role?: true
     _all?: true
@@ -2365,6 +2377,8 @@ export namespace Prisma {
 
   export type UserGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
     name: string
     role: string
     _count: UserCountAggregateOutputType | null
@@ -2388,6 +2402,8 @@ export namespace Prisma {
 
   export type UserSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     name?: boolean
     role?: boolean
     patient?: boolean | User$patientArgs<ExtArgs>
@@ -2396,23 +2412,29 @@ export namespace Prisma {
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     name?: boolean
     role?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     name?: boolean
     role?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     name?: boolean
     role?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "role", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "role", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     patient?: boolean | User$patientArgs<ExtArgs>
     doctor?: boolean | User$doctorArgs<ExtArgs>
@@ -2428,6 +2450,8 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
       name: string
       role: string
     }, ExtArgs["result"]["user"]>
@@ -2856,6 +2880,8 @@ export namespace Prisma {
    */
   interface UserFieldRefs {
     readonly id: FieldRef<"User", 'String'>
+    readonly createdAt: FieldRef<"User", 'DateTime'>
+    readonly updatedAt: FieldRef<"User", 'DateTime'>
     readonly name: FieldRef<"User", 'String'>
     readonly role: FieldRef<"User", 'String'>
   }
@@ -3314,6 +3340,9 @@ export namespace Prisma {
 
   export type PatientMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    archived: boolean | null
     userId: string | null
     name: string | null
     gender: string | null
@@ -3324,6 +3353,9 @@ export namespace Prisma {
 
   export type PatientMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    archived: boolean | null
     userId: string | null
     name: string | null
     gender: string | null
@@ -3334,6 +3366,9 @@ export namespace Prisma {
 
   export type PatientCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
+    archived: number
     userId: number
     name: number
     gender: number
@@ -3346,6 +3381,9 @@ export namespace Prisma {
 
   export type PatientMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     userId?: true
     name?: true
     gender?: true
@@ -3356,6 +3394,9 @@ export namespace Prisma {
 
   export type PatientMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     userId?: true
     name?: true
     gender?: true
@@ -3366,6 +3407,9 @@ export namespace Prisma {
 
   export type PatientCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     userId?: true
     name?: true
     gender?: true
@@ -3449,6 +3493,9 @@ export namespace Prisma {
 
   export type PatientGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
+    archived: boolean
     userId: string | null
     name: string
     gender: string | null
@@ -3476,6 +3523,9 @@ export namespace Prisma {
 
   export type PatientSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     userId?: boolean
     name?: boolean
     gender?: boolean
@@ -3494,6 +3544,9 @@ export namespace Prisma {
 
   export type PatientSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     userId?: boolean
     name?: boolean
     gender?: boolean
@@ -3505,6 +3558,9 @@ export namespace Prisma {
 
   export type PatientSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     userId?: boolean
     name?: boolean
     gender?: boolean
@@ -3516,6 +3572,9 @@ export namespace Prisma {
 
   export type PatientSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     userId?: boolean
     name?: boolean
     gender?: boolean
@@ -3524,7 +3583,7 @@ export namespace Prisma {
     barangay?: boolean
   }
 
-  export type PatientOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "name" | "gender" | "dateOfBirth" | "city" | "barangay", ExtArgs["result"]["patient"]>
+  export type PatientOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "archived" | "userId" | "name" | "gender" | "dateOfBirth" | "city" | "barangay", ExtArgs["result"]["patient"]>
   export type PatientInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | Patient$userArgs<ExtArgs>
     patientVisit?: boolean | Patient$patientVisitArgs<ExtArgs>
@@ -3555,6 +3614,9 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
+      archived: boolean
       userId: string | null
       name: string
       gender: string | null
@@ -3992,6 +4054,9 @@ export namespace Prisma {
    */
   interface PatientFieldRefs {
     readonly id: FieldRef<"Patient", 'String'>
+    readonly createdAt: FieldRef<"Patient", 'DateTime'>
+    readonly updatedAt: FieldRef<"Patient", 'DateTime'>
+    readonly archived: FieldRef<"Patient", 'Boolean'>
     readonly userId: FieldRef<"Patient", 'String'>
     readonly name: FieldRef<"Patient", 'String'>
     readonly gender: FieldRef<"Patient", 'String'>
@@ -4587,6 +4652,8 @@ export namespace Prisma {
 
   export type PatientVisitMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     patientId: string | null
     reason: string | null
     status: string | null
@@ -4595,6 +4662,8 @@ export namespace Prisma {
 
   export type PatientVisitMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     patientId: string | null
     reason: string | null
     status: string | null
@@ -4603,6 +4672,8 @@ export namespace Prisma {
 
   export type PatientVisitCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
     patientId: number
     reason: number
     status: number
@@ -4613,6 +4684,8 @@ export namespace Prisma {
 
   export type PatientVisitMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     reason?: true
     status?: true
@@ -4621,6 +4694,8 @@ export namespace Prisma {
 
   export type PatientVisitMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     reason?: true
     status?: true
@@ -4629,6 +4704,8 @@ export namespace Prisma {
 
   export type PatientVisitCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     reason?: true
     status?: true
@@ -4710,6 +4787,8 @@ export namespace Prisma {
 
   export type PatientVisitGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
     patientId: string
     reason: string
     status: string
@@ -4735,6 +4814,8 @@ export namespace Prisma {
 
   export type PatientVisitSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     reason?: boolean
     status?: boolean
@@ -4746,6 +4827,8 @@ export namespace Prisma {
 
   export type PatientVisitSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     reason?: boolean
     status?: boolean
@@ -4755,6 +4838,8 @@ export namespace Prisma {
 
   export type PatientVisitSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     reason?: boolean
     status?: boolean
@@ -4764,13 +4849,15 @@ export namespace Prisma {
 
   export type PatientVisitSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     reason?: boolean
     status?: boolean
     date?: boolean
   }
 
-  export type PatientVisitOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "patientId" | "reason" | "status" | "date", ExtArgs["result"]["patientVisit"]>
+  export type PatientVisitOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "patientId" | "reason" | "status" | "date", ExtArgs["result"]["patientVisit"]>
   export type PatientVisitInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     treatment?: boolean | PatientVisit$treatmentArgs<ExtArgs>
@@ -4791,6 +4878,8 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
       patientId: string
       reason: string
       status: string
@@ -5221,6 +5310,8 @@ export namespace Prisma {
    */
   interface PatientVisitFieldRefs {
     readonly id: FieldRef<"PatientVisit", 'String'>
+    readonly createdAt: FieldRef<"PatientVisit", 'DateTime'>
+    readonly updatedAt: FieldRef<"PatientVisit", 'DateTime'>
     readonly patientId: FieldRef<"PatientVisit", 'String'>
     readonly reason: FieldRef<"PatientVisit", 'String'>
     readonly status: FieldRef<"PatientVisit", 'String'>
@@ -5691,6 +5782,8 @@ export namespace Prisma {
 
   export type AssessmentMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     patientId: string | null
     symptoms: string | null
     assessment: string | null
@@ -5704,11 +5797,12 @@ export namespace Prisma {
     allergies: string | null
     painLocation: string | null
     painScale: number | null
-    createdAt: Date | null
   }
 
   export type AssessmentMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     patientId: string | null
     symptoms: string | null
     assessment: string | null
@@ -5722,11 +5816,12 @@ export namespace Prisma {
     allergies: string | null
     painLocation: string | null
     painScale: number | null
-    createdAt: Date | null
   }
 
   export type AssessmentCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
     patientId: number
     symptoms: number
     assessment: number
@@ -5740,7 +5835,6 @@ export namespace Prisma {
     allergies: number
     painLocation: number
     painScale: number
-    createdAt: number
     _all: number
   }
 
@@ -5761,6 +5855,8 @@ export namespace Prisma {
 
   export type AssessmentMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     symptoms?: true
     assessment?: true
@@ -5774,11 +5870,12 @@ export namespace Prisma {
     allergies?: true
     painLocation?: true
     painScale?: true
-    createdAt?: true
   }
 
   export type AssessmentMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     symptoms?: true
     assessment?: true
@@ -5792,11 +5889,12 @@ export namespace Prisma {
     allergies?: true
     painLocation?: true
     painScale?: true
-    createdAt?: true
   }
 
   export type AssessmentCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     symptoms?: true
     assessment?: true
@@ -5810,7 +5908,6 @@ export namespace Prisma {
     allergies?: true
     painLocation?: true
     painScale?: true
-    createdAt?: true
     _all?: true
   }
 
@@ -5902,6 +5999,8 @@ export namespace Prisma {
 
   export type AssessmentGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
     patientId: string
     symptoms: string
     assessment: string | null
@@ -5915,7 +6014,6 @@ export namespace Prisma {
     allergies: string | null
     painLocation: string | null
     painScale: number | null
-    createdAt: Date
     _count: AssessmentCountAggregateOutputType | null
     _avg: AssessmentAvgAggregateOutputType | null
     _sum: AssessmentSumAggregateOutputType | null
@@ -5939,6 +6037,8 @@ export namespace Prisma {
 
   export type AssessmentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     symptoms?: boolean
     assessment?: boolean
@@ -5952,7 +6052,6 @@ export namespace Prisma {
     allergies?: boolean
     painLocation?: boolean
     painScale?: boolean
-    createdAt?: boolean
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     treatment?: boolean | Assessment$treatmentArgs<ExtArgs>
     _count?: boolean | AssessmentCountOutputTypeDefaultArgs<ExtArgs>
@@ -5960,6 +6059,8 @@ export namespace Prisma {
 
   export type AssessmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     symptoms?: boolean
     assessment?: boolean
@@ -5973,12 +6074,13 @@ export namespace Prisma {
     allergies?: boolean
     painLocation?: boolean
     painScale?: boolean
-    createdAt?: boolean
     patient?: boolean | PatientDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["assessment"]>
 
   export type AssessmentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     symptoms?: boolean
     assessment?: boolean
@@ -5992,12 +6094,13 @@ export namespace Prisma {
     allergies?: boolean
     painLocation?: boolean
     painScale?: boolean
-    createdAt?: boolean
     patient?: boolean | PatientDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["assessment"]>
 
   export type AssessmentSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     symptoms?: boolean
     assessment?: boolean
@@ -6011,10 +6114,9 @@ export namespace Prisma {
     allergies?: boolean
     painLocation?: boolean
     painScale?: boolean
-    createdAt?: boolean
   }
 
-  export type AssessmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "patientId" | "symptoms" | "assessment" | "diagnosis" | "bloodPressure" | "pulseRate" | "respiratoryRate" | "oxygenSaturation" | "alcoholUse" | "smoker" | "allergies" | "painLocation" | "painScale" | "createdAt", ExtArgs["result"]["assessment"]>
+  export type AssessmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "patientId" | "symptoms" | "assessment" | "diagnosis" | "bloodPressure" | "pulseRate" | "respiratoryRate" | "oxygenSaturation" | "alcoholUse" | "smoker" | "allergies" | "painLocation" | "painScale", ExtArgs["result"]["assessment"]>
   export type AssessmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     treatment?: boolean | Assessment$treatmentArgs<ExtArgs>
@@ -6035,6 +6137,8 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
       patientId: string
       symptoms: string
       assessment: string | null
@@ -6048,7 +6152,6 @@ export namespace Prisma {
       allergies: string | null
       painLocation: string | null
       painScale: number | null
-      createdAt: Date
     }, ExtArgs["result"]["assessment"]>
     composites: {}
   }
@@ -6475,6 +6578,8 @@ export namespace Prisma {
    */
   interface AssessmentFieldRefs {
     readonly id: FieldRef<"Assessment", 'String'>
+    readonly createdAt: FieldRef<"Assessment", 'DateTime'>
+    readonly updatedAt: FieldRef<"Assessment", 'DateTime'>
     readonly patientId: FieldRef<"Assessment", 'String'>
     readonly symptoms: FieldRef<"Assessment", 'String'>
     readonly assessment: FieldRef<"Assessment", 'String'>
@@ -6488,7 +6593,6 @@ export namespace Prisma {
     readonly allergies: FieldRef<"Assessment", 'String'>
     readonly painLocation: FieldRef<"Assessment", 'String'>
     readonly painScale: FieldRef<"Assessment", 'Int'>
-    readonly createdAt: FieldRef<"Assessment", 'DateTime'>
   }
     
 
@@ -6951,6 +7055,8 @@ export namespace Prisma {
 
   export type TreatmentMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     patientId: string | null
     visitId: string | null
     assessmentId: string | null
@@ -6960,12 +7066,12 @@ export namespace Prisma {
     status: $Enums.TreatmentStatus | null
     priority: number | null
     nextFollowUpAt: Date | null
-    createdAt: Date | null
-    updatedAt: Date | null
   }
 
   export type TreatmentMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     patientId: string | null
     visitId: string | null
     assessmentId: string | null
@@ -6975,12 +7081,12 @@ export namespace Prisma {
     status: $Enums.TreatmentStatus | null
     priority: number | null
     nextFollowUpAt: Date | null
-    createdAt: Date | null
-    updatedAt: Date | null
   }
 
   export type TreatmentCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
     patientId: number
     visitId: number
     assessmentId: number
@@ -6991,8 +7097,6 @@ export namespace Prisma {
     status: number
     priority: number
     nextFollowUpAt: number
-    createdAt: number
-    updatedAt: number
     _all: number
   }
 
@@ -7009,6 +7113,8 @@ export namespace Prisma {
 
   export type TreatmentMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     visitId?: true
     assessmentId?: true
@@ -7018,12 +7124,12 @@ export namespace Prisma {
     status?: true
     priority?: true
     nextFollowUpAt?: true
-    createdAt?: true
-    updatedAt?: true
   }
 
   export type TreatmentMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     visitId?: true
     assessmentId?: true
@@ -7033,12 +7139,12 @@ export namespace Prisma {
     status?: true
     priority?: true
     nextFollowUpAt?: true
-    createdAt?: true
-    updatedAt?: true
   }
 
   export type TreatmentCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     visitId?: true
     assessmentId?: true
@@ -7049,8 +7155,6 @@ export namespace Prisma {
     status?: true
     priority?: true
     nextFollowUpAt?: true
-    createdAt?: true
-    updatedAt?: true
     _all?: true
   }
 
@@ -7142,6 +7246,8 @@ export namespace Prisma {
 
   export type TreatmentGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
     patientId: string
     visitId: string | null
     assessmentId: string | null
@@ -7152,8 +7258,6 @@ export namespace Prisma {
     status: $Enums.TreatmentStatus
     priority: number | null
     nextFollowUpAt: Date | null
-    createdAt: Date
-    updatedAt: Date
     _count: TreatmentCountAggregateOutputType | null
     _avg: TreatmentAvgAggregateOutputType | null
     _sum: TreatmentSumAggregateOutputType | null
@@ -7177,6 +7281,8 @@ export namespace Prisma {
 
   export type TreatmentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     visitId?: boolean
     assessmentId?: boolean
@@ -7187,8 +7293,6 @@ export namespace Prisma {
     status?: boolean
     priority?: boolean
     nextFollowUpAt?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     visit?: boolean | Treatment$visitArgs<ExtArgs>
     assessment?: boolean | Treatment$assessmentArgs<ExtArgs>
@@ -7198,6 +7302,8 @@ export namespace Prisma {
 
   export type TreatmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     visitId?: boolean
     assessmentId?: boolean
@@ -7208,8 +7314,6 @@ export namespace Prisma {
     status?: boolean
     priority?: boolean
     nextFollowUpAt?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     visit?: boolean | Treatment$visitArgs<ExtArgs>
     assessment?: boolean | Treatment$assessmentArgs<ExtArgs>
@@ -7217,6 +7321,8 @@ export namespace Prisma {
 
   export type TreatmentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     visitId?: boolean
     assessmentId?: boolean
@@ -7227,8 +7333,6 @@ export namespace Prisma {
     status?: boolean
     priority?: boolean
     nextFollowUpAt?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     visit?: boolean | Treatment$visitArgs<ExtArgs>
     assessment?: boolean | Treatment$assessmentArgs<ExtArgs>
@@ -7236,6 +7340,8 @@ export namespace Prisma {
 
   export type TreatmentSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     visitId?: boolean
     assessmentId?: boolean
@@ -7246,11 +7352,9 @@ export namespace Prisma {
     status?: boolean
     priority?: boolean
     nextFollowUpAt?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
   }
 
-  export type TreatmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "patientId" | "visitId" | "assessmentId" | "medications" | "procedures" | "painScale" | "remarks" | "status" | "priority" | "nextFollowUpAt" | "createdAt" | "updatedAt", ExtArgs["result"]["treatment"]>
+  export type TreatmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "patientId" | "visitId" | "assessmentId" | "medications" | "procedures" | "painScale" | "remarks" | "status" | "priority" | "nextFollowUpAt", ExtArgs["result"]["treatment"]>
   export type TreatmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     visit?: boolean | Treatment$visitArgs<ExtArgs>
@@ -7279,6 +7383,8 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
       patientId: string
       visitId: string | null
       assessmentId: string | null
@@ -7289,8 +7395,6 @@ export namespace Prisma {
       status: $Enums.TreatmentStatus
       priority: number | null
       nextFollowUpAt: Date | null
-      createdAt: Date
-      updatedAt: Date
     }, ExtArgs["result"]["treatment"]>
     composites: {}
   }
@@ -7719,6 +7823,8 @@ export namespace Prisma {
    */
   interface TreatmentFieldRefs {
     readonly id: FieldRef<"Treatment", 'String'>
+    readonly createdAt: FieldRef<"Treatment", 'DateTime'>
+    readonly updatedAt: FieldRef<"Treatment", 'DateTime'>
     readonly patientId: FieldRef<"Treatment", 'String'>
     readonly visitId: FieldRef<"Treatment", 'String'>
     readonly assessmentId: FieldRef<"Treatment", 'String'>
@@ -7729,8 +7835,6 @@ export namespace Prisma {
     readonly status: FieldRef<"Treatment", 'TreatmentStatus'>
     readonly priority: FieldRef<"Treatment", 'Int'>
     readonly nextFollowUpAt: FieldRef<"Treatment", 'DateTime'>
-    readonly createdAt: FieldRef<"Treatment", 'DateTime'>
-    readonly updatedAt: FieldRef<"Treatment", 'DateTime'>
   }
     
 
@@ -8229,6 +8333,8 @@ export namespace Prisma {
 
   export type FollowUpMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     treatmentId: string | null
     note: string | null
     findings: string | null
@@ -8238,12 +8344,12 @@ export namespace Prisma {
     followUpDate: Date | null
     nextFollowUp: Date | null
     resolved: boolean | null
-    createdAt: Date | null
-    updatedAt: Date | null
   }
 
   export type FollowUpMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     treatmentId: string | null
     note: string | null
     findings: string | null
@@ -8253,12 +8359,12 @@ export namespace Prisma {
     followUpDate: Date | null
     nextFollowUp: Date | null
     resolved: boolean | null
-    createdAt: Date | null
-    updatedAt: Date | null
   }
 
   export type FollowUpCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
     treatmentId: number
     note: number
     findings: number
@@ -8269,8 +8375,6 @@ export namespace Prisma {
     followUpDate: number
     nextFollowUp: number
     resolved: number
-    createdAt: number
-    updatedAt: number
     _all: number
   }
 
@@ -8285,6 +8389,8 @@ export namespace Prisma {
 
   export type FollowUpMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     treatmentId?: true
     note?: true
     findings?: true
@@ -8294,12 +8400,12 @@ export namespace Prisma {
     followUpDate?: true
     nextFollowUp?: true
     resolved?: true
-    createdAt?: true
-    updatedAt?: true
   }
 
   export type FollowUpMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     treatmentId?: true
     note?: true
     findings?: true
@@ -8309,12 +8415,12 @@ export namespace Prisma {
     followUpDate?: true
     nextFollowUp?: true
     resolved?: true
-    createdAt?: true
-    updatedAt?: true
   }
 
   export type FollowUpCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     treatmentId?: true
     note?: true
     findings?: true
@@ -8325,8 +8431,6 @@ export namespace Prisma {
     followUpDate?: true
     nextFollowUp?: true
     resolved?: true
-    createdAt?: true
-    updatedAt?: true
     _all?: true
   }
 
@@ -8418,6 +8522,8 @@ export namespace Prisma {
 
   export type FollowUpGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
     treatmentId: string
     note: string | null
     findings: string | null
@@ -8428,8 +8534,6 @@ export namespace Prisma {
     followUpDate: Date
     nextFollowUp: Date | null
     resolved: boolean
-    createdAt: Date
-    updatedAt: Date
     _count: FollowUpCountAggregateOutputType | null
     _avg: FollowUpAvgAggregateOutputType | null
     _sum: FollowUpSumAggregateOutputType | null
@@ -8453,6 +8557,8 @@ export namespace Prisma {
 
   export type FollowUpSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     treatmentId?: boolean
     note?: boolean
     findings?: boolean
@@ -8463,13 +8569,13 @@ export namespace Prisma {
     followUpDate?: boolean
     nextFollowUp?: boolean
     resolved?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
     treatment?: boolean | TreatmentDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["followUp"]>
 
   export type FollowUpSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     treatmentId?: boolean
     note?: boolean
     findings?: boolean
@@ -8480,13 +8586,13 @@ export namespace Prisma {
     followUpDate?: boolean
     nextFollowUp?: boolean
     resolved?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
     treatment?: boolean | TreatmentDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["followUp"]>
 
   export type FollowUpSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     treatmentId?: boolean
     note?: boolean
     findings?: boolean
@@ -8497,13 +8603,13 @@ export namespace Prisma {
     followUpDate?: boolean
     nextFollowUp?: boolean
     resolved?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
     treatment?: boolean | TreatmentDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["followUp"]>
 
   export type FollowUpSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     treatmentId?: boolean
     note?: boolean
     findings?: boolean
@@ -8514,11 +8620,9 @@ export namespace Prisma {
     followUpDate?: boolean
     nextFollowUp?: boolean
     resolved?: boolean
-    createdAt?: boolean
-    updatedAt?: boolean
   }
 
-  export type FollowUpOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "treatmentId" | "note" | "findings" | "outcome" | "nextAction" | "painScale" | "vitals" | "followUpDate" | "nextFollowUp" | "resolved" | "createdAt" | "updatedAt", ExtArgs["result"]["followUp"]>
+  export type FollowUpOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "treatmentId" | "note" | "findings" | "outcome" | "nextAction" | "painScale" | "vitals" | "followUpDate" | "nextFollowUp" | "resolved", ExtArgs["result"]["followUp"]>
   export type FollowUpInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     treatment?: boolean | TreatmentDefaultArgs<ExtArgs>
   }
@@ -8536,6 +8640,8 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
       treatmentId: string
       note: string | null
       findings: string | null
@@ -8546,8 +8652,6 @@ export namespace Prisma {
       followUpDate: Date
       nextFollowUp: Date | null
       resolved: boolean
-      createdAt: Date
-      updatedAt: Date
     }, ExtArgs["result"]["followUp"]>
     composites: {}
   }
@@ -8973,6 +9077,8 @@ export namespace Prisma {
    */
   interface FollowUpFieldRefs {
     readonly id: FieldRef<"FollowUp", 'String'>
+    readonly createdAt: FieldRef<"FollowUp", 'DateTime'>
+    readonly updatedAt: FieldRef<"FollowUp", 'DateTime'>
     readonly treatmentId: FieldRef<"FollowUp", 'String'>
     readonly note: FieldRef<"FollowUp", 'String'>
     readonly findings: FieldRef<"FollowUp", 'String'>
@@ -8983,8 +9089,6 @@ export namespace Prisma {
     readonly followUpDate: FieldRef<"FollowUp", 'DateTime'>
     readonly nextFollowUp: FieldRef<"FollowUp", 'DateTime'>
     readonly resolved: FieldRef<"FollowUp", 'Boolean'>
-    readonly createdAt: FieldRef<"FollowUp", 'DateTime'>
-    readonly updatedAt: FieldRef<"FollowUp", 'DateTime'>
   }
     
 
@@ -9411,6 +9515,8 @@ export namespace Prisma {
 
   export type MedicalRecordMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     patientId: string | null
     diagnosis: string | null
     treatment: string | null
@@ -9419,6 +9525,8 @@ export namespace Prisma {
 
   export type MedicalRecordMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     patientId: string | null
     diagnosis: string | null
     treatment: string | null
@@ -9427,6 +9535,8 @@ export namespace Prisma {
 
   export type MedicalRecordCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
     patientId: number
     diagnosis: number
     treatment: number
@@ -9437,6 +9547,8 @@ export namespace Prisma {
 
   export type MedicalRecordMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     diagnosis?: true
     treatment?: true
@@ -9445,6 +9557,8 @@ export namespace Prisma {
 
   export type MedicalRecordMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     diagnosis?: true
     treatment?: true
@@ -9453,6 +9567,8 @@ export namespace Prisma {
 
   export type MedicalRecordCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     diagnosis?: true
     treatment?: true
@@ -9534,6 +9650,8 @@ export namespace Prisma {
 
   export type MedicalRecordGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
     patientId: string
     diagnosis: string
     treatment: string
@@ -9559,6 +9677,8 @@ export namespace Prisma {
 
   export type MedicalRecordSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     diagnosis?: boolean
     treatment?: boolean
@@ -9568,6 +9688,8 @@ export namespace Prisma {
 
   export type MedicalRecordSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     diagnosis?: boolean
     treatment?: boolean
@@ -9577,6 +9699,8 @@ export namespace Prisma {
 
   export type MedicalRecordSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     diagnosis?: boolean
     treatment?: boolean
@@ -9586,13 +9710,15 @@ export namespace Prisma {
 
   export type MedicalRecordSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     diagnosis?: boolean
     treatment?: boolean
     notes?: boolean
   }
 
-  export type MedicalRecordOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "patientId" | "diagnosis" | "treatment" | "notes", ExtArgs["result"]["medicalRecord"]>
+  export type MedicalRecordOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "patientId" | "diagnosis" | "treatment" | "notes", ExtArgs["result"]["medicalRecord"]>
   export type MedicalRecordInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     patient?: boolean | PatientDefaultArgs<ExtArgs>
   }
@@ -9610,6 +9736,8 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
       patientId: string
       diagnosis: string
       treatment: string
@@ -10039,6 +10167,8 @@ export namespace Prisma {
    */
   interface MedicalRecordFieldRefs {
     readonly id: FieldRef<"MedicalRecord", 'String'>
+    readonly createdAt: FieldRef<"MedicalRecord", 'DateTime'>
+    readonly updatedAt: FieldRef<"MedicalRecord", 'DateTime'>
     readonly patientId: FieldRef<"MedicalRecord", 'String'>
     readonly diagnosis: FieldRef<"MedicalRecord", 'String'>
     readonly treatment: FieldRef<"MedicalRecord", 'String'>
@@ -10469,18 +10599,27 @@ export namespace Prisma {
 
   export type DoctorMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    archived: boolean | null
     userId: string | null
     field: string | null
   }
 
   export type DoctorMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    archived: boolean | null
     userId: string | null
     field: string | null
   }
 
   export type DoctorCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
+    archived: number
     userId: number
     field: number
     _all: number
@@ -10489,18 +10628,27 @@ export namespace Prisma {
 
   export type DoctorMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     userId?: true
     field?: true
   }
 
   export type DoctorMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     userId?: true
     field?: true
   }
 
   export type DoctorCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     userId?: true
     field?: true
     _all?: true
@@ -10580,6 +10728,9 @@ export namespace Prisma {
 
   export type DoctorGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
+    archived: boolean
     userId: string
     field: string
     _count: DoctorCountAggregateOutputType | null
@@ -10603,6 +10754,9 @@ export namespace Prisma {
 
   export type DoctorSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     userId?: boolean
     field?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -10613,6 +10767,9 @@ export namespace Prisma {
 
   export type DoctorSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     userId?: boolean
     field?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -10620,6 +10777,9 @@ export namespace Prisma {
 
   export type DoctorSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     userId?: boolean
     field?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
@@ -10627,11 +10787,14 @@ export namespace Prisma {
 
   export type DoctorSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     userId?: boolean
     field?: boolean
   }
 
-  export type DoctorOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "userId" | "field", ExtArgs["result"]["doctor"]>
+  export type DoctorOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "archived" | "userId" | "field", ExtArgs["result"]["doctor"]>
   export type DoctorInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     user?: boolean | UserDefaultArgs<ExtArgs>
     appointment?: boolean | Doctor$appointmentArgs<ExtArgs>
@@ -10654,6 +10817,9 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
+      archived: boolean
       userId: string
       field: string
     }, ExtArgs["result"]["doctor"]>
@@ -11083,6 +11249,9 @@ export namespace Prisma {
    */
   interface DoctorFieldRefs {
     readonly id: FieldRef<"Doctor", 'String'>
+    readonly createdAt: FieldRef<"Doctor", 'DateTime'>
+    readonly updatedAt: FieldRef<"Doctor", 'DateTime'>
+    readonly archived: FieldRef<"Doctor", 'Boolean'>
     readonly userId: FieldRef<"Doctor", 'String'>
     readonly field: FieldRef<"Doctor", 'String'>
   }
@@ -11559,6 +11728,9 @@ export namespace Prisma {
 
   export type AppointmentMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    archived: boolean | null
     patientId: string | null
     doctorId: string | null
     date: Date | null
@@ -11567,6 +11739,9 @@ export namespace Prisma {
 
   export type AppointmentMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    archived: boolean | null
     patientId: string | null
     doctorId: string | null
     date: Date | null
@@ -11575,6 +11750,9 @@ export namespace Prisma {
 
   export type AppointmentCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
+    archived: number
     patientId: number
     doctorId: number
     date: number
@@ -11585,6 +11763,9 @@ export namespace Prisma {
 
   export type AppointmentMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     patientId?: true
     doctorId?: true
     date?: true
@@ -11593,6 +11774,9 @@ export namespace Prisma {
 
   export type AppointmentMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     patientId?: true
     doctorId?: true
     date?: true
@@ -11601,6 +11785,9 @@ export namespace Prisma {
 
   export type AppointmentCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     patientId?: true
     doctorId?: true
     date?: true
@@ -11682,6 +11869,9 @@ export namespace Prisma {
 
   export type AppointmentGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
+    archived: boolean
     patientId: string
     doctorId: string
     date: Date
@@ -11707,6 +11897,9 @@ export namespace Prisma {
 
   export type AppointmentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     patientId?: boolean
     doctorId?: boolean
     date?: boolean
@@ -11717,6 +11910,9 @@ export namespace Prisma {
 
   export type AppointmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     patientId?: boolean
     doctorId?: boolean
     date?: boolean
@@ -11727,6 +11923,9 @@ export namespace Prisma {
 
   export type AppointmentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     patientId?: boolean
     doctorId?: boolean
     date?: boolean
@@ -11737,13 +11936,16 @@ export namespace Prisma {
 
   export type AppointmentSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     patientId?: boolean
     doctorId?: boolean
     date?: boolean
     status?: boolean
   }
 
-  export type AppointmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "patientId" | "doctorId" | "date" | "status", ExtArgs["result"]["appointment"]>
+  export type AppointmentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "archived" | "patientId" | "doctorId" | "date" | "status", ExtArgs["result"]["appointment"]>
   export type AppointmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     doctor?: boolean | DoctorDefaultArgs<ExtArgs>
@@ -11765,6 +11967,9 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
+      archived: boolean
       patientId: string
       doctorId: string
       date: Date
@@ -12195,6 +12400,9 @@ export namespace Prisma {
    */
   interface AppointmentFieldRefs {
     readonly id: FieldRef<"Appointment", 'String'>
+    readonly createdAt: FieldRef<"Appointment", 'DateTime'>
+    readonly updatedAt: FieldRef<"Appointment", 'DateTime'>
+    readonly archived: FieldRef<"Appointment", 'Boolean'>
     readonly patientId: FieldRef<"Appointment", 'String'>
     readonly doctorId: FieldRef<"Appointment", 'String'>
     readonly date: FieldRef<"Appointment", 'DateTime'>
@@ -12625,18 +12833,24 @@ export namespace Prisma {
 
   export type SupplierMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     name: string | null
     contact: string | null
   }
 
   export type SupplierMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     name: string | null
     contact: string | null
   }
 
   export type SupplierCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
     name: number
     contact: number
     _all: number
@@ -12645,18 +12859,24 @@ export namespace Prisma {
 
   export type SupplierMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     name?: true
     contact?: true
   }
 
   export type SupplierMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     name?: true
     contact?: true
   }
 
   export type SupplierCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     name?: true
     contact?: true
     _all?: true
@@ -12736,6 +12956,8 @@ export namespace Prisma {
 
   export type SupplierGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
     name: string
     contact: string
     _count: SupplierCountAggregateOutputType | null
@@ -12759,6 +12981,8 @@ export namespace Prisma {
 
   export type SupplierSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     name?: boolean
     contact?: boolean
     medicine?: boolean | Supplier$medicineArgs<ExtArgs>
@@ -12767,23 +12991,29 @@ export namespace Prisma {
 
   export type SupplierSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     name?: boolean
     contact?: boolean
   }, ExtArgs["result"]["supplier"]>
 
   export type SupplierSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     name?: boolean
     contact?: boolean
   }, ExtArgs["result"]["supplier"]>
 
   export type SupplierSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     name?: boolean
     contact?: boolean
   }
 
-  export type SupplierOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "name" | "contact", ExtArgs["result"]["supplier"]>
+  export type SupplierOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "contact", ExtArgs["result"]["supplier"]>
   export type SupplierInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     medicine?: boolean | Supplier$medicineArgs<ExtArgs>
     _count?: boolean | SupplierCountOutputTypeDefaultArgs<ExtArgs>
@@ -12798,6 +13028,8 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
       name: string
       contact: string
     }, ExtArgs["result"]["supplier"]>
@@ -13225,6 +13457,8 @@ export namespace Prisma {
    */
   interface SupplierFieldRefs {
     readonly id: FieldRef<"Supplier", 'String'>
+    readonly createdAt: FieldRef<"Supplier", 'DateTime'>
+    readonly updatedAt: FieldRef<"Supplier", 'DateTime'>
     readonly name: FieldRef<"Supplier", 'String'>
     readonly contact: FieldRef<"Supplier", 'String'>
   }
@@ -13670,16 +13904,18 @@ export namespace Prisma {
   }
 
   export type MedicineAvgAggregateOutputType = {
-    Quantity: number | null
+    quantity: number | null
   }
 
   export type MedicineSumAggregateOutputType = {
-    Quantity: number | null
+    quantity: number | null
   }
 
   export type MedicineMinAggregateOutputType = {
-    archived: boolean | null
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    archived: boolean | null
     supplierId: string | null
     name: string | null
     description: string | null
@@ -13687,13 +13923,15 @@ export namespace Prisma {
     form: string | null
     strength: string | null
     batchNumber: string | null
-    ExpiryDate: Date | null
-    Quantity: number | null
+    expiryDate: Date | null
+    quantity: number | null
   }
 
   export type MedicineMaxAggregateOutputType = {
-    archived: boolean | null
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    archived: boolean | null
     supplierId: string | null
     name: string | null
     description: string | null
@@ -13701,13 +13939,15 @@ export namespace Prisma {
     form: string | null
     strength: string | null
     batchNumber: string | null
-    ExpiryDate: Date | null
-    Quantity: number | null
+    expiryDate: Date | null
+    quantity: number | null
   }
 
   export type MedicineCountAggregateOutputType = {
-    archived: number
     id: number
+    createdAt: number
+    updatedAt: number
+    archived: number
     supplierId: number
     name: number
     description: number
@@ -13715,23 +13955,25 @@ export namespace Prisma {
     form: number
     strength: number
     batchNumber: number
-    ExpiryDate: number
-    Quantity: number
+    expiryDate: number
+    quantity: number
     _all: number
   }
 
 
   export type MedicineAvgAggregateInputType = {
-    Quantity?: true
+    quantity?: true
   }
 
   export type MedicineSumAggregateInputType = {
-    Quantity?: true
+    quantity?: true
   }
 
   export type MedicineMinAggregateInputType = {
-    archived?: true
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     supplierId?: true
     name?: true
     description?: true
@@ -13739,13 +13981,15 @@ export namespace Prisma {
     form?: true
     strength?: true
     batchNumber?: true
-    ExpiryDate?: true
-    Quantity?: true
+    expiryDate?: true
+    quantity?: true
   }
 
   export type MedicineMaxAggregateInputType = {
-    archived?: true
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     supplierId?: true
     name?: true
     description?: true
@@ -13753,13 +13997,15 @@ export namespace Prisma {
     form?: true
     strength?: true
     batchNumber?: true
-    ExpiryDate?: true
-    Quantity?: true
+    expiryDate?: true
+    quantity?: true
   }
 
   export type MedicineCountAggregateInputType = {
-    archived?: true
     id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
     supplierId?: true
     name?: true
     description?: true
@@ -13767,8 +14013,8 @@ export namespace Prisma {
     form?: true
     strength?: true
     batchNumber?: true
-    ExpiryDate?: true
-    Quantity?: true
+    expiryDate?: true
+    quantity?: true
     _all?: true
   }
 
@@ -13859,8 +14105,10 @@ export namespace Prisma {
   }
 
   export type MedicineGroupByOutputType = {
-    archived: boolean
     id: string
+    createdAt: Date
+    updatedAt: Date
+    archived: boolean
     supplierId: string | null
     name: string
     description: string | null
@@ -13868,8 +14116,8 @@ export namespace Prisma {
     form: string | null
     strength: string | null
     batchNumber: string | null
-    ExpiryDate: Date | null
-    Quantity: number | null
+    expiryDate: Date | null
+    quantity: number | null
     _count: MedicineCountAggregateOutputType | null
     _avg: MedicineAvgAggregateOutputType | null
     _sum: MedicineSumAggregateOutputType | null
@@ -13892,8 +14140,10 @@ export namespace Prisma {
 
 
   export type MedicineSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    archived?: boolean
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     supplierId?: boolean
     name?: boolean
     description?: boolean
@@ -13901,16 +14151,18 @@ export namespace Prisma {
     form?: boolean
     strength?: boolean
     batchNumber?: boolean
-    ExpiryDate?: boolean
-    Quantity?: boolean
+    expiryDate?: boolean
+    quantity?: boolean
     supplier?: boolean | Medicine$supplierArgs<ExtArgs>
     prescription?: boolean | Medicine$prescriptionArgs<ExtArgs>
     _count?: boolean | MedicineCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["medicine"]>
 
   export type MedicineSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    archived?: boolean
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     supplierId?: boolean
     name?: boolean
     description?: boolean
@@ -13918,14 +14170,16 @@ export namespace Prisma {
     form?: boolean
     strength?: boolean
     batchNumber?: boolean
-    ExpiryDate?: boolean
-    Quantity?: boolean
+    expiryDate?: boolean
+    quantity?: boolean
     supplier?: boolean | Medicine$supplierArgs<ExtArgs>
   }, ExtArgs["result"]["medicine"]>
 
   export type MedicineSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
-    archived?: boolean
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     supplierId?: boolean
     name?: boolean
     description?: boolean
@@ -13933,14 +14187,16 @@ export namespace Prisma {
     form?: boolean
     strength?: boolean
     batchNumber?: boolean
-    ExpiryDate?: boolean
-    Quantity?: boolean
+    expiryDate?: boolean
+    quantity?: boolean
     supplier?: boolean | Medicine$supplierArgs<ExtArgs>
   }, ExtArgs["result"]["medicine"]>
 
   export type MedicineSelectScalar = {
-    archived?: boolean
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
     supplierId?: boolean
     name?: boolean
     description?: boolean
@@ -13948,11 +14204,11 @@ export namespace Prisma {
     form?: boolean
     strength?: boolean
     batchNumber?: boolean
-    ExpiryDate?: boolean
-    Quantity?: boolean
+    expiryDate?: boolean
+    quantity?: boolean
   }
 
-  export type MedicineOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"archived" | "id" | "supplierId" | "name" | "description" | "category" | "form" | "strength" | "batchNumber" | "ExpiryDate" | "Quantity", ExtArgs["result"]["medicine"]>
+  export type MedicineOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "archived" | "supplierId" | "name" | "description" | "category" | "form" | "strength" | "batchNumber" | "expiryDate" | "quantity", ExtArgs["result"]["medicine"]>
   export type MedicineInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     supplier?: boolean | Medicine$supplierArgs<ExtArgs>
     prescription?: boolean | Medicine$prescriptionArgs<ExtArgs>
@@ -13972,8 +14228,10 @@ export namespace Prisma {
       prescription: Prisma.$PrescriptionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
-      archived: boolean
       id: string
+      createdAt: Date
+      updatedAt: Date
+      archived: boolean
       supplierId: string | null
       name: string
       description: string | null
@@ -13981,8 +14239,8 @@ export namespace Prisma {
       form: string | null
       strength: string | null
       batchNumber: string | null
-      ExpiryDate: Date | null
-      Quantity: number | null
+      expiryDate: Date | null
+      quantity: number | null
     }, ExtArgs["result"]["medicine"]>
     composites: {}
   }
@@ -14066,8 +14324,8 @@ export namespace Prisma {
      * // Get first 10 Medicines
      * const medicines = await prisma.medicine.findMany({ take: 10 })
      * 
-     * // Only select the `archived`
-     * const medicineWithArchivedOnly = await prisma.medicine.findMany({ select: { archived: true } })
+     * // Only select the `id`
+     * const medicineWithIdOnly = await prisma.medicine.findMany({ select: { id: true } })
      * 
      */
     findMany<T extends MedicineFindManyArgs>(args?: SelectSubset<T, MedicineFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MedicinePayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
@@ -14111,9 +14369,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Create many Medicines and only return the `archived`
-     * const medicineWithArchivedOnly = await prisma.medicine.createManyAndReturn({
-     *   select: { archived: true },
+     * // Create many Medicines and only return the `id`
+     * const medicineWithIdOnly = await prisma.medicine.createManyAndReturn({
+     *   select: { id: true },
      *   data: [
      *     // ... provide data here
      *   ]
@@ -14202,9 +14460,9 @@ export namespace Prisma {
      *   ]
      * })
      * 
-     * // Update zero or more Medicines and only return the `archived`
-     * const medicineWithArchivedOnly = await prisma.medicine.updateManyAndReturn({
-     *   select: { archived: true },
+     * // Update zero or more Medicines and only return the `id`
+     * const medicineWithIdOnly = await prisma.medicine.updateManyAndReturn({
+     *   select: { id: true },
      *   where: {
      *     // ... provide filter here
      *   },
@@ -14408,8 +14666,10 @@ export namespace Prisma {
    * Fields of the Medicine model
    */
   interface MedicineFieldRefs {
-    readonly archived: FieldRef<"Medicine", 'Boolean'>
     readonly id: FieldRef<"Medicine", 'String'>
+    readonly createdAt: FieldRef<"Medicine", 'DateTime'>
+    readonly updatedAt: FieldRef<"Medicine", 'DateTime'>
+    readonly archived: FieldRef<"Medicine", 'Boolean'>
     readonly supplierId: FieldRef<"Medicine", 'String'>
     readonly name: FieldRef<"Medicine", 'String'>
     readonly description: FieldRef<"Medicine", 'String'>
@@ -14417,8 +14677,8 @@ export namespace Prisma {
     readonly form: FieldRef<"Medicine", 'String'>
     readonly strength: FieldRef<"Medicine", 'String'>
     readonly batchNumber: FieldRef<"Medicine", 'String'>
-    readonly ExpiryDate: FieldRef<"Medicine", 'DateTime'>
-    readonly Quantity: FieldRef<"Medicine", 'Int'>
+    readonly expiryDate: FieldRef<"Medicine", 'DateTime'>
+    readonly quantity: FieldRef<"Medicine", 'Int'>
   }
     
 
@@ -14888,64 +15148,70 @@ export namespace Prisma {
 
   export type PrescriptionMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     patientId: string | null
     doctorId: string | null
     medicineId: string | null
     dosage: string | null
     duration: string | null
-    createdAt: Date | null
   }
 
   export type PrescriptionMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     patientId: string | null
     doctorId: string | null
     medicineId: string | null
     dosage: string | null
     duration: string | null
-    createdAt: Date | null
   }
 
   export type PrescriptionCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
     patientId: number
     doctorId: number
     medicineId: number
     dosage: number
     duration: number
-    createdAt: number
     _all: number
   }
 
 
   export type PrescriptionMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     doctorId?: true
     medicineId?: true
     dosage?: true
     duration?: true
-    createdAt?: true
   }
 
   export type PrescriptionMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     doctorId?: true
     medicineId?: true
     dosage?: true
     duration?: true
-    createdAt?: true
   }
 
   export type PrescriptionCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     patientId?: true
     doctorId?: true
     medicineId?: true
     dosage?: true
     duration?: true
-    createdAt?: true
     _all?: true
   }
 
@@ -15023,12 +15289,13 @@ export namespace Prisma {
 
   export type PrescriptionGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
     patientId: string
     doctorId: string
     medicineId: string
     dosage: string
     duration: string
-    createdAt: Date
     _count: PrescriptionCountAggregateOutputType | null
     _min: PrescriptionMinAggregateOutputType | null
     _max: PrescriptionMaxAggregateOutputType | null
@@ -15050,12 +15317,13 @@ export namespace Prisma {
 
   export type PrescriptionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     doctorId?: boolean
     medicineId?: boolean
     dosage?: boolean
     duration?: boolean
-    createdAt?: boolean
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     doctor?: boolean | DoctorDefaultArgs<ExtArgs>
     medicine?: boolean | MedicineDefaultArgs<ExtArgs>
@@ -15063,12 +15331,13 @@ export namespace Prisma {
 
   export type PrescriptionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     doctorId?: boolean
     medicineId?: boolean
     dosage?: boolean
     duration?: boolean
-    createdAt?: boolean
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     doctor?: boolean | DoctorDefaultArgs<ExtArgs>
     medicine?: boolean | MedicineDefaultArgs<ExtArgs>
@@ -15076,12 +15345,13 @@ export namespace Prisma {
 
   export type PrescriptionSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     doctorId?: boolean
     medicineId?: boolean
     dosage?: boolean
     duration?: boolean
-    createdAt?: boolean
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     doctor?: boolean | DoctorDefaultArgs<ExtArgs>
     medicine?: boolean | MedicineDefaultArgs<ExtArgs>
@@ -15089,15 +15359,16 @@ export namespace Prisma {
 
   export type PrescriptionSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     patientId?: boolean
     doctorId?: boolean
     medicineId?: boolean
     dosage?: boolean
     duration?: boolean
-    createdAt?: boolean
   }
 
-  export type PrescriptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "patientId" | "doctorId" | "medicineId" | "dosage" | "duration" | "createdAt", ExtArgs["result"]["prescription"]>
+  export type PrescriptionOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "patientId" | "doctorId" | "medicineId" | "dosage" | "duration", ExtArgs["result"]["prescription"]>
   export type PrescriptionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     patient?: boolean | PatientDefaultArgs<ExtArgs>
     doctor?: boolean | DoctorDefaultArgs<ExtArgs>
@@ -15123,12 +15394,13 @@ export namespace Prisma {
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
       patientId: string
       doctorId: string
       medicineId: string
       dosage: string
       duration: string
-      createdAt: Date
     }, ExtArgs["result"]["prescription"]>
     composites: {}
   }
@@ -15556,12 +15828,13 @@ export namespace Prisma {
    */
   interface PrescriptionFieldRefs {
     readonly id: FieldRef<"Prescription", 'String'>
+    readonly createdAt: FieldRef<"Prescription", 'DateTime'>
+    readonly updatedAt: FieldRef<"Prescription", 'DateTime'>
     readonly patientId: FieldRef<"Prescription", 'String'>
     readonly doctorId: FieldRef<"Prescription", 'String'>
     readonly medicineId: FieldRef<"Prescription", 'String'>
     readonly dosage: FieldRef<"Prescription", 'String'>
     readonly duration: FieldRef<"Prescription", 'String'>
-    readonly createdAt: FieldRef<"Prescription", 'DateTime'>
   }
     
 
@@ -15988,64 +16261,64 @@ export namespace Prisma {
 
   export type PostMinAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     title: string | null
     slug: string | null
     content: string | null
     published: boolean | null
-    updatedAt: Date | null
-    createdAt: Date | null
   }
 
   export type PostMaxAggregateOutputType = {
     id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
     title: string | null
     slug: string | null
     content: string | null
     published: boolean | null
-    updatedAt: Date | null
-    createdAt: Date | null
   }
 
   export type PostCountAggregateOutputType = {
     id: number
+    createdAt: number
+    updatedAt: number
     title: number
     slug: number
     content: number
     published: number
-    updatedAt: number
-    createdAt: number
     _all: number
   }
 
 
   export type PostMinAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     title?: true
     slug?: true
     content?: true
     published?: true
-    updatedAt?: true
-    createdAt?: true
   }
 
   export type PostMaxAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     title?: true
     slug?: true
     content?: true
     published?: true
-    updatedAt?: true
-    createdAt?: true
   }
 
   export type PostCountAggregateInputType = {
     id?: true
+    createdAt?: true
+    updatedAt?: true
     title?: true
     slug?: true
     content?: true
     published?: true
-    updatedAt?: true
-    createdAt?: true
     _all?: true
   }
 
@@ -16123,12 +16396,12 @@ export namespace Prisma {
 
   export type PostGroupByOutputType = {
     id: string
+    createdAt: Date
+    updatedAt: Date
     title: string
     slug: string
     content: string
     published: boolean | null
-    updatedAt: Date
-    createdAt: Date
     _count: PostCountAggregateOutputType | null
     _min: PostMinAggregateOutputType | null
     _max: PostMaxAggregateOutputType | null
@@ -16150,57 +16423,57 @@ export namespace Prisma {
 
   export type PostSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     title?: boolean
     slug?: boolean
     content?: boolean
     published?: boolean
-    updatedAt?: boolean
-    createdAt?: boolean
   }, ExtArgs["result"]["post"]>
 
   export type PostSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     title?: boolean
     slug?: boolean
     content?: boolean
     published?: boolean
-    updatedAt?: boolean
-    createdAt?: boolean
   }, ExtArgs["result"]["post"]>
 
   export type PostSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     title?: boolean
     slug?: boolean
     content?: boolean
     published?: boolean
-    updatedAt?: boolean
-    createdAt?: boolean
   }, ExtArgs["result"]["post"]>
 
   export type PostSelectScalar = {
     id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     title?: boolean
     slug?: boolean
     content?: boolean
     published?: boolean
-    updatedAt?: boolean
-    createdAt?: boolean
   }
 
-  export type PostOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "title" | "slug" | "content" | "published" | "updatedAt" | "createdAt", ExtArgs["result"]["post"]>
+  export type PostOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "title" | "slug" | "content" | "published", ExtArgs["result"]["post"]>
 
   export type $PostPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Post"
     objects: {}
     scalars: $Extensions.GetPayloadResult<{
       id: string
+      createdAt: Date
+      updatedAt: Date
       title: string
       slug: string
       content: string
       published: boolean | null
-      updatedAt: Date
-      createdAt: Date
     }, ExtArgs["result"]["post"]>
     composites: {}
   }
@@ -16625,12 +16898,12 @@ export namespace Prisma {
    */
   interface PostFieldRefs {
     readonly id: FieldRef<"Post", 'String'>
+    readonly createdAt: FieldRef<"Post", 'DateTime'>
+    readonly updatedAt: FieldRef<"Post", 'DateTime'>
     readonly title: FieldRef<"Post", 'String'>
     readonly slug: FieldRef<"Post", 'String'>
     readonly content: FieldRef<"Post", 'String'>
     readonly published: FieldRef<"Post", 'Boolean'>
-    readonly updatedAt: FieldRef<"Post", 'DateTime'>
-    readonly createdAt: FieldRef<"Post", 'DateTime'>
   }
     
 
@@ -17013,6 +17286,8 @@ export namespace Prisma {
 
   export const UserScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
     name: 'name',
     role: 'role'
   };
@@ -17022,6 +17297,9 @@ export namespace Prisma {
 
   export const PatientScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    archived: 'archived',
     userId: 'userId',
     name: 'name',
     gender: 'gender',
@@ -17035,6 +17313,8 @@ export namespace Prisma {
 
   export const PatientVisitScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
     patientId: 'patientId',
     reason: 'reason',
     status: 'status',
@@ -17046,6 +17326,8 @@ export namespace Prisma {
 
   export const AssessmentScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
     patientId: 'patientId',
     symptoms: 'symptoms',
     assessment: 'assessment',
@@ -17058,8 +17340,7 @@ export namespace Prisma {
     smoker: 'smoker',
     allergies: 'allergies',
     painLocation: 'painLocation',
-    painScale: 'painScale',
-    createdAt: 'createdAt'
+    painScale: 'painScale'
   };
 
   export type AssessmentScalarFieldEnum = (typeof AssessmentScalarFieldEnum)[keyof typeof AssessmentScalarFieldEnum]
@@ -17067,6 +17348,8 @@ export namespace Prisma {
 
   export const TreatmentScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
     patientId: 'patientId',
     visitId: 'visitId',
     assessmentId: 'assessmentId',
@@ -17076,9 +17359,7 @@ export namespace Prisma {
     remarks: 'remarks',
     status: 'status',
     priority: 'priority',
-    nextFollowUpAt: 'nextFollowUpAt',
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    nextFollowUpAt: 'nextFollowUpAt'
   };
 
   export type TreatmentScalarFieldEnum = (typeof TreatmentScalarFieldEnum)[keyof typeof TreatmentScalarFieldEnum]
@@ -17086,6 +17367,8 @@ export namespace Prisma {
 
   export const FollowUpScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
     treatmentId: 'treatmentId',
     note: 'note',
     findings: 'findings',
@@ -17095,9 +17378,7 @@ export namespace Prisma {
     vitals: 'vitals',
     followUpDate: 'followUpDate',
     nextFollowUp: 'nextFollowUp',
-    resolved: 'resolved',
-    createdAt: 'createdAt',
-    updatedAt: 'updatedAt'
+    resolved: 'resolved'
   };
 
   export type FollowUpScalarFieldEnum = (typeof FollowUpScalarFieldEnum)[keyof typeof FollowUpScalarFieldEnum]
@@ -17105,6 +17386,8 @@ export namespace Prisma {
 
   export const MedicalRecordScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
     patientId: 'patientId',
     diagnosis: 'diagnosis',
     treatment: 'treatment',
@@ -17116,6 +17399,9 @@ export namespace Prisma {
 
   export const DoctorScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    archived: 'archived',
     userId: 'userId',
     field: 'field'
   };
@@ -17125,6 +17411,9 @@ export namespace Prisma {
 
   export const AppointmentScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    archived: 'archived',
     patientId: 'patientId',
     doctorId: 'doctorId',
     date: 'date',
@@ -17136,6 +17425,8 @@ export namespace Prisma {
 
   export const SupplierScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
     name: 'name',
     contact: 'contact'
   };
@@ -17144,8 +17435,10 @@ export namespace Prisma {
 
 
   export const MedicineScalarFieldEnum: {
-    archived: 'archived',
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    archived: 'archived',
     supplierId: 'supplierId',
     name: 'name',
     description: 'description',
@@ -17153,8 +17446,8 @@ export namespace Prisma {
     form: 'form',
     strength: 'strength',
     batchNumber: 'batchNumber',
-    ExpiryDate: 'ExpiryDate',
-    Quantity: 'Quantity'
+    expiryDate: 'expiryDate',
+    quantity: 'quantity'
   };
 
   export type MedicineScalarFieldEnum = (typeof MedicineScalarFieldEnum)[keyof typeof MedicineScalarFieldEnum]
@@ -17162,12 +17455,13 @@ export namespace Prisma {
 
   export const PrescriptionScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
     patientId: 'patientId',
     doctorId: 'doctorId',
     medicineId: 'medicineId',
     dosage: 'dosage',
-    duration: 'duration',
-    createdAt: 'createdAt'
+    duration: 'duration'
   };
 
   export type PrescriptionScalarFieldEnum = (typeof PrescriptionScalarFieldEnum)[keyof typeof PrescriptionScalarFieldEnum]
@@ -17175,12 +17469,12 @@ export namespace Prisma {
 
   export const PostScalarFieldEnum: {
     id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
     title: 'title',
     slug: 'slug',
     content: 'content',
-    published: 'published',
-    updatedAt: 'updatedAt',
-    createdAt: 'createdAt'
+    published: 'published'
   };
 
   export type PostScalarFieldEnum = (typeof PostScalarFieldEnum)[keyof typeof PostScalarFieldEnum]
@@ -17261,6 +17555,13 @@ export namespace Prisma {
 
 
   /**
+   * Reference to a field of type 'Boolean'
+   */
+  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+  /**
    * Reference to a field of type 'Int'
    */
   export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
@@ -17285,13 +17586,6 @@ export namespace Prisma {
    * Reference to a field of type 'Float[]'
    */
   export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
-    
-
-
-  /**
-   * Reference to a field of type 'Boolean'
-   */
-  export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
     
 
 
@@ -17331,6 +17625,8 @@ export namespace Prisma {
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
     id?: StringFilter<"User"> | string
+    createdAt?: DateTimeFilter<"User"> | Date | string
+    updatedAt?: DateTimeFilter<"User"> | Date | string
     name?: StringFilter<"User"> | string
     role?: StringFilter<"User"> | string
     patient?: XOR<PatientNullableScalarRelationFilter, PatientWhereInput> | null
@@ -17339,6 +17635,8 @@ export namespace Prisma {
 
   export type UserOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     name?: SortOrder
     role?: SortOrder
     patient?: PatientOrderByWithRelationInput
@@ -17350,6 +17648,8 @@ export namespace Prisma {
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
+    createdAt?: DateTimeFilter<"User"> | Date | string
+    updatedAt?: DateTimeFilter<"User"> | Date | string
     name?: StringFilter<"User"> | string
     role?: StringFilter<"User"> | string
     patient?: XOR<PatientNullableScalarRelationFilter, PatientWhereInput> | null
@@ -17358,6 +17658,8 @@ export namespace Prisma {
 
   export type UserOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     name?: SortOrder
     role?: SortOrder
     _count?: UserCountOrderByAggregateInput
@@ -17370,6 +17672,8 @@ export namespace Prisma {
     OR?: UserScalarWhereWithAggregatesInput[]
     NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"User"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     name?: StringWithAggregatesFilter<"User"> | string
     role?: StringWithAggregatesFilter<"User"> | string
   }
@@ -17379,6 +17683,9 @@ export namespace Prisma {
     OR?: PatientWhereInput[]
     NOT?: PatientWhereInput | PatientWhereInput[]
     id?: StringFilter<"Patient"> | string
+    createdAt?: DateTimeFilter<"Patient"> | Date | string
+    updatedAt?: DateTimeFilter<"Patient"> | Date | string
+    archived?: BoolFilter<"Patient"> | boolean
     userId?: StringNullableFilter<"Patient"> | string | null
     name?: StringFilter<"Patient"> | string
     gender?: StringNullableFilter<"Patient"> | string | null
@@ -17396,6 +17703,9 @@ export namespace Prisma {
 
   export type PatientOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     userId?: SortOrderInput | SortOrder
     name?: SortOrder
     gender?: SortOrderInput | SortOrder
@@ -17417,6 +17727,9 @@ export namespace Prisma {
     AND?: PatientWhereInput | PatientWhereInput[]
     OR?: PatientWhereInput[]
     NOT?: PatientWhereInput | PatientWhereInput[]
+    createdAt?: DateTimeFilter<"Patient"> | Date | string
+    updatedAt?: DateTimeFilter<"Patient"> | Date | string
+    archived?: BoolFilter<"Patient"> | boolean
     name?: StringFilter<"Patient"> | string
     gender?: StringNullableFilter<"Patient"> | string | null
     dateOfBirth?: DateTimeNullableFilter<"Patient"> | Date | string | null
@@ -17433,6 +17746,9 @@ export namespace Prisma {
 
   export type PatientOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     userId?: SortOrderInput | SortOrder
     name?: SortOrder
     gender?: SortOrderInput | SortOrder
@@ -17449,6 +17765,9 @@ export namespace Prisma {
     OR?: PatientScalarWhereWithAggregatesInput[]
     NOT?: PatientScalarWhereWithAggregatesInput | PatientScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Patient"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Patient"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Patient"> | Date | string
+    archived?: BoolWithAggregatesFilter<"Patient"> | boolean
     userId?: StringNullableWithAggregatesFilter<"Patient"> | string | null
     name?: StringWithAggregatesFilter<"Patient"> | string
     gender?: StringNullableWithAggregatesFilter<"Patient"> | string | null
@@ -17462,6 +17781,8 @@ export namespace Prisma {
     OR?: PatientVisitWhereInput[]
     NOT?: PatientVisitWhereInput | PatientVisitWhereInput[]
     id?: StringFilter<"PatientVisit"> | string
+    createdAt?: DateTimeFilter<"PatientVisit"> | Date | string
+    updatedAt?: DateTimeFilter<"PatientVisit"> | Date | string
     patientId?: StringFilter<"PatientVisit"> | string
     reason?: StringFilter<"PatientVisit"> | string
     status?: StringFilter<"PatientVisit"> | string
@@ -17472,6 +17793,8 @@ export namespace Prisma {
 
   export type PatientVisitOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     reason?: SortOrder
     status?: SortOrder
@@ -17485,6 +17808,8 @@ export namespace Prisma {
     AND?: PatientVisitWhereInput | PatientVisitWhereInput[]
     OR?: PatientVisitWhereInput[]
     NOT?: PatientVisitWhereInput | PatientVisitWhereInput[]
+    createdAt?: DateTimeFilter<"PatientVisit"> | Date | string
+    updatedAt?: DateTimeFilter<"PatientVisit"> | Date | string
     patientId?: StringFilter<"PatientVisit"> | string
     reason?: StringFilter<"PatientVisit"> | string
     status?: StringFilter<"PatientVisit"> | string
@@ -17495,6 +17820,8 @@ export namespace Prisma {
 
   export type PatientVisitOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     reason?: SortOrder
     status?: SortOrder
@@ -17509,6 +17836,8 @@ export namespace Prisma {
     OR?: PatientVisitScalarWhereWithAggregatesInput[]
     NOT?: PatientVisitScalarWhereWithAggregatesInput | PatientVisitScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"PatientVisit"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"PatientVisit"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PatientVisit"> | Date | string
     patientId?: StringWithAggregatesFilter<"PatientVisit"> | string
     reason?: StringWithAggregatesFilter<"PatientVisit"> | string
     status?: StringWithAggregatesFilter<"PatientVisit"> | string
@@ -17520,6 +17849,8 @@ export namespace Prisma {
     OR?: AssessmentWhereInput[]
     NOT?: AssessmentWhereInput | AssessmentWhereInput[]
     id?: StringFilter<"Assessment"> | string
+    createdAt?: DateTimeFilter<"Assessment"> | Date | string
+    updatedAt?: DateTimeFilter<"Assessment"> | Date | string
     patientId?: StringFilter<"Assessment"> | string
     symptoms?: StringFilter<"Assessment"> | string
     assessment?: StringNullableFilter<"Assessment"> | string | null
@@ -17533,13 +17864,14 @@ export namespace Prisma {
     allergies?: StringNullableFilter<"Assessment"> | string | null
     painLocation?: StringNullableFilter<"Assessment"> | string | null
     painScale?: IntNullableFilter<"Assessment"> | number | null
-    createdAt?: DateTimeFilter<"Assessment"> | Date | string
     patient?: XOR<PatientScalarRelationFilter, PatientWhereInput>
     treatment?: TreatmentListRelationFilter
   }
 
   export type AssessmentOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     symptoms?: SortOrder
     assessment?: SortOrderInput | SortOrder
@@ -17553,7 +17885,6 @@ export namespace Prisma {
     allergies?: SortOrderInput | SortOrder
     painLocation?: SortOrderInput | SortOrder
     painScale?: SortOrderInput | SortOrder
-    createdAt?: SortOrder
     patient?: PatientOrderByWithRelationInput
     treatment?: TreatmentOrderByRelationAggregateInput
   }
@@ -17563,6 +17894,8 @@ export namespace Prisma {
     AND?: AssessmentWhereInput | AssessmentWhereInput[]
     OR?: AssessmentWhereInput[]
     NOT?: AssessmentWhereInput | AssessmentWhereInput[]
+    createdAt?: DateTimeFilter<"Assessment"> | Date | string
+    updatedAt?: DateTimeFilter<"Assessment"> | Date | string
     patientId?: StringFilter<"Assessment"> | string
     symptoms?: StringFilter<"Assessment"> | string
     assessment?: StringNullableFilter<"Assessment"> | string | null
@@ -17576,13 +17909,14 @@ export namespace Prisma {
     allergies?: StringNullableFilter<"Assessment"> | string | null
     painLocation?: StringNullableFilter<"Assessment"> | string | null
     painScale?: IntNullableFilter<"Assessment"> | number | null
-    createdAt?: DateTimeFilter<"Assessment"> | Date | string
     patient?: XOR<PatientScalarRelationFilter, PatientWhereInput>
     treatment?: TreatmentListRelationFilter
   }, "id">
 
   export type AssessmentOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     symptoms?: SortOrder
     assessment?: SortOrderInput | SortOrder
@@ -17596,7 +17930,6 @@ export namespace Prisma {
     allergies?: SortOrderInput | SortOrder
     painLocation?: SortOrderInput | SortOrder
     painScale?: SortOrderInput | SortOrder
-    createdAt?: SortOrder
     _count?: AssessmentCountOrderByAggregateInput
     _avg?: AssessmentAvgOrderByAggregateInput
     _max?: AssessmentMaxOrderByAggregateInput
@@ -17609,6 +17942,8 @@ export namespace Prisma {
     OR?: AssessmentScalarWhereWithAggregatesInput[]
     NOT?: AssessmentScalarWhereWithAggregatesInput | AssessmentScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Assessment"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Assessment"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Assessment"> | Date | string
     patientId?: StringWithAggregatesFilter<"Assessment"> | string
     symptoms?: StringWithAggregatesFilter<"Assessment"> | string
     assessment?: StringNullableWithAggregatesFilter<"Assessment"> | string | null
@@ -17622,7 +17957,6 @@ export namespace Prisma {
     allergies?: StringNullableWithAggregatesFilter<"Assessment"> | string | null
     painLocation?: StringNullableWithAggregatesFilter<"Assessment"> | string | null
     painScale?: IntNullableWithAggregatesFilter<"Assessment"> | number | null
-    createdAt?: DateTimeWithAggregatesFilter<"Assessment"> | Date | string
   }
 
   export type TreatmentWhereInput = {
@@ -17630,6 +17964,8 @@ export namespace Prisma {
     OR?: TreatmentWhereInput[]
     NOT?: TreatmentWhereInput | TreatmentWhereInput[]
     id?: StringFilter<"Treatment"> | string
+    createdAt?: DateTimeFilter<"Treatment"> | Date | string
+    updatedAt?: DateTimeFilter<"Treatment"> | Date | string
     patientId?: StringFilter<"Treatment"> | string
     visitId?: StringNullableFilter<"Treatment"> | string | null
     assessmentId?: StringNullableFilter<"Treatment"> | string | null
@@ -17640,8 +17976,6 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFilter<"Treatment"> | $Enums.TreatmentStatus
     priority?: IntNullableFilter<"Treatment"> | number | null
     nextFollowUpAt?: DateTimeNullableFilter<"Treatment"> | Date | string | null
-    createdAt?: DateTimeFilter<"Treatment"> | Date | string
-    updatedAt?: DateTimeFilter<"Treatment"> | Date | string
     patient?: XOR<PatientScalarRelationFilter, PatientWhereInput>
     visit?: XOR<PatientVisitNullableScalarRelationFilter, PatientVisitWhereInput> | null
     assessment?: XOR<AssessmentNullableScalarRelationFilter, AssessmentWhereInput> | null
@@ -17650,6 +17984,8 @@ export namespace Prisma {
 
   export type TreatmentOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     visitId?: SortOrderInput | SortOrder
     assessmentId?: SortOrderInput | SortOrder
@@ -17660,8 +17996,6 @@ export namespace Prisma {
     status?: SortOrder
     priority?: SortOrderInput | SortOrder
     nextFollowUpAt?: SortOrderInput | SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
     patient?: PatientOrderByWithRelationInput
     visit?: PatientVisitOrderByWithRelationInput
     assessment?: AssessmentOrderByWithRelationInput
@@ -17673,6 +18007,8 @@ export namespace Prisma {
     AND?: TreatmentWhereInput | TreatmentWhereInput[]
     OR?: TreatmentWhereInput[]
     NOT?: TreatmentWhereInput | TreatmentWhereInput[]
+    createdAt?: DateTimeFilter<"Treatment"> | Date | string
+    updatedAt?: DateTimeFilter<"Treatment"> | Date | string
     patientId?: StringFilter<"Treatment"> | string
     visitId?: StringNullableFilter<"Treatment"> | string | null
     assessmentId?: StringNullableFilter<"Treatment"> | string | null
@@ -17683,8 +18019,6 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFilter<"Treatment"> | $Enums.TreatmentStatus
     priority?: IntNullableFilter<"Treatment"> | number | null
     nextFollowUpAt?: DateTimeNullableFilter<"Treatment"> | Date | string | null
-    createdAt?: DateTimeFilter<"Treatment"> | Date | string
-    updatedAt?: DateTimeFilter<"Treatment"> | Date | string
     patient?: XOR<PatientScalarRelationFilter, PatientWhereInput>
     visit?: XOR<PatientVisitNullableScalarRelationFilter, PatientVisitWhereInput> | null
     assessment?: XOR<AssessmentNullableScalarRelationFilter, AssessmentWhereInput> | null
@@ -17693,6 +18027,8 @@ export namespace Prisma {
 
   export type TreatmentOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     visitId?: SortOrderInput | SortOrder
     assessmentId?: SortOrderInput | SortOrder
@@ -17703,8 +18039,6 @@ export namespace Prisma {
     status?: SortOrder
     priority?: SortOrderInput | SortOrder
     nextFollowUpAt?: SortOrderInput | SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
     _count?: TreatmentCountOrderByAggregateInput
     _avg?: TreatmentAvgOrderByAggregateInput
     _max?: TreatmentMaxOrderByAggregateInput
@@ -17717,6 +18051,8 @@ export namespace Prisma {
     OR?: TreatmentScalarWhereWithAggregatesInput[]
     NOT?: TreatmentScalarWhereWithAggregatesInput | TreatmentScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Treatment"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Treatment"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Treatment"> | Date | string
     patientId?: StringWithAggregatesFilter<"Treatment"> | string
     visitId?: StringNullableWithAggregatesFilter<"Treatment"> | string | null
     assessmentId?: StringNullableWithAggregatesFilter<"Treatment"> | string | null
@@ -17727,8 +18063,6 @@ export namespace Prisma {
     status?: EnumTreatmentStatusWithAggregatesFilter<"Treatment"> | $Enums.TreatmentStatus
     priority?: IntNullableWithAggregatesFilter<"Treatment"> | number | null
     nextFollowUpAt?: DateTimeNullableWithAggregatesFilter<"Treatment"> | Date | string | null
-    createdAt?: DateTimeWithAggregatesFilter<"Treatment"> | Date | string
-    updatedAt?: DateTimeWithAggregatesFilter<"Treatment"> | Date | string
   }
 
   export type FollowUpWhereInput = {
@@ -17736,6 +18070,8 @@ export namespace Prisma {
     OR?: FollowUpWhereInput[]
     NOT?: FollowUpWhereInput | FollowUpWhereInput[]
     id?: StringFilter<"FollowUp"> | string
+    createdAt?: DateTimeFilter<"FollowUp"> | Date | string
+    updatedAt?: DateTimeFilter<"FollowUp"> | Date | string
     treatmentId?: StringFilter<"FollowUp"> | string
     note?: StringNullableFilter<"FollowUp"> | string | null
     findings?: StringNullableFilter<"FollowUp"> | string | null
@@ -17746,13 +18082,13 @@ export namespace Prisma {
     followUpDate?: DateTimeFilter<"FollowUp"> | Date | string
     nextFollowUp?: DateTimeNullableFilter<"FollowUp"> | Date | string | null
     resolved?: BoolFilter<"FollowUp"> | boolean
-    createdAt?: DateTimeFilter<"FollowUp"> | Date | string
-    updatedAt?: DateTimeFilter<"FollowUp"> | Date | string
     treatment?: XOR<TreatmentScalarRelationFilter, TreatmentWhereInput>
   }
 
   export type FollowUpOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     treatmentId?: SortOrder
     note?: SortOrderInput | SortOrder
     findings?: SortOrderInput | SortOrder
@@ -17763,8 +18099,6 @@ export namespace Prisma {
     followUpDate?: SortOrder
     nextFollowUp?: SortOrderInput | SortOrder
     resolved?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
     treatment?: TreatmentOrderByWithRelationInput
   }
 
@@ -17773,6 +18107,8 @@ export namespace Prisma {
     AND?: FollowUpWhereInput | FollowUpWhereInput[]
     OR?: FollowUpWhereInput[]
     NOT?: FollowUpWhereInput | FollowUpWhereInput[]
+    createdAt?: DateTimeFilter<"FollowUp"> | Date | string
+    updatedAt?: DateTimeFilter<"FollowUp"> | Date | string
     treatmentId?: StringFilter<"FollowUp"> | string
     note?: StringNullableFilter<"FollowUp"> | string | null
     findings?: StringNullableFilter<"FollowUp"> | string | null
@@ -17783,13 +18119,13 @@ export namespace Prisma {
     followUpDate?: DateTimeFilter<"FollowUp"> | Date | string
     nextFollowUp?: DateTimeNullableFilter<"FollowUp"> | Date | string | null
     resolved?: BoolFilter<"FollowUp"> | boolean
-    createdAt?: DateTimeFilter<"FollowUp"> | Date | string
-    updatedAt?: DateTimeFilter<"FollowUp"> | Date | string
     treatment?: XOR<TreatmentScalarRelationFilter, TreatmentWhereInput>
   }, "id">
 
   export type FollowUpOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     treatmentId?: SortOrder
     note?: SortOrderInput | SortOrder
     findings?: SortOrderInput | SortOrder
@@ -17800,8 +18136,6 @@ export namespace Prisma {
     followUpDate?: SortOrder
     nextFollowUp?: SortOrderInput | SortOrder
     resolved?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
     _count?: FollowUpCountOrderByAggregateInput
     _avg?: FollowUpAvgOrderByAggregateInput
     _max?: FollowUpMaxOrderByAggregateInput
@@ -17814,6 +18148,8 @@ export namespace Prisma {
     OR?: FollowUpScalarWhereWithAggregatesInput[]
     NOT?: FollowUpScalarWhereWithAggregatesInput | FollowUpScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"FollowUp"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"FollowUp"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"FollowUp"> | Date | string
     treatmentId?: StringWithAggregatesFilter<"FollowUp"> | string
     note?: StringNullableWithAggregatesFilter<"FollowUp"> | string | null
     findings?: StringNullableWithAggregatesFilter<"FollowUp"> | string | null
@@ -17824,8 +18160,6 @@ export namespace Prisma {
     followUpDate?: DateTimeWithAggregatesFilter<"FollowUp"> | Date | string
     nextFollowUp?: DateTimeNullableWithAggregatesFilter<"FollowUp"> | Date | string | null
     resolved?: BoolWithAggregatesFilter<"FollowUp"> | boolean
-    createdAt?: DateTimeWithAggregatesFilter<"FollowUp"> | Date | string
-    updatedAt?: DateTimeWithAggregatesFilter<"FollowUp"> | Date | string
   }
 
   export type MedicalRecordWhereInput = {
@@ -17833,6 +18167,8 @@ export namespace Prisma {
     OR?: MedicalRecordWhereInput[]
     NOT?: MedicalRecordWhereInput | MedicalRecordWhereInput[]
     id?: StringFilter<"MedicalRecord"> | string
+    createdAt?: DateTimeFilter<"MedicalRecord"> | Date | string
+    updatedAt?: DateTimeFilter<"MedicalRecord"> | Date | string
     patientId?: StringFilter<"MedicalRecord"> | string
     diagnosis?: StringFilter<"MedicalRecord"> | string
     treatment?: StringFilter<"MedicalRecord"> | string
@@ -17842,6 +18178,8 @@ export namespace Prisma {
 
   export type MedicalRecordOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     diagnosis?: SortOrder
     treatment?: SortOrder
@@ -17854,6 +18192,8 @@ export namespace Prisma {
     AND?: MedicalRecordWhereInput | MedicalRecordWhereInput[]
     OR?: MedicalRecordWhereInput[]
     NOT?: MedicalRecordWhereInput | MedicalRecordWhereInput[]
+    createdAt?: DateTimeFilter<"MedicalRecord"> | Date | string
+    updatedAt?: DateTimeFilter<"MedicalRecord"> | Date | string
     patientId?: StringFilter<"MedicalRecord"> | string
     diagnosis?: StringFilter<"MedicalRecord"> | string
     treatment?: StringFilter<"MedicalRecord"> | string
@@ -17863,6 +18203,8 @@ export namespace Prisma {
 
   export type MedicalRecordOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     diagnosis?: SortOrder
     treatment?: SortOrder
@@ -17877,6 +18219,8 @@ export namespace Prisma {
     OR?: MedicalRecordScalarWhereWithAggregatesInput[]
     NOT?: MedicalRecordScalarWhereWithAggregatesInput | MedicalRecordScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"MedicalRecord"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"MedicalRecord"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"MedicalRecord"> | Date | string
     patientId?: StringWithAggregatesFilter<"MedicalRecord"> | string
     diagnosis?: StringWithAggregatesFilter<"MedicalRecord"> | string
     treatment?: StringWithAggregatesFilter<"MedicalRecord"> | string
@@ -17888,6 +18232,9 @@ export namespace Prisma {
     OR?: DoctorWhereInput[]
     NOT?: DoctorWhereInput | DoctorWhereInput[]
     id?: StringFilter<"Doctor"> | string
+    createdAt?: DateTimeFilter<"Doctor"> | Date | string
+    updatedAt?: DateTimeFilter<"Doctor"> | Date | string
+    archived?: BoolFilter<"Doctor"> | boolean
     userId?: StringFilter<"Doctor"> | string
     field?: StringFilter<"Doctor"> | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
@@ -17897,6 +18244,9 @@ export namespace Prisma {
 
   export type DoctorOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     userId?: SortOrder
     field?: SortOrder
     user?: UserOrderByWithRelationInput
@@ -17910,6 +18260,9 @@ export namespace Prisma {
     AND?: DoctorWhereInput | DoctorWhereInput[]
     OR?: DoctorWhereInput[]
     NOT?: DoctorWhereInput | DoctorWhereInput[]
+    createdAt?: DateTimeFilter<"Doctor"> | Date | string
+    updatedAt?: DateTimeFilter<"Doctor"> | Date | string
+    archived?: BoolFilter<"Doctor"> | boolean
     field?: StringFilter<"Doctor"> | string
     user?: XOR<UserScalarRelationFilter, UserWhereInput>
     appointment?: AppointmentListRelationFilter
@@ -17918,6 +18271,9 @@ export namespace Prisma {
 
   export type DoctorOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     userId?: SortOrder
     field?: SortOrder
     _count?: DoctorCountOrderByAggregateInput
@@ -17930,6 +18286,9 @@ export namespace Prisma {
     OR?: DoctorScalarWhereWithAggregatesInput[]
     NOT?: DoctorScalarWhereWithAggregatesInput | DoctorScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Doctor"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Doctor"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Doctor"> | Date | string
+    archived?: BoolWithAggregatesFilter<"Doctor"> | boolean
     userId?: StringWithAggregatesFilter<"Doctor"> | string
     field?: StringWithAggregatesFilter<"Doctor"> | string
   }
@@ -17939,6 +18298,9 @@ export namespace Prisma {
     OR?: AppointmentWhereInput[]
     NOT?: AppointmentWhereInput | AppointmentWhereInput[]
     id?: StringFilter<"Appointment"> | string
+    createdAt?: DateTimeFilter<"Appointment"> | Date | string
+    updatedAt?: DateTimeFilter<"Appointment"> | Date | string
+    archived?: BoolFilter<"Appointment"> | boolean
     patientId?: StringFilter<"Appointment"> | string
     doctorId?: StringFilter<"Appointment"> | string
     date?: DateTimeFilter<"Appointment"> | Date | string
@@ -17949,6 +18311,9 @@ export namespace Prisma {
 
   export type AppointmentOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     patientId?: SortOrder
     doctorId?: SortOrder
     date?: SortOrder
@@ -17962,6 +18327,9 @@ export namespace Prisma {
     AND?: AppointmentWhereInput | AppointmentWhereInput[]
     OR?: AppointmentWhereInput[]
     NOT?: AppointmentWhereInput | AppointmentWhereInput[]
+    createdAt?: DateTimeFilter<"Appointment"> | Date | string
+    updatedAt?: DateTimeFilter<"Appointment"> | Date | string
+    archived?: BoolFilter<"Appointment"> | boolean
     patientId?: StringFilter<"Appointment"> | string
     doctorId?: StringFilter<"Appointment"> | string
     date?: DateTimeFilter<"Appointment"> | Date | string
@@ -17972,6 +18340,9 @@ export namespace Prisma {
 
   export type AppointmentOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     patientId?: SortOrder
     doctorId?: SortOrder
     date?: SortOrder
@@ -17986,6 +18357,9 @@ export namespace Prisma {
     OR?: AppointmentScalarWhereWithAggregatesInput[]
     NOT?: AppointmentScalarWhereWithAggregatesInput | AppointmentScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Appointment"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Appointment"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Appointment"> | Date | string
+    archived?: BoolWithAggregatesFilter<"Appointment"> | boolean
     patientId?: StringWithAggregatesFilter<"Appointment"> | string
     doctorId?: StringWithAggregatesFilter<"Appointment"> | string
     date?: DateTimeWithAggregatesFilter<"Appointment"> | Date | string
@@ -17997,6 +18371,8 @@ export namespace Prisma {
     OR?: SupplierWhereInput[]
     NOT?: SupplierWhereInput | SupplierWhereInput[]
     id?: StringFilter<"Supplier"> | string
+    createdAt?: DateTimeFilter<"Supplier"> | Date | string
+    updatedAt?: DateTimeFilter<"Supplier"> | Date | string
     name?: StringFilter<"Supplier"> | string
     contact?: StringFilter<"Supplier"> | string
     medicine?: MedicineListRelationFilter
@@ -18004,6 +18380,8 @@ export namespace Prisma {
 
   export type SupplierOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     name?: SortOrder
     contact?: SortOrder
     medicine?: MedicineOrderByRelationAggregateInput
@@ -18014,6 +18392,8 @@ export namespace Prisma {
     AND?: SupplierWhereInput | SupplierWhereInput[]
     OR?: SupplierWhereInput[]
     NOT?: SupplierWhereInput | SupplierWhereInput[]
+    createdAt?: DateTimeFilter<"Supplier"> | Date | string
+    updatedAt?: DateTimeFilter<"Supplier"> | Date | string
     name?: StringFilter<"Supplier"> | string
     contact?: StringFilter<"Supplier"> | string
     medicine?: MedicineListRelationFilter
@@ -18021,6 +18401,8 @@ export namespace Prisma {
 
   export type SupplierOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     name?: SortOrder
     contact?: SortOrder
     _count?: SupplierCountOrderByAggregateInput
@@ -18033,6 +18415,8 @@ export namespace Prisma {
     OR?: SupplierScalarWhereWithAggregatesInput[]
     NOT?: SupplierScalarWhereWithAggregatesInput | SupplierScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Supplier"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Supplier"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Supplier"> | Date | string
     name?: StringWithAggregatesFilter<"Supplier"> | string
     contact?: StringWithAggregatesFilter<"Supplier"> | string
   }
@@ -18041,8 +18425,10 @@ export namespace Prisma {
     AND?: MedicineWhereInput | MedicineWhereInput[]
     OR?: MedicineWhereInput[]
     NOT?: MedicineWhereInput | MedicineWhereInput[]
-    archived?: BoolFilter<"Medicine"> | boolean
     id?: StringFilter<"Medicine"> | string
+    createdAt?: DateTimeFilter<"Medicine"> | Date | string
+    updatedAt?: DateTimeFilter<"Medicine"> | Date | string
+    archived?: BoolFilter<"Medicine"> | boolean
     supplierId?: StringNullableFilter<"Medicine"> | string | null
     name?: StringFilter<"Medicine"> | string
     description?: StringNullableFilter<"Medicine"> | string | null
@@ -18050,15 +18436,17 @@ export namespace Prisma {
     form?: StringNullableFilter<"Medicine"> | string | null
     strength?: StringNullableFilter<"Medicine"> | string | null
     batchNumber?: StringNullableFilter<"Medicine"> | string | null
-    ExpiryDate?: DateTimeNullableFilter<"Medicine"> | Date | string | null
-    Quantity?: IntNullableFilter<"Medicine"> | number | null
+    expiryDate?: DateTimeNullableFilter<"Medicine"> | Date | string | null
+    quantity?: IntNullableFilter<"Medicine"> | number | null
     supplier?: XOR<SupplierNullableScalarRelationFilter, SupplierWhereInput> | null
     prescription?: PrescriptionListRelationFilter
   }
 
   export type MedicineOrderByWithRelationInput = {
-    archived?: SortOrder
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     supplierId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
@@ -18066,8 +18454,8 @@ export namespace Prisma {
     form?: SortOrderInput | SortOrder
     strength?: SortOrderInput | SortOrder
     batchNumber?: SortOrderInput | SortOrder
-    ExpiryDate?: SortOrderInput | SortOrder
-    Quantity?: SortOrderInput | SortOrder
+    expiryDate?: SortOrderInput | SortOrder
+    quantity?: SortOrderInput | SortOrder
     supplier?: SupplierOrderByWithRelationInput
     prescription?: PrescriptionOrderByRelationAggregateInput
   }
@@ -18077,6 +18465,8 @@ export namespace Prisma {
     AND?: MedicineWhereInput | MedicineWhereInput[]
     OR?: MedicineWhereInput[]
     NOT?: MedicineWhereInput | MedicineWhereInput[]
+    createdAt?: DateTimeFilter<"Medicine"> | Date | string
+    updatedAt?: DateTimeFilter<"Medicine"> | Date | string
     archived?: BoolFilter<"Medicine"> | boolean
     supplierId?: StringNullableFilter<"Medicine"> | string | null
     name?: StringFilter<"Medicine"> | string
@@ -18085,15 +18475,17 @@ export namespace Prisma {
     form?: StringNullableFilter<"Medicine"> | string | null
     strength?: StringNullableFilter<"Medicine"> | string | null
     batchNumber?: StringNullableFilter<"Medicine"> | string | null
-    ExpiryDate?: DateTimeNullableFilter<"Medicine"> | Date | string | null
-    Quantity?: IntNullableFilter<"Medicine"> | number | null
+    expiryDate?: DateTimeNullableFilter<"Medicine"> | Date | string | null
+    quantity?: IntNullableFilter<"Medicine"> | number | null
     supplier?: XOR<SupplierNullableScalarRelationFilter, SupplierWhereInput> | null
     prescription?: PrescriptionListRelationFilter
   }, "id">
 
   export type MedicineOrderByWithAggregationInput = {
-    archived?: SortOrder
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     supplierId?: SortOrderInput | SortOrder
     name?: SortOrder
     description?: SortOrderInput | SortOrder
@@ -18101,8 +18493,8 @@ export namespace Prisma {
     form?: SortOrderInput | SortOrder
     strength?: SortOrderInput | SortOrder
     batchNumber?: SortOrderInput | SortOrder
-    ExpiryDate?: SortOrderInput | SortOrder
-    Quantity?: SortOrderInput | SortOrder
+    expiryDate?: SortOrderInput | SortOrder
+    quantity?: SortOrderInput | SortOrder
     _count?: MedicineCountOrderByAggregateInput
     _avg?: MedicineAvgOrderByAggregateInput
     _max?: MedicineMaxOrderByAggregateInput
@@ -18114,8 +18506,10 @@ export namespace Prisma {
     AND?: MedicineScalarWhereWithAggregatesInput | MedicineScalarWhereWithAggregatesInput[]
     OR?: MedicineScalarWhereWithAggregatesInput[]
     NOT?: MedicineScalarWhereWithAggregatesInput | MedicineScalarWhereWithAggregatesInput[]
-    archived?: BoolWithAggregatesFilter<"Medicine"> | boolean
     id?: StringWithAggregatesFilter<"Medicine"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Medicine"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Medicine"> | Date | string
+    archived?: BoolWithAggregatesFilter<"Medicine"> | boolean
     supplierId?: StringNullableWithAggregatesFilter<"Medicine"> | string | null
     name?: StringWithAggregatesFilter<"Medicine"> | string
     description?: StringNullableWithAggregatesFilter<"Medicine"> | string | null
@@ -18123,8 +18517,8 @@ export namespace Prisma {
     form?: StringNullableWithAggregatesFilter<"Medicine"> | string | null
     strength?: StringNullableWithAggregatesFilter<"Medicine"> | string | null
     batchNumber?: StringNullableWithAggregatesFilter<"Medicine"> | string | null
-    ExpiryDate?: DateTimeNullableWithAggregatesFilter<"Medicine"> | Date | string | null
-    Quantity?: IntNullableWithAggregatesFilter<"Medicine"> | number | null
+    expiryDate?: DateTimeNullableWithAggregatesFilter<"Medicine"> | Date | string | null
+    quantity?: IntNullableWithAggregatesFilter<"Medicine"> | number | null
   }
 
   export type PrescriptionWhereInput = {
@@ -18132,12 +18526,13 @@ export namespace Prisma {
     OR?: PrescriptionWhereInput[]
     NOT?: PrescriptionWhereInput | PrescriptionWhereInput[]
     id?: StringFilter<"Prescription"> | string
+    createdAt?: DateTimeFilter<"Prescription"> | Date | string
+    updatedAt?: DateTimeFilter<"Prescription"> | Date | string
     patientId?: StringFilter<"Prescription"> | string
     doctorId?: StringFilter<"Prescription"> | string
     medicineId?: StringFilter<"Prescription"> | string
     dosage?: StringFilter<"Prescription"> | string
     duration?: StringFilter<"Prescription"> | string
-    createdAt?: DateTimeFilter<"Prescription"> | Date | string
     patient?: XOR<PatientScalarRelationFilter, PatientWhereInput>
     doctor?: XOR<DoctorScalarRelationFilter, DoctorWhereInput>
     medicine?: XOR<MedicineScalarRelationFilter, MedicineWhereInput>
@@ -18145,12 +18540,13 @@ export namespace Prisma {
 
   export type PrescriptionOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     doctorId?: SortOrder
     medicineId?: SortOrder
     dosage?: SortOrder
     duration?: SortOrder
-    createdAt?: SortOrder
     patient?: PatientOrderByWithRelationInput
     doctor?: DoctorOrderByWithRelationInput
     medicine?: MedicineOrderByWithRelationInput
@@ -18161,12 +18557,13 @@ export namespace Prisma {
     AND?: PrescriptionWhereInput | PrescriptionWhereInput[]
     OR?: PrescriptionWhereInput[]
     NOT?: PrescriptionWhereInput | PrescriptionWhereInput[]
+    createdAt?: DateTimeFilter<"Prescription"> | Date | string
+    updatedAt?: DateTimeFilter<"Prescription"> | Date | string
     patientId?: StringFilter<"Prescription"> | string
     doctorId?: StringFilter<"Prescription"> | string
     medicineId?: StringFilter<"Prescription"> | string
     dosage?: StringFilter<"Prescription"> | string
     duration?: StringFilter<"Prescription"> | string
-    createdAt?: DateTimeFilter<"Prescription"> | Date | string
     patient?: XOR<PatientScalarRelationFilter, PatientWhereInput>
     doctor?: XOR<DoctorScalarRelationFilter, DoctorWhereInput>
     medicine?: XOR<MedicineScalarRelationFilter, MedicineWhereInput>
@@ -18174,12 +18571,13 @@ export namespace Prisma {
 
   export type PrescriptionOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     doctorId?: SortOrder
     medicineId?: SortOrder
     dosage?: SortOrder
     duration?: SortOrder
-    createdAt?: SortOrder
     _count?: PrescriptionCountOrderByAggregateInput
     _max?: PrescriptionMaxOrderByAggregateInput
     _min?: PrescriptionMinOrderByAggregateInput
@@ -18190,12 +18588,13 @@ export namespace Prisma {
     OR?: PrescriptionScalarWhereWithAggregatesInput[]
     NOT?: PrescriptionScalarWhereWithAggregatesInput | PrescriptionScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Prescription"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Prescription"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Prescription"> | Date | string
     patientId?: StringWithAggregatesFilter<"Prescription"> | string
     doctorId?: StringWithAggregatesFilter<"Prescription"> | string
     medicineId?: StringWithAggregatesFilter<"Prescription"> | string
     dosage?: StringWithAggregatesFilter<"Prescription"> | string
     duration?: StringWithAggregatesFilter<"Prescription"> | string
-    createdAt?: DateTimeWithAggregatesFilter<"Prescription"> | Date | string
   }
 
   export type PostWhereInput = {
@@ -18203,22 +18602,22 @@ export namespace Prisma {
     OR?: PostWhereInput[]
     NOT?: PostWhereInput | PostWhereInput[]
     id?: StringFilter<"Post"> | string
+    createdAt?: DateTimeFilter<"Post"> | Date | string
+    updatedAt?: DateTimeFilter<"Post"> | Date | string
     title?: StringFilter<"Post"> | string
     slug?: StringFilter<"Post"> | string
     content?: StringFilter<"Post"> | string
     published?: BoolNullableFilter<"Post"> | boolean | null
-    updatedAt?: DateTimeFilter<"Post"> | Date | string
-    createdAt?: DateTimeFilter<"Post"> | Date | string
   }
 
   export type PostOrderByWithRelationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     title?: SortOrder
     slug?: SortOrder
     content?: SortOrder
     published?: SortOrderInput | SortOrder
-    updatedAt?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type PostWhereUniqueInput = Prisma.AtLeast<{
@@ -18227,21 +18626,21 @@ export namespace Prisma {
     AND?: PostWhereInput | PostWhereInput[]
     OR?: PostWhereInput[]
     NOT?: PostWhereInput | PostWhereInput[]
+    createdAt?: DateTimeFilter<"Post"> | Date | string
+    updatedAt?: DateTimeFilter<"Post"> | Date | string
     title?: StringFilter<"Post"> | string
     content?: StringFilter<"Post"> | string
     published?: BoolNullableFilter<"Post"> | boolean | null
-    updatedAt?: DateTimeFilter<"Post"> | Date | string
-    createdAt?: DateTimeFilter<"Post"> | Date | string
   }, "id" | "slug">
 
   export type PostOrderByWithAggregationInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     title?: SortOrder
     slug?: SortOrder
     content?: SortOrder
     published?: SortOrderInput | SortOrder
-    updatedAt?: SortOrder
-    createdAt?: SortOrder
     _count?: PostCountOrderByAggregateInput
     _max?: PostMaxOrderByAggregateInput
     _min?: PostMinOrderByAggregateInput
@@ -18252,16 +18651,18 @@ export namespace Prisma {
     OR?: PostScalarWhereWithAggregatesInput[]
     NOT?: PostScalarWhereWithAggregatesInput | PostScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"Post"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Post"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Post"> | Date | string
     title?: StringWithAggregatesFilter<"Post"> | string
     slug?: StringWithAggregatesFilter<"Post"> | string
     content?: StringWithAggregatesFilter<"Post"> | string
     published?: BoolNullableWithAggregatesFilter<"Post"> | boolean | null
-    updatedAt?: DateTimeWithAggregatesFilter<"Post"> | Date | string
-    createdAt?: DateTimeWithAggregatesFilter<"Post"> | Date | string
   }
 
   export type UserCreateInput = {
     id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     role: string
     patient?: PatientCreateNestedOneWithoutUserInput
@@ -18270,6 +18671,8 @@ export namespace Prisma {
 
   export type UserUncheckedCreateInput = {
     id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     role: string
     patient?: PatientUncheckedCreateNestedOneWithoutUserInput
@@ -18278,6 +18681,8 @@ export namespace Prisma {
 
   export type UserUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     patient?: PatientUpdateOneWithoutUserNestedInput
@@ -18286,6 +18691,8 @@ export namespace Prisma {
 
   export type UserUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     patient?: PatientUncheckedUpdateOneWithoutUserNestedInput
@@ -18294,24 +18701,33 @@ export namespace Prisma {
 
   export type UserCreateManyInput = {
     id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     role: string
   }
 
   export type UserUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
   }
 
   export type UserUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
   }
 
   export type PatientCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     gender?: string | null
     dateOfBirth?: Date | string | null
@@ -18328,6 +18744,9 @@ export namespace Prisma {
 
   export type PatientUncheckedCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId?: string | null
     name: string
     gender?: string | null
@@ -18344,6 +18763,9 @@ export namespace Prisma {
 
   export type PatientUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -18360,6 +18782,9 @@ export namespace Prisma {
 
   export type PatientUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18376,6 +18801,9 @@ export namespace Prisma {
 
   export type PatientCreateManyInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId?: string | null
     name: string
     gender?: string | null
@@ -18386,6 +18814,9 @@ export namespace Prisma {
 
   export type PatientUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -18395,6 +18826,9 @@ export namespace Prisma {
 
   export type PatientUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18405,6 +18839,8 @@ export namespace Prisma {
 
   export type PatientVisitCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     reason: string
     status: string
     date?: Date | string
@@ -18414,6 +18850,8 @@ export namespace Prisma {
 
   export type PatientVisitUncheckedCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     reason: string
     status: string
@@ -18423,6 +18861,8 @@ export namespace Prisma {
 
   export type PatientVisitUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -18432,6 +18872,8 @@ export namespace Prisma {
 
   export type PatientVisitUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     reason?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
@@ -18441,6 +18883,8 @@ export namespace Prisma {
 
   export type PatientVisitCreateManyInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     reason: string
     status: string
@@ -18449,6 +18893,8 @@ export namespace Prisma {
 
   export type PatientVisitUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -18456,6 +18902,8 @@ export namespace Prisma {
 
   export type PatientVisitUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     reason?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
@@ -18464,6 +18912,8 @@ export namespace Prisma {
 
   export type AssessmentCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     symptoms: string
     assessment?: string | null
     diagnosis?: string | null
@@ -18476,13 +18926,14 @@ export namespace Prisma {
     allergies?: string | null
     painLocation?: string | null
     painScale?: number | null
-    createdAt?: Date | string
     patient: PatientCreateNestedOneWithoutAssessmentInput
     treatment?: TreatmentCreateNestedManyWithoutAssessmentInput
   }
 
   export type AssessmentUncheckedCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     symptoms: string
     assessment?: string | null
@@ -18496,12 +18947,13 @@ export namespace Prisma {
     allergies?: string | null
     painLocation?: string | null
     painScale?: number | null
-    createdAt?: Date | string
     treatment?: TreatmentUncheckedCreateNestedManyWithoutAssessmentInput
   }
 
   export type AssessmentUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     symptoms?: StringFieldUpdateOperationsInput | string
     assessment?: NullableStringFieldUpdateOperationsInput | string | null
     diagnosis?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18514,13 +18966,14 @@ export namespace Prisma {
     allergies?: NullableStringFieldUpdateOperationsInput | string | null
     painLocation?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patient?: PatientUpdateOneRequiredWithoutAssessmentNestedInput
     treatment?: TreatmentUpdateManyWithoutAssessmentNestedInput
   }
 
   export type AssessmentUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     symptoms?: StringFieldUpdateOperationsInput | string
     assessment?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18534,12 +18987,13 @@ export namespace Prisma {
     allergies?: NullableStringFieldUpdateOperationsInput | string | null
     painLocation?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     treatment?: TreatmentUncheckedUpdateManyWithoutAssessmentNestedInput
   }
 
   export type AssessmentCreateManyInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     symptoms: string
     assessment?: string | null
@@ -18553,11 +19007,12 @@ export namespace Prisma {
     allergies?: string | null
     painLocation?: string | null
     painScale?: number | null
-    createdAt?: Date | string
   }
 
   export type AssessmentUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     symptoms?: StringFieldUpdateOperationsInput | string
     assessment?: NullableStringFieldUpdateOperationsInput | string | null
     diagnosis?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18570,11 +19025,12 @@ export namespace Prisma {
     allergies?: NullableStringFieldUpdateOperationsInput | string | null
     painLocation?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AssessmentUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     symptoms?: StringFieldUpdateOperationsInput | string
     assessment?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18588,11 +19044,12 @@ export namespace Prisma {
     allergies?: NullableStringFieldUpdateOperationsInput | string | null
     painLocation?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TreatmentCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     medications?: NullableJsonNullValueInput | InputJsonValue
     procedures?: string | null
     painScale?: number | null
@@ -18600,8 +19057,6 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     patient: PatientCreateNestedOneWithoutTreatmentInput
     visit?: PatientVisitCreateNestedOneWithoutTreatmentInput
     assessment?: AssessmentCreateNestedOneWithoutTreatmentInput
@@ -18610,6 +19065,8 @@ export namespace Prisma {
 
   export type TreatmentUncheckedCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     visitId?: string | null
     assessmentId?: string | null
@@ -18620,13 +19077,13 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     followUps?: FollowUpUncheckedCreateNestedManyWithoutTreatmentInput
   }
 
   export type TreatmentUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     medications?: NullableJsonNullValueInput | InputJsonValue
     procedures?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
@@ -18634,8 +19091,6 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patient?: PatientUpdateOneRequiredWithoutTreatmentNestedInput
     visit?: PatientVisitUpdateOneWithoutTreatmentNestedInput
     assessment?: AssessmentUpdateOneWithoutTreatmentNestedInput
@@ -18644,6 +19099,8 @@ export namespace Prisma {
 
   export type TreatmentUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     visitId?: NullableStringFieldUpdateOperationsInput | string | null
     assessmentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18654,13 +19111,13 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     followUps?: FollowUpUncheckedUpdateManyWithoutTreatmentNestedInput
   }
 
   export type TreatmentCreateManyInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     visitId?: string | null
     assessmentId?: string | null
@@ -18671,12 +19128,12 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type TreatmentUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     medications?: NullableJsonNullValueInput | InputJsonValue
     procedures?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
@@ -18684,12 +19141,12 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TreatmentUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     visitId?: NullableStringFieldUpdateOperationsInput | string | null
     assessmentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18700,12 +19157,12 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FollowUpCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     note?: string | null
     findings?: string | null
     outcome?: string | null
@@ -18715,13 +19172,13 @@ export namespace Prisma {
     followUpDate?: Date | string
     nextFollowUp?: Date | string | null
     resolved?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
     treatment: TreatmentCreateNestedOneWithoutFollowUpsInput
   }
 
   export type FollowUpUncheckedCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     treatmentId: string
     note?: string | null
     findings?: string | null
@@ -18732,12 +19189,12 @@ export namespace Prisma {
     followUpDate?: Date | string
     nextFollowUp?: Date | string | null
     resolved?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type FollowUpUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     findings?: NullableStringFieldUpdateOperationsInput | string | null
     outcome?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18747,13 +19204,13 @@ export namespace Prisma {
     followUpDate?: DateTimeFieldUpdateOperationsInput | Date | string
     nextFollowUp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     treatment?: TreatmentUpdateOneRequiredWithoutFollowUpsNestedInput
   }
 
   export type FollowUpUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     treatmentId?: StringFieldUpdateOperationsInput | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     findings?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18764,12 +19221,12 @@ export namespace Prisma {
     followUpDate?: DateTimeFieldUpdateOperationsInput | Date | string
     nextFollowUp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FollowUpCreateManyInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     treatmentId: string
     note?: string | null
     findings?: string | null
@@ -18780,12 +19237,12 @@ export namespace Prisma {
     followUpDate?: Date | string
     nextFollowUp?: Date | string | null
     resolved?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type FollowUpUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     findings?: NullableStringFieldUpdateOperationsInput | string | null
     outcome?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18795,12 +19252,12 @@ export namespace Prisma {
     followUpDate?: DateTimeFieldUpdateOperationsInput | Date | string
     nextFollowUp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FollowUpUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     treatmentId?: StringFieldUpdateOperationsInput | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     findings?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18811,12 +19268,12 @@ export namespace Prisma {
     followUpDate?: DateTimeFieldUpdateOperationsInput | Date | string
     nextFollowUp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MedicalRecordCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     diagnosis: string
     treatment: string
     notes?: string | null
@@ -18825,6 +19282,8 @@ export namespace Prisma {
 
   export type MedicalRecordUncheckedCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     diagnosis: string
     treatment: string
@@ -18833,6 +19292,8 @@ export namespace Prisma {
 
   export type MedicalRecordUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     diagnosis?: StringFieldUpdateOperationsInput | string
     treatment?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18841,6 +19302,8 @@ export namespace Prisma {
 
   export type MedicalRecordUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     diagnosis?: StringFieldUpdateOperationsInput | string
     treatment?: StringFieldUpdateOperationsInput | string
@@ -18849,6 +19312,8 @@ export namespace Prisma {
 
   export type MedicalRecordCreateManyInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     diagnosis: string
     treatment: string
@@ -18857,6 +19322,8 @@ export namespace Prisma {
 
   export type MedicalRecordUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     diagnosis?: StringFieldUpdateOperationsInput | string
     treatment?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
@@ -18864,6 +19331,8 @@ export namespace Prisma {
 
   export type MedicalRecordUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     diagnosis?: StringFieldUpdateOperationsInput | string
     treatment?: StringFieldUpdateOperationsInput | string
@@ -18872,6 +19341,9 @@ export namespace Prisma {
 
   export type DoctorCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     field: string
     user: UserCreateNestedOneWithoutDoctorInput
     appointment?: AppointmentCreateNestedManyWithoutDoctorInput
@@ -18880,6 +19352,9 @@ export namespace Prisma {
 
   export type DoctorUncheckedCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId: string
     field: string
     appointment?: AppointmentUncheckedCreateNestedManyWithoutDoctorInput
@@ -18888,6 +19363,9 @@ export namespace Prisma {
 
   export type DoctorUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     field?: StringFieldUpdateOperationsInput | string
     user?: UserUpdateOneRequiredWithoutDoctorNestedInput
     appointment?: AppointmentUpdateManyWithoutDoctorNestedInput
@@ -18896,6 +19374,9 @@ export namespace Prisma {
 
   export type DoctorUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
     appointment?: AppointmentUncheckedUpdateManyWithoutDoctorNestedInput
@@ -18904,23 +19385,35 @@ export namespace Prisma {
 
   export type DoctorCreateManyInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId: string
     field: string
   }
 
   export type DoctorUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     field?: StringFieldUpdateOperationsInput | string
   }
 
   export type DoctorUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
   }
 
   export type AppointmentCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     date: Date | string
     status: string
     patient: PatientCreateNestedOneWithoutAppointmentInput
@@ -18929,6 +19422,9 @@ export namespace Prisma {
 
   export type AppointmentUncheckedCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     patientId: string
     doctorId: string
     date: Date | string
@@ -18937,6 +19433,9 @@ export namespace Prisma {
 
   export type AppointmentUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: StringFieldUpdateOperationsInput | string
     patient?: PatientUpdateOneRequiredWithoutAppointmentNestedInput
@@ -18945,6 +19444,9 @@ export namespace Prisma {
 
   export type AppointmentUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     patientId?: StringFieldUpdateOperationsInput | string
     doctorId?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -18953,6 +19455,9 @@ export namespace Prisma {
 
   export type AppointmentCreateManyInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     patientId: string
     doctorId: string
     date: Date | string
@@ -18961,12 +19466,18 @@ export namespace Prisma {
 
   export type AppointmentUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: StringFieldUpdateOperationsInput | string
   }
 
   export type AppointmentUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     patientId?: StringFieldUpdateOperationsInput | string
     doctorId?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -18975,6 +19486,8 @@ export namespace Prisma {
 
   export type SupplierCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     contact: string
     medicine?: MedicineCreateNestedManyWithoutSupplierInput
@@ -18982,6 +19495,8 @@ export namespace Prisma {
 
   export type SupplierUncheckedCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     contact: string
     medicine?: MedicineUncheckedCreateNestedManyWithoutSupplierInput
@@ -18989,6 +19504,8 @@ export namespace Prisma {
 
   export type SupplierUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     contact?: StringFieldUpdateOperationsInput | string
     medicine?: MedicineUpdateManyWithoutSupplierNestedInput
@@ -18996,6 +19513,8 @@ export namespace Prisma {
 
   export type SupplierUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     contact?: StringFieldUpdateOperationsInput | string
     medicine?: MedicineUncheckedUpdateManyWithoutSupplierNestedInput
@@ -19003,40 +19522,50 @@ export namespace Prisma {
 
   export type SupplierCreateManyInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     contact: string
   }
 
   export type SupplierUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     contact?: StringFieldUpdateOperationsInput | string
   }
 
   export type SupplierUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     contact?: StringFieldUpdateOperationsInput | string
   }
 
   export type MedicineCreateInput = {
-    archived?: boolean
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     description?: string | null
     category?: string | null
     form?: string | null
     strength?: string | null
     batchNumber?: string | null
-    ExpiryDate?: Date | string | null
-    Quantity?: number | null
+    expiryDate?: Date | string | null
+    quantity?: number | null
     supplier?: SupplierCreateNestedOneWithoutMedicineInput
     prescription?: PrescriptionCreateNestedManyWithoutMedicineInput
   }
 
   export type MedicineUncheckedCreateInput = {
-    archived?: boolean
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     supplierId?: string | null
     name: string
     description?: string | null
@@ -19044,29 +19573,33 @@ export namespace Prisma {
     form?: string | null
     strength?: string | null
     batchNumber?: string | null
-    ExpiryDate?: Date | string | null
-    Quantity?: number | null
+    expiryDate?: Date | string | null
+    quantity?: number | null
     prescription?: PrescriptionUncheckedCreateNestedManyWithoutMedicineInput
   }
 
   export type MedicineUpdateInput = {
-    archived?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     form?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: NullableStringFieldUpdateOperationsInput | string | null
     batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    ExpiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    Quantity?: NullableIntFieldUpdateOperationsInput | number | null
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    quantity?: NullableIntFieldUpdateOperationsInput | number | null
     supplier?: SupplierUpdateOneWithoutMedicineNestedInput
     prescription?: PrescriptionUpdateManyWithoutMedicineNestedInput
   }
 
   export type MedicineUncheckedUpdateInput = {
-    archived?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     supplierId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -19074,14 +19607,16 @@ export namespace Prisma {
     form?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: NullableStringFieldUpdateOperationsInput | string | null
     batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    ExpiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    Quantity?: NullableIntFieldUpdateOperationsInput | number | null
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    quantity?: NullableIntFieldUpdateOperationsInput | number | null
     prescription?: PrescriptionUncheckedUpdateManyWithoutMedicineNestedInput
   }
 
   export type MedicineCreateManyInput = {
-    archived?: boolean
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     supplierId?: string | null
     name: string
     description?: string | null
@@ -19089,26 +19624,30 @@ export namespace Prisma {
     form?: string | null
     strength?: string | null
     batchNumber?: string | null
-    ExpiryDate?: Date | string | null
-    Quantity?: number | null
+    expiryDate?: Date | string | null
+    quantity?: number | null
   }
 
   export type MedicineUpdateManyMutationInput = {
-    archived?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     form?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: NullableStringFieldUpdateOperationsInput | string | null
     batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    ExpiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    Quantity?: NullableIntFieldUpdateOperationsInput | number | null
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    quantity?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type MedicineUncheckedUpdateManyInput = {
-    archived?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     supplierId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -19116,15 +19655,16 @@ export namespace Prisma {
     form?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: NullableStringFieldUpdateOperationsInput | string | null
     batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    ExpiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    Quantity?: NullableIntFieldUpdateOperationsInput | number | null
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    quantity?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type PrescriptionCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     dosage: string
     duration: string
-    createdAt?: Date | string
     patient: PatientCreateNestedOneWithoutPrescriptionInput
     doctor: DoctorCreateNestedOneWithoutPrescriptionInput
     medicine: MedicineCreateNestedOneWithoutPrescriptionInput
@@ -19132,19 +19672,21 @@ export namespace Prisma {
 
   export type PrescriptionUncheckedCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     doctorId: string
     medicineId: string
     dosage: string
     duration: string
-    createdAt?: Date | string
   }
 
   export type PrescriptionUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patient?: PatientUpdateOneRequiredWithoutPrescriptionNestedInput
     doctor?: DoctorUpdateOneRequiredWithoutPrescriptionNestedInput
     medicine?: MedicineUpdateOneRequiredWithoutPrescriptionNestedInput
@@ -19152,109 +19694,113 @@ export namespace Prisma {
 
   export type PrescriptionUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     doctorId?: StringFieldUpdateOperationsInput | string
     medicineId?: StringFieldUpdateOperationsInput | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PrescriptionCreateManyInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     doctorId: string
     medicineId: string
     dosage: string
     duration: string
-    createdAt?: Date | string
   }
 
   export type PrescriptionUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PrescriptionUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     doctorId?: StringFieldUpdateOperationsInput | string
     medicineId?: StringFieldUpdateOperationsInput | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PostCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     title: string
     slug: string
     content: string
     published?: boolean | null
-    updatedAt?: Date | string
-    createdAt?: Date | string
   }
 
   export type PostUncheckedCreateInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     title: string
     slug: string
     content: string
     published?: boolean | null
-    updatedAt?: Date | string
-    createdAt?: Date | string
   }
 
   export type PostUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     published?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PostUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     published?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PostCreateManyInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     title: string
     slug: string
     content: string
     published?: boolean | null
-    updatedAt?: Date | string
-    createdAt?: Date | string
   }
 
   export type PostUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     published?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PostUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     title?: StringFieldUpdateOperationsInput | string
     slug?: StringFieldUpdateOperationsInput | string
     content?: StringFieldUpdateOperationsInput | string
     published?: NullableBoolFieldUpdateOperationsInput | boolean | null
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -19272,6 +19818,17 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
+  export type DateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  }
+
   export type PatientNullableScalarRelationFilter = {
     is?: PatientWhereInput | null
     isNot?: PatientWhereInput | null
@@ -19284,18 +19841,24 @@ export namespace Prisma {
 
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     name?: SortOrder
     role?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     name?: SortOrder
     role?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     name?: SortOrder
     role?: SortOrder
   }
@@ -19316,6 +19879,25 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedStringFilter<$PrismaModel>
     _max?: NestedStringFilter<$PrismaModel>
+  }
+
+  export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type BoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
   export type StringNullableFilter<$PrismaModel = never> = {
@@ -19416,6 +19998,9 @@ export namespace Prisma {
 
   export type PatientCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     userId?: SortOrder
     name?: SortOrder
     gender?: SortOrder
@@ -19426,6 +20011,9 @@ export namespace Prisma {
 
   export type PatientMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     userId?: SortOrder
     name?: SortOrder
     gender?: SortOrder
@@ -19436,12 +20024,23 @@ export namespace Prisma {
 
   export type PatientMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     userId?: SortOrder
     name?: SortOrder
     gender?: SortOrder
     dateOfBirth?: SortOrder
     city?: SortOrder
     barangay?: SortOrder
+  }
+
+  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -19476,17 +20075,6 @@ export namespace Prisma {
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
-  export type DateTimeFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
-  }
-
   export type PatientScalarRelationFilter = {
     is?: PatientWhereInput
     isNot?: PatientWhereInput
@@ -19494,6 +20082,8 @@ export namespace Prisma {
 
   export type PatientVisitCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     reason?: SortOrder
     status?: SortOrder
@@ -19502,6 +20092,8 @@ export namespace Prisma {
 
   export type PatientVisitMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     reason?: SortOrder
     status?: SortOrder
@@ -19510,24 +20102,12 @@ export namespace Prisma {
 
   export type PatientVisitMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     reason?: SortOrder
     status?: SortOrder
     date?: SortOrder
-  }
-
-  export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedDateTimeFilter<$PrismaModel>
-    _max?: NestedDateTimeFilter<$PrismaModel>
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -19552,11 +20132,6 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
-  export type BoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
-  }
-
   export type BoolNullableFilter<$PrismaModel = never> = {
     equals?: boolean | BooleanFieldRefInput<$PrismaModel> | null
     not?: NestedBoolNullableFilter<$PrismaModel> | boolean | null
@@ -19575,6 +20150,8 @@ export namespace Prisma {
 
   export type AssessmentCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     symptoms?: SortOrder
     assessment?: SortOrder
@@ -19588,7 +20165,6 @@ export namespace Prisma {
     allergies?: SortOrder
     painLocation?: SortOrder
     painScale?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type AssessmentAvgOrderByAggregateInput = {
@@ -19600,6 +20176,8 @@ export namespace Prisma {
 
   export type AssessmentMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     symptoms?: SortOrder
     assessment?: SortOrder
@@ -19613,11 +20191,12 @@ export namespace Prisma {
     allergies?: SortOrder
     painLocation?: SortOrder
     painScale?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type AssessmentMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     symptoms?: SortOrder
     assessment?: SortOrder
@@ -19631,7 +20210,6 @@ export namespace Prisma {
     allergies?: SortOrder
     painLocation?: SortOrder
     painScale?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type AssessmentSumOrderByAggregateInput = {
@@ -19671,14 +20249,6 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
-  }
-
-  export type BoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type BoolNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -19757,6 +20327,8 @@ export namespace Prisma {
 
   export type TreatmentCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     visitId?: SortOrder
     assessmentId?: SortOrder
@@ -19767,8 +20339,6 @@ export namespace Prisma {
     status?: SortOrder
     priority?: SortOrder
     nextFollowUpAt?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type TreatmentAvgOrderByAggregateInput = {
@@ -19778,6 +20348,8 @@ export namespace Prisma {
 
   export type TreatmentMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     visitId?: SortOrder
     assessmentId?: SortOrder
@@ -19787,12 +20359,12 @@ export namespace Prisma {
     status?: SortOrder
     priority?: SortOrder
     nextFollowUpAt?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type TreatmentMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     visitId?: SortOrder
     assessmentId?: SortOrder
@@ -19802,8 +20374,6 @@ export namespace Prisma {
     status?: SortOrder
     priority?: SortOrder
     nextFollowUpAt?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type TreatmentSumOrderByAggregateInput = {
@@ -19854,6 +20424,8 @@ export namespace Prisma {
 
   export type FollowUpCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     treatmentId?: SortOrder
     note?: SortOrder
     findings?: SortOrder
@@ -19864,8 +20436,6 @@ export namespace Prisma {
     followUpDate?: SortOrder
     nextFollowUp?: SortOrder
     resolved?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type FollowUpAvgOrderByAggregateInput = {
@@ -19874,6 +20444,8 @@ export namespace Prisma {
 
   export type FollowUpMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     treatmentId?: SortOrder
     note?: SortOrder
     findings?: SortOrder
@@ -19883,12 +20455,12 @@ export namespace Prisma {
     followUpDate?: SortOrder
     nextFollowUp?: SortOrder
     resolved?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type FollowUpMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     treatmentId?: SortOrder
     note?: SortOrder
     findings?: SortOrder
@@ -19898,8 +20470,6 @@ export namespace Prisma {
     followUpDate?: SortOrder
     nextFollowUp?: SortOrder
     resolved?: SortOrder
-    createdAt?: SortOrder
-    updatedAt?: SortOrder
   }
 
   export type FollowUpSumOrderByAggregateInput = {
@@ -19908,6 +20478,8 @@ export namespace Prisma {
 
   export type MedicalRecordCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     diagnosis?: SortOrder
     treatment?: SortOrder
@@ -19916,6 +20488,8 @@ export namespace Prisma {
 
   export type MedicalRecordMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     diagnosis?: SortOrder
     treatment?: SortOrder
@@ -19924,6 +20498,8 @@ export namespace Prisma {
 
   export type MedicalRecordMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     diagnosis?: SortOrder
     treatment?: SortOrder
@@ -19937,18 +20513,27 @@ export namespace Prisma {
 
   export type DoctorCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     userId?: SortOrder
     field?: SortOrder
   }
 
   export type DoctorMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     userId?: SortOrder
     field?: SortOrder
   }
 
   export type DoctorMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     userId?: SortOrder
     field?: SortOrder
   }
@@ -19960,6 +20545,9 @@ export namespace Prisma {
 
   export type AppointmentCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     patientId?: SortOrder
     doctorId?: SortOrder
     date?: SortOrder
@@ -19968,6 +20556,9 @@ export namespace Prisma {
 
   export type AppointmentMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     patientId?: SortOrder
     doctorId?: SortOrder
     date?: SortOrder
@@ -19976,6 +20567,9 @@ export namespace Prisma {
 
   export type AppointmentMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     patientId?: SortOrder
     doctorId?: SortOrder
     date?: SortOrder
@@ -19994,18 +20588,24 @@ export namespace Prisma {
 
   export type SupplierCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     name?: SortOrder
     contact?: SortOrder
   }
 
   export type SupplierMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     name?: SortOrder
     contact?: SortOrder
   }
 
   export type SupplierMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     name?: SortOrder
     contact?: SortOrder
   }
@@ -20016,8 +20616,10 @@ export namespace Prisma {
   }
 
   export type MedicineCountOrderByAggregateInput = {
-    archived?: SortOrder
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     supplierId?: SortOrder
     name?: SortOrder
     description?: SortOrder
@@ -20025,17 +20627,19 @@ export namespace Prisma {
     form?: SortOrder
     strength?: SortOrder
     batchNumber?: SortOrder
-    ExpiryDate?: SortOrder
-    Quantity?: SortOrder
+    expiryDate?: SortOrder
+    quantity?: SortOrder
   }
 
   export type MedicineAvgOrderByAggregateInput = {
-    Quantity?: SortOrder
+    quantity?: SortOrder
   }
 
   export type MedicineMaxOrderByAggregateInput = {
-    archived?: SortOrder
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     supplierId?: SortOrder
     name?: SortOrder
     description?: SortOrder
@@ -20043,13 +20647,15 @@ export namespace Prisma {
     form?: SortOrder
     strength?: SortOrder
     batchNumber?: SortOrder
-    ExpiryDate?: SortOrder
-    Quantity?: SortOrder
+    expiryDate?: SortOrder
+    quantity?: SortOrder
   }
 
   export type MedicineMinOrderByAggregateInput = {
-    archived?: SortOrder
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
     supplierId?: SortOrder
     name?: SortOrder
     description?: SortOrder
@@ -20057,12 +20663,12 @@ export namespace Prisma {
     form?: SortOrder
     strength?: SortOrder
     batchNumber?: SortOrder
-    ExpiryDate?: SortOrder
-    Quantity?: SortOrder
+    expiryDate?: SortOrder
+    quantity?: SortOrder
   }
 
   export type MedicineSumOrderByAggregateInput = {
-    Quantity?: SortOrder
+    quantity?: SortOrder
   }
 
   export type MedicineScalarRelationFilter = {
@@ -20072,62 +20678,65 @@ export namespace Prisma {
 
   export type PrescriptionCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     doctorId?: SortOrder
     medicineId?: SortOrder
     dosage?: SortOrder
     duration?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type PrescriptionMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     doctorId?: SortOrder
     medicineId?: SortOrder
     dosage?: SortOrder
     duration?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type PrescriptionMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     patientId?: SortOrder
     doctorId?: SortOrder
     medicineId?: SortOrder
     dosage?: SortOrder
     duration?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type PostCountOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     title?: SortOrder
     slug?: SortOrder
     content?: SortOrder
     published?: SortOrder
-    updatedAt?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type PostMaxOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     title?: SortOrder
     slug?: SortOrder
     content?: SortOrder
     published?: SortOrder
-    updatedAt?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type PostMinOrderByAggregateInput = {
     id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     title?: SortOrder
     slug?: SortOrder
     content?: SortOrder
     published?: SortOrder
-    updatedAt?: SortOrder
-    createdAt?: SortOrder
   }
 
   export type PatientCreateNestedOneWithoutUserInput = {
@@ -20156,6 +20765,10 @@ export namespace Prisma {
 
   export type StringFieldUpdateOperationsInput = {
     set?: string
+  }
+
+  export type DateTimeFieldUpdateOperationsInput = {
+    set?: Date | string
   }
 
   export type PatientUpdateOneWithoutUserNestedInput = {
@@ -20286,6 +20899,10 @@ export namespace Prisma {
     connectOrCreate?: PrescriptionCreateOrConnectWithoutPatientInput | PrescriptionCreateOrConnectWithoutPatientInput[]
     createMany?: PrescriptionCreateManyPatientInputEnvelope
     connect?: PrescriptionWhereUniqueInput | PrescriptionWhereUniqueInput[]
+  }
+
+  export type BoolFieldUpdateOperationsInput = {
+    set?: boolean
   }
 
   export type NullableStringFieldUpdateOperationsInput = {
@@ -20494,10 +21111,6 @@ export namespace Prisma {
     connect?: TreatmentWhereUniqueInput | TreatmentWhereUniqueInput[]
   }
 
-  export type DateTimeFieldUpdateOperationsInput = {
-    set?: Date | string
-  }
-
   export type PatientUpdateOneRequiredWithoutPatientVisitNestedInput = {
     create?: XOR<PatientCreateWithoutPatientVisitInput, PatientUncheckedCreateWithoutPatientVisitInput>
     connectOrCreate?: PatientCreateOrConnectWithoutPatientVisitInput
@@ -20568,10 +21181,6 @@ export namespace Prisma {
     decrement?: number
     multiply?: number
     divide?: number
-  }
-
-  export type BoolFieldUpdateOperationsInput = {
-    set?: boolean
   }
 
   export type NullableBoolFieldUpdateOperationsInput = {
@@ -21024,6 +21633,17 @@ export namespace Prisma {
     not?: NestedStringFilter<$PrismaModel> | string
   }
 
+  export type NestedDateTimeFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
+  }
+
   export type NestedStringWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -21052,6 +21672,25 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
+  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
+  }
+
   export type NestedStringNullableFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -21075,6 +21714,14 @@ export namespace Prisma {
     gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     not?: NestedDateTimeNullableFilter<$PrismaModel> | Date | string | null
+  }
+
+  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedBoolFilter<$PrismaModel>
+    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -21119,31 +21766,6 @@ export namespace Prisma {
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
   }
 
-  export type NestedDateTimeFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeFilter<$PrismaModel> | Date | string
-  }
-
-  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedDateTimeFilter<$PrismaModel>
-    _max?: NestedDateTimeFilter<$PrismaModel>
-  }
-
   export type NestedFloatNullableFilter<$PrismaModel = never> = {
     equals?: number | FloatFieldRefInput<$PrismaModel> | null
     in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
@@ -21153,11 +21775,6 @@ export namespace Prisma {
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
-  }
-
-  export type NestedBoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
   export type NestedBoolNullableFilter<$PrismaModel = never> = {
@@ -21206,14 +21823,6 @@ export namespace Prisma {
     _sum?: NestedFloatNullableFilter<$PrismaModel>
     _min?: NestedFloatNullableFilter<$PrismaModel>
     _max?: NestedFloatNullableFilter<$PrismaModel>
-  }
-
-  export type NestedBoolWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolWithAggregatesFilter<$PrismaModel> | boolean
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedBoolFilter<$PrismaModel>
-    _max?: NestedBoolFilter<$PrismaModel>
   }
 
   export type NestedBoolNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -21282,6 +21891,9 @@ export namespace Prisma {
 
   export type PatientCreateWithoutUserInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     gender?: string | null
     dateOfBirth?: Date | string | null
@@ -21297,6 +21909,9 @@ export namespace Prisma {
 
   export type PatientUncheckedCreateWithoutUserInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     gender?: string | null
     dateOfBirth?: Date | string | null
@@ -21317,6 +21932,9 @@ export namespace Prisma {
 
   export type DoctorCreateWithoutUserInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     field: string
     appointment?: AppointmentCreateNestedManyWithoutDoctorInput
     prescription?: PrescriptionCreateNestedManyWithoutDoctorInput
@@ -21324,6 +21942,9 @@ export namespace Prisma {
 
   export type DoctorUncheckedCreateWithoutUserInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     field: string
     appointment?: AppointmentUncheckedCreateNestedManyWithoutDoctorInput
     prescription?: PrescriptionUncheckedCreateNestedManyWithoutDoctorInput
@@ -21347,6 +21968,9 @@ export namespace Prisma {
 
   export type PatientUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -21362,6 +21986,9 @@ export namespace Prisma {
 
   export type PatientUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -21388,6 +22015,9 @@ export namespace Prisma {
 
   export type DoctorUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     field?: StringFieldUpdateOperationsInput | string
     appointment?: AppointmentUpdateManyWithoutDoctorNestedInput
     prescription?: PrescriptionUpdateManyWithoutDoctorNestedInput
@@ -21395,6 +22025,9 @@ export namespace Prisma {
 
   export type DoctorUncheckedUpdateWithoutUserInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     field?: StringFieldUpdateOperationsInput | string
     appointment?: AppointmentUncheckedUpdateManyWithoutDoctorNestedInput
     prescription?: PrescriptionUncheckedUpdateManyWithoutDoctorNestedInput
@@ -21402,6 +22035,8 @@ export namespace Prisma {
 
   export type UserCreateWithoutPatientInput = {
     id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     role: string
     doctor?: DoctorCreateNestedOneWithoutUserInput
@@ -21409,6 +22044,8 @@ export namespace Prisma {
 
   export type UserUncheckedCreateWithoutPatientInput = {
     id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     role: string
     doctor?: DoctorUncheckedCreateNestedOneWithoutUserInput
@@ -21421,6 +22058,8 @@ export namespace Prisma {
 
   export type PatientVisitCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     reason: string
     status: string
     date?: Date | string
@@ -21429,6 +22068,8 @@ export namespace Prisma {
 
   export type PatientVisitUncheckedCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     reason: string
     status: string
     date?: Date | string
@@ -21447,6 +22088,8 @@ export namespace Prisma {
 
   export type AssessmentCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     symptoms: string
     assessment?: string | null
     diagnosis?: string | null
@@ -21459,12 +22102,13 @@ export namespace Prisma {
     allergies?: string | null
     painLocation?: string | null
     painScale?: number | null
-    createdAt?: Date | string
     treatment?: TreatmentCreateNestedManyWithoutAssessmentInput
   }
 
   export type AssessmentUncheckedCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     symptoms: string
     assessment?: string | null
     diagnosis?: string | null
@@ -21477,7 +22121,6 @@ export namespace Prisma {
     allergies?: string | null
     painLocation?: string | null
     painScale?: number | null
-    createdAt?: Date | string
     treatment?: TreatmentUncheckedCreateNestedManyWithoutAssessmentInput
   }
 
@@ -21493,6 +22136,8 @@ export namespace Prisma {
 
   export type TreatmentCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     medications?: NullableJsonNullValueInput | InputJsonValue
     procedures?: string | null
     painScale?: number | null
@@ -21500,8 +22145,6 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     visit?: PatientVisitCreateNestedOneWithoutTreatmentInput
     assessment?: AssessmentCreateNestedOneWithoutTreatmentInput
     followUps?: FollowUpCreateNestedManyWithoutTreatmentInput
@@ -21509,6 +22152,8 @@ export namespace Prisma {
 
   export type TreatmentUncheckedCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     visitId?: string | null
     assessmentId?: string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -21518,8 +22163,6 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     followUps?: FollowUpUncheckedCreateNestedManyWithoutTreatmentInput
   }
 
@@ -21535,6 +22178,8 @@ export namespace Prisma {
 
   export type MedicalRecordCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     diagnosis: string
     treatment: string
     notes?: string | null
@@ -21542,6 +22187,8 @@ export namespace Prisma {
 
   export type MedicalRecordUncheckedCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     diagnosis: string
     treatment: string
     notes?: string | null
@@ -21559,6 +22206,9 @@ export namespace Prisma {
 
   export type AppointmentCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     date: Date | string
     status: string
     doctor: DoctorCreateNestedOneWithoutAppointmentInput
@@ -21566,6 +22216,9 @@ export namespace Prisma {
 
   export type AppointmentUncheckedCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     doctorId: string
     date: Date | string
     status: string
@@ -21583,20 +22236,22 @@ export namespace Prisma {
 
   export type PrescriptionCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     dosage: string
     duration: string
-    createdAt?: Date | string
     doctor: DoctorCreateNestedOneWithoutPrescriptionInput
     medicine: MedicineCreateNestedOneWithoutPrescriptionInput
   }
 
   export type PrescriptionUncheckedCreateWithoutPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     doctorId: string
     medicineId: string
     dosage: string
     duration: string
-    createdAt?: Date | string
   }
 
   export type PrescriptionCreateOrConnectWithoutPatientInput = {
@@ -21622,6 +22277,8 @@ export namespace Prisma {
 
   export type UserUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     doctor?: DoctorUpdateOneWithoutUserNestedInput
@@ -21629,6 +22286,8 @@ export namespace Prisma {
 
   export type UserUncheckedUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     doctor?: DoctorUncheckedUpdateOneWithoutUserNestedInput
@@ -21655,6 +22314,8 @@ export namespace Prisma {
     OR?: PatientVisitScalarWhereInput[]
     NOT?: PatientVisitScalarWhereInput | PatientVisitScalarWhereInput[]
     id?: StringFilter<"PatientVisit"> | string
+    createdAt?: DateTimeFilter<"PatientVisit"> | Date | string
+    updatedAt?: DateTimeFilter<"PatientVisit"> | Date | string
     patientId?: StringFilter<"PatientVisit"> | string
     reason?: StringFilter<"PatientVisit"> | string
     status?: StringFilter<"PatientVisit"> | string
@@ -21682,6 +22343,8 @@ export namespace Prisma {
     OR?: AssessmentScalarWhereInput[]
     NOT?: AssessmentScalarWhereInput | AssessmentScalarWhereInput[]
     id?: StringFilter<"Assessment"> | string
+    createdAt?: DateTimeFilter<"Assessment"> | Date | string
+    updatedAt?: DateTimeFilter<"Assessment"> | Date | string
     patientId?: StringFilter<"Assessment"> | string
     symptoms?: StringFilter<"Assessment"> | string
     assessment?: StringNullableFilter<"Assessment"> | string | null
@@ -21695,7 +22358,6 @@ export namespace Prisma {
     allergies?: StringNullableFilter<"Assessment"> | string | null
     painLocation?: StringNullableFilter<"Assessment"> | string | null
     painScale?: IntNullableFilter<"Assessment"> | number | null
-    createdAt?: DateTimeFilter<"Assessment"> | Date | string
   }
 
   export type TreatmentUpsertWithWhereUniqueWithoutPatientInput = {
@@ -21719,6 +22381,8 @@ export namespace Prisma {
     OR?: TreatmentScalarWhereInput[]
     NOT?: TreatmentScalarWhereInput | TreatmentScalarWhereInput[]
     id?: StringFilter<"Treatment"> | string
+    createdAt?: DateTimeFilter<"Treatment"> | Date | string
+    updatedAt?: DateTimeFilter<"Treatment"> | Date | string
     patientId?: StringFilter<"Treatment"> | string
     visitId?: StringNullableFilter<"Treatment"> | string | null
     assessmentId?: StringNullableFilter<"Treatment"> | string | null
@@ -21729,8 +22393,6 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFilter<"Treatment"> | $Enums.TreatmentStatus
     priority?: IntNullableFilter<"Treatment"> | number | null
     nextFollowUpAt?: DateTimeNullableFilter<"Treatment"> | Date | string | null
-    createdAt?: DateTimeFilter<"Treatment"> | Date | string
-    updatedAt?: DateTimeFilter<"Treatment"> | Date | string
   }
 
   export type MedicalRecordUpsertWithWhereUniqueWithoutPatientInput = {
@@ -21754,6 +22416,8 @@ export namespace Prisma {
     OR?: MedicalRecordScalarWhereInput[]
     NOT?: MedicalRecordScalarWhereInput | MedicalRecordScalarWhereInput[]
     id?: StringFilter<"MedicalRecord"> | string
+    createdAt?: DateTimeFilter<"MedicalRecord"> | Date | string
+    updatedAt?: DateTimeFilter<"MedicalRecord"> | Date | string
     patientId?: StringFilter<"MedicalRecord"> | string
     diagnosis?: StringFilter<"MedicalRecord"> | string
     treatment?: StringFilter<"MedicalRecord"> | string
@@ -21781,6 +22445,9 @@ export namespace Prisma {
     OR?: AppointmentScalarWhereInput[]
     NOT?: AppointmentScalarWhereInput | AppointmentScalarWhereInput[]
     id?: StringFilter<"Appointment"> | string
+    createdAt?: DateTimeFilter<"Appointment"> | Date | string
+    updatedAt?: DateTimeFilter<"Appointment"> | Date | string
+    archived?: BoolFilter<"Appointment"> | boolean
     patientId?: StringFilter<"Appointment"> | string
     doctorId?: StringFilter<"Appointment"> | string
     date?: DateTimeFilter<"Appointment"> | Date | string
@@ -21808,16 +22475,20 @@ export namespace Prisma {
     OR?: PrescriptionScalarWhereInput[]
     NOT?: PrescriptionScalarWhereInput | PrescriptionScalarWhereInput[]
     id?: StringFilter<"Prescription"> | string
+    createdAt?: DateTimeFilter<"Prescription"> | Date | string
+    updatedAt?: DateTimeFilter<"Prescription"> | Date | string
     patientId?: StringFilter<"Prescription"> | string
     doctorId?: StringFilter<"Prescription"> | string
     medicineId?: StringFilter<"Prescription"> | string
     dosage?: StringFilter<"Prescription"> | string
     duration?: StringFilter<"Prescription"> | string
-    createdAt?: DateTimeFilter<"Prescription"> | Date | string
   }
 
   export type PatientCreateWithoutPatientVisitInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     gender?: string | null
     dateOfBirth?: Date | string | null
@@ -21833,6 +22504,9 @@ export namespace Prisma {
 
   export type PatientUncheckedCreateWithoutPatientVisitInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId?: string | null
     name: string
     gender?: string | null
@@ -21853,6 +22527,8 @@ export namespace Prisma {
 
   export type TreatmentCreateWithoutVisitInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     medications?: NullableJsonNullValueInput | InputJsonValue
     procedures?: string | null
     painScale?: number | null
@@ -21860,8 +22536,6 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     patient: PatientCreateNestedOneWithoutTreatmentInput
     assessment?: AssessmentCreateNestedOneWithoutTreatmentInput
     followUps?: FollowUpCreateNestedManyWithoutTreatmentInput
@@ -21869,6 +22543,8 @@ export namespace Prisma {
 
   export type TreatmentUncheckedCreateWithoutVisitInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     assessmentId?: string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -21878,8 +22554,6 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     followUps?: FollowUpUncheckedCreateNestedManyWithoutTreatmentInput
   }
 
@@ -21906,6 +22580,9 @@ export namespace Prisma {
 
   export type PatientUpdateWithoutPatientVisitInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -21921,6 +22598,9 @@ export namespace Prisma {
 
   export type PatientUncheckedUpdateWithoutPatientVisitInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -21952,6 +22632,9 @@ export namespace Prisma {
 
   export type PatientCreateWithoutAssessmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     gender?: string | null
     dateOfBirth?: Date | string | null
@@ -21967,6 +22650,9 @@ export namespace Prisma {
 
   export type PatientUncheckedCreateWithoutAssessmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId?: string | null
     name: string
     gender?: string | null
@@ -21987,6 +22673,8 @@ export namespace Prisma {
 
   export type TreatmentCreateWithoutAssessmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     medications?: NullableJsonNullValueInput | InputJsonValue
     procedures?: string | null
     painScale?: number | null
@@ -21994,8 +22682,6 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     patient: PatientCreateNestedOneWithoutTreatmentInput
     visit?: PatientVisitCreateNestedOneWithoutTreatmentInput
     followUps?: FollowUpCreateNestedManyWithoutTreatmentInput
@@ -22003,6 +22689,8 @@ export namespace Prisma {
 
   export type TreatmentUncheckedCreateWithoutAssessmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     visitId?: string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -22012,8 +22700,6 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     followUps?: FollowUpUncheckedCreateNestedManyWithoutTreatmentInput
   }
 
@@ -22040,6 +22726,9 @@ export namespace Prisma {
 
   export type PatientUpdateWithoutAssessmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22055,6 +22744,9 @@ export namespace Prisma {
 
   export type PatientUncheckedUpdateWithoutAssessmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22086,6 +22778,9 @@ export namespace Prisma {
 
   export type PatientCreateWithoutTreatmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     gender?: string | null
     dateOfBirth?: Date | string | null
@@ -22101,6 +22796,9 @@ export namespace Prisma {
 
   export type PatientUncheckedCreateWithoutTreatmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId?: string | null
     name: string
     gender?: string | null
@@ -22121,6 +22819,8 @@ export namespace Prisma {
 
   export type PatientVisitCreateWithoutTreatmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     reason: string
     status: string
     date?: Date | string
@@ -22129,6 +22829,8 @@ export namespace Prisma {
 
   export type PatientVisitUncheckedCreateWithoutTreatmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     reason: string
     status: string
@@ -22142,6 +22844,8 @@ export namespace Prisma {
 
   export type AssessmentCreateWithoutTreatmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     symptoms: string
     assessment?: string | null
     diagnosis?: string | null
@@ -22154,12 +22858,13 @@ export namespace Prisma {
     allergies?: string | null
     painLocation?: string | null
     painScale?: number | null
-    createdAt?: Date | string
     patient: PatientCreateNestedOneWithoutAssessmentInput
   }
 
   export type AssessmentUncheckedCreateWithoutTreatmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     symptoms: string
     assessment?: string | null
@@ -22173,7 +22878,6 @@ export namespace Prisma {
     allergies?: string | null
     painLocation?: string | null
     painScale?: number | null
-    createdAt?: Date | string
   }
 
   export type AssessmentCreateOrConnectWithoutTreatmentInput = {
@@ -22183,6 +22887,8 @@ export namespace Prisma {
 
   export type FollowUpCreateWithoutTreatmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     note?: string | null
     findings?: string | null
     outcome?: string | null
@@ -22192,12 +22898,12 @@ export namespace Prisma {
     followUpDate?: Date | string
     nextFollowUp?: Date | string | null
     resolved?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type FollowUpUncheckedCreateWithoutTreatmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     note?: string | null
     findings?: string | null
     outcome?: string | null
@@ -22207,8 +22913,6 @@ export namespace Prisma {
     followUpDate?: Date | string
     nextFollowUp?: Date | string | null
     resolved?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type FollowUpCreateOrConnectWithoutTreatmentInput = {
@@ -22234,6 +22938,9 @@ export namespace Prisma {
 
   export type PatientUpdateWithoutTreatmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22249,6 +22956,9 @@ export namespace Prisma {
 
   export type PatientUncheckedUpdateWithoutTreatmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22275,6 +22985,8 @@ export namespace Prisma {
 
   export type PatientVisitUpdateWithoutTreatmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -22283,6 +22995,8 @@ export namespace Prisma {
 
   export type PatientVisitUncheckedUpdateWithoutTreatmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     reason?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
@@ -22302,6 +23016,8 @@ export namespace Prisma {
 
   export type AssessmentUpdateWithoutTreatmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     symptoms?: StringFieldUpdateOperationsInput | string
     assessment?: NullableStringFieldUpdateOperationsInput | string | null
     diagnosis?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22314,12 +23030,13 @@ export namespace Prisma {
     allergies?: NullableStringFieldUpdateOperationsInput | string | null
     painLocation?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patient?: PatientUpdateOneRequiredWithoutAssessmentNestedInput
   }
 
   export type AssessmentUncheckedUpdateWithoutTreatmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     symptoms?: StringFieldUpdateOperationsInput | string
     assessment?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22333,7 +23050,6 @@ export namespace Prisma {
     allergies?: NullableStringFieldUpdateOperationsInput | string | null
     painLocation?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FollowUpUpsertWithWhereUniqueWithoutTreatmentInput = {
@@ -22357,6 +23073,8 @@ export namespace Prisma {
     OR?: FollowUpScalarWhereInput[]
     NOT?: FollowUpScalarWhereInput | FollowUpScalarWhereInput[]
     id?: StringFilter<"FollowUp"> | string
+    createdAt?: DateTimeFilter<"FollowUp"> | Date | string
+    updatedAt?: DateTimeFilter<"FollowUp"> | Date | string
     treatmentId?: StringFilter<"FollowUp"> | string
     note?: StringNullableFilter<"FollowUp"> | string | null
     findings?: StringNullableFilter<"FollowUp"> | string | null
@@ -22367,12 +23085,12 @@ export namespace Prisma {
     followUpDate?: DateTimeFilter<"FollowUp"> | Date | string
     nextFollowUp?: DateTimeNullableFilter<"FollowUp"> | Date | string | null
     resolved?: BoolFilter<"FollowUp"> | boolean
-    createdAt?: DateTimeFilter<"FollowUp"> | Date | string
-    updatedAt?: DateTimeFilter<"FollowUp"> | Date | string
   }
 
   export type TreatmentCreateWithoutFollowUpsInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     medications?: NullableJsonNullValueInput | InputJsonValue
     procedures?: string | null
     painScale?: number | null
@@ -22380,8 +23098,6 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
     patient: PatientCreateNestedOneWithoutTreatmentInput
     visit?: PatientVisitCreateNestedOneWithoutTreatmentInput
     assessment?: AssessmentCreateNestedOneWithoutTreatmentInput
@@ -22389,6 +23105,8 @@ export namespace Prisma {
 
   export type TreatmentUncheckedCreateWithoutFollowUpsInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     visitId?: string | null
     assessmentId?: string | null
@@ -22399,8 +23117,6 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type TreatmentCreateOrConnectWithoutFollowUpsInput = {
@@ -22421,6 +23137,8 @@ export namespace Prisma {
 
   export type TreatmentUpdateWithoutFollowUpsInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     medications?: NullableJsonNullValueInput | InputJsonValue
     procedures?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
@@ -22428,8 +23146,6 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patient?: PatientUpdateOneRequiredWithoutTreatmentNestedInput
     visit?: PatientVisitUpdateOneWithoutTreatmentNestedInput
     assessment?: AssessmentUpdateOneWithoutTreatmentNestedInput
@@ -22437,6 +23153,8 @@ export namespace Prisma {
 
   export type TreatmentUncheckedUpdateWithoutFollowUpsInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     visitId?: NullableStringFieldUpdateOperationsInput | string | null
     assessmentId?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22447,12 +23165,13 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PatientCreateWithoutMedicalRecordsInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     gender?: string | null
     dateOfBirth?: Date | string | null
@@ -22468,6 +23187,9 @@ export namespace Prisma {
 
   export type PatientUncheckedCreateWithoutMedicalRecordsInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId?: string | null
     name: string
     gender?: string | null
@@ -22499,6 +23221,9 @@ export namespace Prisma {
 
   export type PatientUpdateWithoutMedicalRecordsInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22514,6 +23239,9 @@ export namespace Prisma {
 
   export type PatientUncheckedUpdateWithoutMedicalRecordsInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22529,6 +23257,8 @@ export namespace Prisma {
 
   export type UserCreateWithoutDoctorInput = {
     id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     role: string
     patient?: PatientCreateNestedOneWithoutUserInput
@@ -22536,6 +23266,8 @@ export namespace Prisma {
 
   export type UserUncheckedCreateWithoutDoctorInput = {
     id: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     role: string
     patient?: PatientUncheckedCreateNestedOneWithoutUserInput
@@ -22548,6 +23280,9 @@ export namespace Prisma {
 
   export type AppointmentCreateWithoutDoctorInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     date: Date | string
     status: string
     patient: PatientCreateNestedOneWithoutAppointmentInput
@@ -22555,6 +23290,9 @@ export namespace Prisma {
 
   export type AppointmentUncheckedCreateWithoutDoctorInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     patientId: string
     date: Date | string
     status: string
@@ -22572,20 +23310,22 @@ export namespace Prisma {
 
   export type PrescriptionCreateWithoutDoctorInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     dosage: string
     duration: string
-    createdAt?: Date | string
     patient: PatientCreateNestedOneWithoutPrescriptionInput
     medicine: MedicineCreateNestedOneWithoutPrescriptionInput
   }
 
   export type PrescriptionUncheckedCreateWithoutDoctorInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     medicineId: string
     dosage: string
     duration: string
-    createdAt?: Date | string
   }
 
   export type PrescriptionCreateOrConnectWithoutDoctorInput = {
@@ -22611,6 +23351,8 @@ export namespace Prisma {
 
   export type UserUpdateWithoutDoctorInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     patient?: PatientUpdateOneWithoutUserNestedInput
@@ -22618,6 +23360,8 @@ export namespace Prisma {
 
   export type UserUncheckedUpdateWithoutDoctorInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     patient?: PatientUncheckedUpdateOneWithoutUserNestedInput
@@ -22657,6 +23401,9 @@ export namespace Prisma {
 
   export type PatientCreateWithoutAppointmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     gender?: string | null
     dateOfBirth?: Date | string | null
@@ -22672,6 +23419,9 @@ export namespace Prisma {
 
   export type PatientUncheckedCreateWithoutAppointmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId?: string | null
     name: string
     gender?: string | null
@@ -22692,6 +23442,9 @@ export namespace Prisma {
 
   export type DoctorCreateWithoutAppointmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     field: string
     user: UserCreateNestedOneWithoutDoctorInput
     prescription?: PrescriptionCreateNestedManyWithoutDoctorInput
@@ -22699,6 +23452,9 @@ export namespace Prisma {
 
   export type DoctorUncheckedCreateWithoutAppointmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId: string
     field: string
     prescription?: PrescriptionUncheckedCreateNestedManyWithoutDoctorInput
@@ -22722,6 +23478,9 @@ export namespace Prisma {
 
   export type PatientUpdateWithoutAppointmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -22737,6 +23496,9 @@ export namespace Prisma {
 
   export type PatientUncheckedUpdateWithoutAppointmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -22763,6 +23525,9 @@ export namespace Prisma {
 
   export type DoctorUpdateWithoutAppointmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     field?: StringFieldUpdateOperationsInput | string
     user?: UserUpdateOneRequiredWithoutDoctorNestedInput
     prescription?: PrescriptionUpdateManyWithoutDoctorNestedInput
@@ -22770,36 +23535,43 @@ export namespace Prisma {
 
   export type DoctorUncheckedUpdateWithoutAppointmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
     prescription?: PrescriptionUncheckedUpdateManyWithoutDoctorNestedInput
   }
 
   export type MedicineCreateWithoutSupplierInput = {
-    archived?: boolean
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     description?: string | null
     category?: string | null
     form?: string | null
     strength?: string | null
     batchNumber?: string | null
-    ExpiryDate?: Date | string | null
-    Quantity?: number | null
+    expiryDate?: Date | string | null
+    quantity?: number | null
     prescription?: PrescriptionCreateNestedManyWithoutMedicineInput
   }
 
   export type MedicineUncheckedCreateWithoutSupplierInput = {
-    archived?: boolean
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     description?: string | null
     category?: string | null
     form?: string | null
     strength?: string | null
     batchNumber?: string | null
-    ExpiryDate?: Date | string | null
-    Quantity?: number | null
+    expiryDate?: Date | string | null
+    quantity?: number | null
     prescription?: PrescriptionUncheckedCreateNestedManyWithoutMedicineInput
   }
 
@@ -22833,8 +23605,10 @@ export namespace Prisma {
     AND?: MedicineScalarWhereInput | MedicineScalarWhereInput[]
     OR?: MedicineScalarWhereInput[]
     NOT?: MedicineScalarWhereInput | MedicineScalarWhereInput[]
-    archived?: BoolFilter<"Medicine"> | boolean
     id?: StringFilter<"Medicine"> | string
+    createdAt?: DateTimeFilter<"Medicine"> | Date | string
+    updatedAt?: DateTimeFilter<"Medicine"> | Date | string
+    archived?: BoolFilter<"Medicine"> | boolean
     supplierId?: StringNullableFilter<"Medicine"> | string | null
     name?: StringFilter<"Medicine"> | string
     description?: StringNullableFilter<"Medicine"> | string | null
@@ -22842,18 +23616,22 @@ export namespace Prisma {
     form?: StringNullableFilter<"Medicine"> | string | null
     strength?: StringNullableFilter<"Medicine"> | string | null
     batchNumber?: StringNullableFilter<"Medicine"> | string | null
-    ExpiryDate?: DateTimeNullableFilter<"Medicine"> | Date | string | null
-    Quantity?: IntNullableFilter<"Medicine"> | number | null
+    expiryDate?: DateTimeNullableFilter<"Medicine"> | Date | string | null
+    quantity?: IntNullableFilter<"Medicine"> | number | null
   }
 
   export type SupplierCreateWithoutMedicineInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     contact: string
   }
 
   export type SupplierUncheckedCreateWithoutMedicineInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     name: string
     contact: string
   }
@@ -22865,20 +23643,22 @@ export namespace Prisma {
 
   export type PrescriptionCreateWithoutMedicineInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     dosage: string
     duration: string
-    createdAt?: Date | string
     patient: PatientCreateNestedOneWithoutPrescriptionInput
     doctor: DoctorCreateNestedOneWithoutPrescriptionInput
   }
 
   export type PrescriptionUncheckedCreateWithoutMedicineInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     doctorId: string
     dosage: string
     duration: string
-    createdAt?: Date | string
   }
 
   export type PrescriptionCreateOrConnectWithoutMedicineInput = {
@@ -22904,12 +23684,16 @@ export namespace Prisma {
 
   export type SupplierUpdateWithoutMedicineInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     contact?: StringFieldUpdateOperationsInput | string
   }
 
   export type SupplierUncheckedUpdateWithoutMedicineInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
     contact?: StringFieldUpdateOperationsInput | string
   }
@@ -22932,6 +23716,9 @@ export namespace Prisma {
 
   export type PatientCreateWithoutPrescriptionInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     gender?: string | null
     dateOfBirth?: Date | string | null
@@ -22947,6 +23734,9 @@ export namespace Prisma {
 
   export type PatientUncheckedCreateWithoutPrescriptionInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId?: string | null
     name: string
     gender?: string | null
@@ -22967,6 +23757,9 @@ export namespace Prisma {
 
   export type DoctorCreateWithoutPrescriptionInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     field: string
     user: UserCreateNestedOneWithoutDoctorInput
     appointment?: AppointmentCreateNestedManyWithoutDoctorInput
@@ -22974,6 +23767,9 @@ export namespace Prisma {
 
   export type DoctorUncheckedCreateWithoutPrescriptionInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     userId: string
     field: string
     appointment?: AppointmentUncheckedCreateNestedManyWithoutDoctorInput
@@ -22985,22 +23781,26 @@ export namespace Prisma {
   }
 
   export type MedicineCreateWithoutPrescriptionInput = {
-    archived?: boolean
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     description?: string | null
     category?: string | null
     form?: string | null
     strength?: string | null
     batchNumber?: string | null
-    ExpiryDate?: Date | string | null
-    Quantity?: number | null
+    expiryDate?: Date | string | null
+    quantity?: number | null
     supplier?: SupplierCreateNestedOneWithoutMedicineInput
   }
 
   export type MedicineUncheckedCreateWithoutPrescriptionInput = {
-    archived?: boolean
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     supplierId?: string | null
     name: string
     description?: string | null
@@ -23008,8 +23808,8 @@ export namespace Prisma {
     form?: string | null
     strength?: string | null
     batchNumber?: string | null
-    ExpiryDate?: Date | string | null
-    Quantity?: number | null
+    expiryDate?: Date | string | null
+    quantity?: number | null
   }
 
   export type MedicineCreateOrConnectWithoutPrescriptionInput = {
@@ -23030,6 +23830,9 @@ export namespace Prisma {
 
   export type PatientUpdateWithoutPrescriptionInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
     dateOfBirth?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
@@ -23045,6 +23848,9 @@ export namespace Prisma {
 
   export type PatientUncheckedUpdateWithoutPrescriptionInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     gender?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23071,6 +23877,9 @@ export namespace Prisma {
 
   export type DoctorUpdateWithoutPrescriptionInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     field?: StringFieldUpdateOperationsInput | string
     user?: UserUpdateOneRequiredWithoutDoctorNestedInput
     appointment?: AppointmentUpdateManyWithoutDoctorNestedInput
@@ -23078,6 +23887,9 @@ export namespace Prisma {
 
   export type DoctorUncheckedUpdateWithoutPrescriptionInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     userId?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
     appointment?: AppointmentUncheckedUpdateManyWithoutDoctorNestedInput
@@ -23095,22 +23907,26 @@ export namespace Prisma {
   }
 
   export type MedicineUpdateWithoutPrescriptionInput = {
-    archived?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     form?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: NullableStringFieldUpdateOperationsInput | string | null
     batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    ExpiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    Quantity?: NullableIntFieldUpdateOperationsInput | number | null
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    quantity?: NullableIntFieldUpdateOperationsInput | number | null
     supplier?: SupplierUpdateOneWithoutMedicineNestedInput
   }
 
   export type MedicineUncheckedUpdateWithoutPrescriptionInput = {
-    archived?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     supplierId?: NullableStringFieldUpdateOperationsInput | string | null
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23118,12 +23934,14 @@ export namespace Prisma {
     form?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: NullableStringFieldUpdateOperationsInput | string | null
     batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    ExpiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    Quantity?: NullableIntFieldUpdateOperationsInput | number | null
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    quantity?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type PatientVisitCreateManyPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     reason: string
     status: string
     date?: Date | string
@@ -23131,6 +23949,8 @@ export namespace Prisma {
 
   export type AssessmentCreateManyPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     symptoms: string
     assessment?: string | null
     diagnosis?: string | null
@@ -23143,11 +23963,12 @@ export namespace Prisma {
     allergies?: string | null
     painLocation?: string | null
     painScale?: number | null
-    createdAt?: Date | string
   }
 
   export type TreatmentCreateManyPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     visitId?: string | null
     assessmentId?: string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -23157,12 +23978,12 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type MedicalRecordCreateManyPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     diagnosis: string
     treatment: string
     notes?: string | null
@@ -23170,6 +23991,9 @@ export namespace Prisma {
 
   export type AppointmentCreateManyPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     doctorId: string
     date: Date | string
     status: string
@@ -23177,15 +24001,18 @@ export namespace Prisma {
 
   export type PrescriptionCreateManyPatientInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     doctorId: string
     medicineId: string
     dosage: string
     duration: string
-    createdAt?: Date | string
   }
 
   export type PatientVisitUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -23194,6 +24021,8 @@ export namespace Prisma {
 
   export type PatientVisitUncheckedUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -23202,6 +24031,8 @@ export namespace Prisma {
 
   export type PatientVisitUncheckedUpdateManyWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     reason?: StringFieldUpdateOperationsInput | string
     status?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -23209,6 +24040,8 @@ export namespace Prisma {
 
   export type AssessmentUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     symptoms?: StringFieldUpdateOperationsInput | string
     assessment?: NullableStringFieldUpdateOperationsInput | string | null
     diagnosis?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23221,12 +24054,13 @@ export namespace Prisma {
     allergies?: NullableStringFieldUpdateOperationsInput | string | null
     painLocation?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     treatment?: TreatmentUpdateManyWithoutAssessmentNestedInput
   }
 
   export type AssessmentUncheckedUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     symptoms?: StringFieldUpdateOperationsInput | string
     assessment?: NullableStringFieldUpdateOperationsInput | string | null
     diagnosis?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23239,12 +24073,13 @@ export namespace Prisma {
     allergies?: NullableStringFieldUpdateOperationsInput | string | null
     painLocation?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     treatment?: TreatmentUncheckedUpdateManyWithoutAssessmentNestedInput
   }
 
   export type AssessmentUncheckedUpdateManyWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     symptoms?: StringFieldUpdateOperationsInput | string
     assessment?: NullableStringFieldUpdateOperationsInput | string | null
     diagnosis?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23257,11 +24092,12 @@ export namespace Prisma {
     allergies?: NullableStringFieldUpdateOperationsInput | string | null
     painLocation?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TreatmentUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     medications?: NullableJsonNullValueInput | InputJsonValue
     procedures?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
@@ -23269,8 +24105,6 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     visit?: PatientVisitUpdateOneWithoutTreatmentNestedInput
     assessment?: AssessmentUpdateOneWithoutTreatmentNestedInput
     followUps?: FollowUpUpdateManyWithoutTreatmentNestedInput
@@ -23278,6 +24112,8 @@ export namespace Prisma {
 
   export type TreatmentUncheckedUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     visitId?: NullableStringFieldUpdateOperationsInput | string | null
     assessmentId?: NullableStringFieldUpdateOperationsInput | string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -23287,13 +24123,13 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     followUps?: FollowUpUncheckedUpdateManyWithoutTreatmentNestedInput
   }
 
   export type TreatmentUncheckedUpdateManyWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     visitId?: NullableStringFieldUpdateOperationsInput | string | null
     assessmentId?: NullableStringFieldUpdateOperationsInput | string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -23303,12 +24139,12 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MedicalRecordUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     diagnosis?: StringFieldUpdateOperationsInput | string
     treatment?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23316,6 +24152,8 @@ export namespace Prisma {
 
   export type MedicalRecordUncheckedUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     diagnosis?: StringFieldUpdateOperationsInput | string
     treatment?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23323,6 +24161,8 @@ export namespace Prisma {
 
   export type MedicalRecordUncheckedUpdateManyWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     diagnosis?: StringFieldUpdateOperationsInput | string
     treatment?: StringFieldUpdateOperationsInput | string
     notes?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23330,6 +24170,9 @@ export namespace Prisma {
 
   export type AppointmentUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: StringFieldUpdateOperationsInput | string
     doctor?: DoctorUpdateOneRequiredWithoutAppointmentNestedInput
@@ -23337,6 +24180,9 @@ export namespace Prisma {
 
   export type AppointmentUncheckedUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     doctorId?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: StringFieldUpdateOperationsInput | string
@@ -23344,6 +24190,9 @@ export namespace Prisma {
 
   export type AppointmentUncheckedUpdateManyWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     doctorId?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: StringFieldUpdateOperationsInput | string
@@ -23351,33 +24200,38 @@ export namespace Prisma {
 
   export type PrescriptionUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     doctor?: DoctorUpdateOneRequiredWithoutPrescriptionNestedInput
     medicine?: MedicineUpdateOneRequiredWithoutPrescriptionNestedInput
   }
 
   export type PrescriptionUncheckedUpdateWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     doctorId?: StringFieldUpdateOperationsInput | string
     medicineId?: StringFieldUpdateOperationsInput | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PrescriptionUncheckedUpdateManyWithoutPatientInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     doctorId?: StringFieldUpdateOperationsInput | string
     medicineId?: StringFieldUpdateOperationsInput | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TreatmentCreateManyVisitInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     assessmentId?: string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -23387,12 +24241,12 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type TreatmentUpdateWithoutVisitInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     medications?: NullableJsonNullValueInput | InputJsonValue
     procedures?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
@@ -23400,8 +24254,6 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patient?: PatientUpdateOneRequiredWithoutTreatmentNestedInput
     assessment?: AssessmentUpdateOneWithoutTreatmentNestedInput
     followUps?: FollowUpUpdateManyWithoutTreatmentNestedInput
@@ -23409,6 +24261,8 @@ export namespace Prisma {
 
   export type TreatmentUncheckedUpdateWithoutVisitInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     assessmentId?: NullableStringFieldUpdateOperationsInput | string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -23418,13 +24272,13 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     followUps?: FollowUpUncheckedUpdateManyWithoutTreatmentNestedInput
   }
 
   export type TreatmentUncheckedUpdateManyWithoutVisitInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     assessmentId?: NullableStringFieldUpdateOperationsInput | string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -23434,12 +24288,12 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type TreatmentCreateManyAssessmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     visitId?: string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -23449,12 +24303,12 @@ export namespace Prisma {
     status?: $Enums.TreatmentStatus
     priority?: number | null
     nextFollowUpAt?: Date | string | null
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type TreatmentUpdateWithoutAssessmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     medications?: NullableJsonNullValueInput | InputJsonValue
     procedures?: NullableStringFieldUpdateOperationsInput | string | null
     painScale?: NullableIntFieldUpdateOperationsInput | number | null
@@ -23462,8 +24316,6 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patient?: PatientUpdateOneRequiredWithoutTreatmentNestedInput
     visit?: PatientVisitUpdateOneWithoutTreatmentNestedInput
     followUps?: FollowUpUpdateManyWithoutTreatmentNestedInput
@@ -23471,6 +24323,8 @@ export namespace Prisma {
 
   export type TreatmentUncheckedUpdateWithoutAssessmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     visitId?: NullableStringFieldUpdateOperationsInput | string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -23480,13 +24334,13 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     followUps?: FollowUpUncheckedUpdateManyWithoutTreatmentNestedInput
   }
 
   export type TreatmentUncheckedUpdateManyWithoutAssessmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     visitId?: NullableStringFieldUpdateOperationsInput | string | null
     medications?: NullableJsonNullValueInput | InputJsonValue
@@ -23496,12 +24350,12 @@ export namespace Prisma {
     status?: EnumTreatmentStatusFieldUpdateOperationsInput | $Enums.TreatmentStatus
     priority?: NullableIntFieldUpdateOperationsInput | number | null
     nextFollowUpAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FollowUpCreateManyTreatmentInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     note?: string | null
     findings?: string | null
     outcome?: string | null
@@ -23511,12 +24365,12 @@ export namespace Prisma {
     followUpDate?: Date | string
     nextFollowUp?: Date | string | null
     resolved?: boolean
-    createdAt?: Date | string
-    updatedAt?: Date | string
   }
 
   export type FollowUpUpdateWithoutTreatmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     findings?: NullableStringFieldUpdateOperationsInput | string | null
     outcome?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23526,12 +24380,12 @@ export namespace Prisma {
     followUpDate?: DateTimeFieldUpdateOperationsInput | Date | string
     nextFollowUp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FollowUpUncheckedUpdateWithoutTreatmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     findings?: NullableStringFieldUpdateOperationsInput | string | null
     outcome?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23541,12 +24395,12 @@ export namespace Prisma {
     followUpDate?: DateTimeFieldUpdateOperationsInput | Date | string
     nextFollowUp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FollowUpUncheckedUpdateManyWithoutTreatmentInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     note?: NullableStringFieldUpdateOperationsInput | string | null
     findings?: NullableStringFieldUpdateOperationsInput | string | null
     outcome?: NullableStringFieldUpdateOperationsInput | string | null
@@ -23556,12 +24410,13 @@ export namespace Prisma {
     followUpDate?: DateTimeFieldUpdateOperationsInput | Date | string
     nextFollowUp?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     resolved?: BoolFieldUpdateOperationsInput | boolean
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AppointmentCreateManyDoctorInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     patientId: string
     date: Date | string
     status: string
@@ -23569,15 +24424,19 @@ export namespace Prisma {
 
   export type PrescriptionCreateManyDoctorInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     medicineId: string
     dosage: string
     duration: string
-    createdAt?: Date | string
   }
 
   export type AppointmentUpdateWithoutDoctorInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: StringFieldUpdateOperationsInput | string
     patient?: PatientUpdateOneRequiredWithoutAppointmentNestedInput
@@ -23585,6 +24444,9 @@ export namespace Prisma {
 
   export type AppointmentUncheckedUpdateWithoutDoctorInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     patientId?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: StringFieldUpdateOperationsInput | string
@@ -23592,6 +24454,9 @@ export namespace Prisma {
 
   export type AppointmentUncheckedUpdateManyWithoutDoctorInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     patientId?: StringFieldUpdateOperationsInput | string
     date?: DateTimeFieldUpdateOperationsInput | Date | string
     status?: StringFieldUpdateOperationsInput | string
@@ -23599,119 +24464,134 @@ export namespace Prisma {
 
   export type PrescriptionUpdateWithoutDoctorInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patient?: PatientUpdateOneRequiredWithoutPrescriptionNestedInput
     medicine?: MedicineUpdateOneRequiredWithoutPrescriptionNestedInput
   }
 
   export type PrescriptionUncheckedUpdateWithoutDoctorInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     medicineId?: StringFieldUpdateOperationsInput | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PrescriptionUncheckedUpdateManyWithoutDoctorInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     medicineId?: StringFieldUpdateOperationsInput | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type MedicineCreateManySupplierInput = {
-    archived?: boolean
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
     name: string
     description?: string | null
     category?: string | null
     form?: string | null
     strength?: string | null
     batchNumber?: string | null
-    ExpiryDate?: Date | string | null
-    Quantity?: number | null
+    expiryDate?: Date | string | null
+    quantity?: number | null
   }
 
   export type MedicineUpdateWithoutSupplierInput = {
-    archived?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     form?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: NullableStringFieldUpdateOperationsInput | string | null
     batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    ExpiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    Quantity?: NullableIntFieldUpdateOperationsInput | number | null
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    quantity?: NullableIntFieldUpdateOperationsInput | number | null
     prescription?: PrescriptionUpdateManyWithoutMedicineNestedInput
   }
 
   export type MedicineUncheckedUpdateWithoutSupplierInput = {
-    archived?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     form?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: NullableStringFieldUpdateOperationsInput | string | null
     batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    ExpiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    Quantity?: NullableIntFieldUpdateOperationsInput | number | null
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    quantity?: NullableIntFieldUpdateOperationsInput | number | null
     prescription?: PrescriptionUncheckedUpdateManyWithoutMedicineNestedInput
   }
 
   export type MedicineUncheckedUpdateManyWithoutSupplierInput = {
-    archived?: BoolFieldUpdateOperationsInput | boolean
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
     name?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
     category?: NullableStringFieldUpdateOperationsInput | string | null
     form?: NullableStringFieldUpdateOperationsInput | string | null
     strength?: NullableStringFieldUpdateOperationsInput | string | null
     batchNumber?: NullableStringFieldUpdateOperationsInput | string | null
-    ExpiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    Quantity?: NullableIntFieldUpdateOperationsInput | number | null
+    expiryDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    quantity?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type PrescriptionCreateManyMedicineInput = {
     id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
     patientId: string
     doctorId: string
     dosage: string
     duration: string
-    createdAt?: Date | string
   }
 
   export type PrescriptionUpdateWithoutMedicineInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patient?: PatientUpdateOneRequiredWithoutPrescriptionNestedInput
     doctor?: DoctorUpdateOneRequiredWithoutPrescriptionNestedInput
   }
 
   export type PrescriptionUncheckedUpdateWithoutMedicineInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     doctorId?: StringFieldUpdateOperationsInput | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PrescriptionUncheckedUpdateManyWithoutMedicineInput = {
     id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     patientId?: StringFieldUpdateOperationsInput | string
     doctorId?: StringFieldUpdateOperationsInput | string
     dosage?: StringFieldUpdateOperationsInput | string
     duration?: StringFieldUpdateOperationsInput | string
-    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
 

@@ -123,12 +123,17 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 
 exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   name: 'name',
   role: 'role'
 };
 
 exports.Prisma.PatientScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  archived: 'archived',
   userId: 'userId',
   name: 'name',
   gender: 'gender',
@@ -139,6 +144,8 @@ exports.Prisma.PatientScalarFieldEnum = {
 
 exports.Prisma.PatientVisitScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   patientId: 'patientId',
   reason: 'reason',
   status: 'status',
@@ -147,6 +154,8 @@ exports.Prisma.PatientVisitScalarFieldEnum = {
 
 exports.Prisma.AssessmentScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   patientId: 'patientId',
   symptoms: 'symptoms',
   assessment: 'assessment',
@@ -159,12 +168,13 @@ exports.Prisma.AssessmentScalarFieldEnum = {
   smoker: 'smoker',
   allergies: 'allergies',
   painLocation: 'painLocation',
-  painScale: 'painScale',
-  createdAt: 'createdAt'
+  painScale: 'painScale'
 };
 
 exports.Prisma.TreatmentScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   patientId: 'patientId',
   visitId: 'visitId',
   assessmentId: 'assessmentId',
@@ -174,13 +184,13 @@ exports.Prisma.TreatmentScalarFieldEnum = {
   remarks: 'remarks',
   status: 'status',
   priority: 'priority',
-  nextFollowUpAt: 'nextFollowUpAt',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  nextFollowUpAt: 'nextFollowUpAt'
 };
 
 exports.Prisma.FollowUpScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   treatmentId: 'treatmentId',
   note: 'note',
   findings: 'findings',
@@ -190,13 +200,13 @@ exports.Prisma.FollowUpScalarFieldEnum = {
   vitals: 'vitals',
   followUpDate: 'followUpDate',
   nextFollowUp: 'nextFollowUp',
-  resolved: 'resolved',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  resolved: 'resolved'
 };
 
 exports.Prisma.MedicalRecordScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   patientId: 'patientId',
   diagnosis: 'diagnosis',
   treatment: 'treatment',
@@ -205,12 +215,18 @@ exports.Prisma.MedicalRecordScalarFieldEnum = {
 
 exports.Prisma.DoctorScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  archived: 'archived',
   userId: 'userId',
   field: 'field'
 };
 
 exports.Prisma.AppointmentScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  archived: 'archived',
   patientId: 'patientId',
   doctorId: 'doctorId',
   date: 'date',
@@ -219,13 +235,17 @@ exports.Prisma.AppointmentScalarFieldEnum = {
 
 exports.Prisma.SupplierScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   name: 'name',
   contact: 'contact'
 };
 
 exports.Prisma.MedicineScalarFieldEnum = {
-  archived: 'archived',
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  archived: 'archived',
   supplierId: 'supplierId',
   name: 'name',
   description: 'description',
@@ -233,28 +253,29 @@ exports.Prisma.MedicineScalarFieldEnum = {
   form: 'form',
   strength: 'strength',
   batchNumber: 'batchNumber',
-  ExpiryDate: 'ExpiryDate',
-  Quantity: 'Quantity'
+  expiryDate: 'expiryDate',
+  quantity: 'quantity'
 };
 
 exports.Prisma.PrescriptionScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   patientId: 'patientId',
   doctorId: 'doctorId',
   medicineId: 'medicineId',
   dosage: 'dosage',
-  duration: 'duration',
-  createdAt: 'createdAt'
+  duration: 'duration'
 };
 
 exports.Prisma.PostScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   title: 'title',
   slug: 'slug',
   content: 'content',
-  published: 'published',
-  updatedAt: 'updatedAt',
-  createdAt: 'createdAt'
+  published: 'published'
 };
 
 exports.Prisma.SortOrder = {
