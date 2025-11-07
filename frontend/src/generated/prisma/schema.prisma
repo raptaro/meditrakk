@@ -10,22 +10,23 @@ datasource db {
 }
 
 model User {
-  // ID
-  id String @id
+  id        String   @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Rows
   name String
   role String
 
-  // Relation to the user's role (one-to-one)
   patient Patient?
   doctor  Doctor?
 }
 
 model Patient {
-  archived Boolean @default(false)
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
-  id     String  @id @default(cuid())
   userId String? @unique
   user   User?   @relation(fields: [userId], references: [id])
 
@@ -44,7 +45,10 @@ model Patient {
 }
 
 model PatientVisit {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
 
@@ -56,7 +60,10 @@ model PatientVisit {
 }
 
 model Assessment {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
 
@@ -72,13 +79,15 @@ model Assessment {
   allergies        String?
   painLocation     String?
   painScale        Int?
-  createdAt        DateTime @default(now())
 
   treatment Treatment[]
 }
 
 model Treatment {
-  id           String        @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   patientId    String
   patient      Patient       @relation(fields: [patientId], references: [id])
   visitId      String?
@@ -94,12 +103,13 @@ model Treatment {
   priority       Int?
   followUps      FollowUp[]
   nextFollowUpAt DateTime?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
 }
 
 model FollowUp {
-  id           String    @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   treatmentId  String
   treatment    Treatment @relation(fields: [treatmentId], references: [id])
   note         String?
@@ -111,12 +121,13 @@ model FollowUp {
   followUpDate DateTime  @default(now())
   nextFollowUp DateTime?
   resolved     Boolean   @default(false)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
 }
 
 model MedicalRecord {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
 
@@ -126,9 +137,11 @@ model MedicalRecord {
 }
 
 model Doctor {
-  archived Boolean @default(false)
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
-  id     String @id @default(cuid())
   userId String @unique
   user   User   @relation(fields: [userId], references: [id])
 
@@ -139,9 +152,11 @@ model Doctor {
 }
 
 model Appointment {
-  archived Boolean @default(false)
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
-  id        String  @id @default(cuid())
   patientId String
   patient   Patient @relation(fields: [patientId], references: [id])
   doctorId  String
@@ -151,55 +166,52 @@ model Appointment {
   status String
 }
 
-model Supplier {
-  id      String @id @default(cuid())
-  name    String
-  contact String
+model MedicineType {
+  id       String  @id @default(cuid())
+  name     String  @unique
+  form     String?
+  strength String?
 
-  medicine Medicine[]
+  medicineBatch MedicineBatch[]
+  prescription  Prescription[]
 }
 
-model Medicine {
-  archived Boolean @default(false)
-
-  id         String    @id @default(cuid())
-  supplierId String?
-  supplier   Supplier? @relation(fields: [supplierId], references: [id])
-
-  name        String
-  description String?
-  category    String?
-  form        String?
-  strength    String?
-  batchNumber String?
-  ExpiryDate  DateTime?
-  Quantity    Int?
-
-  prescription Prescription[]
+model MedicineBatch {
+  id          String       @id @default(cuid())
+  medicineId  String
+  medicine    MedicineType @relation(fields: [medicineId], references: [id])
+  batchNumber String
+  expiryDate  DateTime
+  quantity    Int
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 model Prescription {
-  id         String   @id @default(cuid())
-  patientId  String
-  patient    Patient  @relation(fields: [patientId], references: [id])
-  doctorId   String
-  doctor     Doctor   @relation(fields: [doctorId], references: [id])
-  medicineId String
-  medicine   Medicine @relation(fields: [medicineId], references: [id])
-
-  dosage    String
-  duration  String
+  id        String   @id @default(cuid())
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  patientId  String
+  patient    Patient      @relation(fields: [patientId], references: [id])
+  doctorId   String
+  doctor     Doctor       @relation(fields: [doctorId], references: [id])
+  medicineId String
+  medicine   MedicineType @relation(fields: [medicineId], references: [id])
+
+  dosage   String
+  duration String
 }
 
 model Post {
   id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   title     String
   slug      String   @unique
   content   String
   published Boolean? @default(false)
-  updatedAt DateTime @updatedAt
-  createdAt DateTime @default(now())
 }
 
 enum TreatmentStatus {
