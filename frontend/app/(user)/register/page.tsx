@@ -106,7 +106,6 @@ export default function UserRegistrationForm() {
     }
   }
 
-
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div
@@ -123,7 +122,6 @@ export default function UserRegistrationForm() {
         </div>
 
         <div className="bg-card p-6 shadow-lg">
-
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {/* Personal Information Section */}
@@ -155,8 +153,11 @@ export default function UserRegistrationForm() {
                               placeholder="Juan"
                               className="h-12 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                               onFocus={() => setFocused("first_name")}
-                              onBlur={() => setFocused(null)}
                               {...field}
+                              onBlur={(e) => {
+                                field.onBlur();
+                                setFocused(null);
+                              }}
                             />
                           </FormControl>
                         </div>
@@ -185,8 +186,11 @@ export default function UserRegistrationForm() {
                               placeholder="Santos"
                               className="h-12 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                               onFocus={() => setFocused("middle_name")}
-                              onBlur={() => setFocused(null)}
                               {...field}
+                              onBlur={(e) => {
+                                field.onBlur();
+                                setFocused(null);
+                              }}
                             />
                           </FormControl>
                         </div>
@@ -218,8 +222,11 @@ export default function UserRegistrationForm() {
                               placeholder="Dela Cruz"
                               className="h-12 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                               onFocus={() => setFocused("last_name")}
-                              onBlur={() => setFocused(null)}
                               {...field}
+                              onBlur={(e) => {
+                                field.onBlur();
+                                setFocused(null);
+                              }}
                             />
                           </FormControl>
                         </div>
@@ -247,7 +254,11 @@ export default function UserRegistrationForm() {
                         >
                           <FormControl>
                             <Select onValueChange={field.onChange} defaultValue={field.value}>
-                              <SelectTrigger className="h-12 border-0 bg-transparent focus:ring-0 focus:ring-offset-0">
+                              <SelectTrigger 
+                                className="h-12 border-0 bg-transparent focus:ring-0 focus:ring-offset-0"
+                                onFocus={() => setFocused("gender")}
+                                onBlur={() => setFocused(null)}
+                              >
                                 <SelectValue placeholder="Select gender" />
                               </SelectTrigger>
                               <SelectContent>
@@ -287,8 +298,11 @@ export default function UserRegistrationForm() {
                               type="date"
                               className="h-12 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                               onFocus={() => setFocused("date_of_birth")}
-                              onBlur={() => setFocused(null)}
                               {...field}
+                              onBlur={(e) => {
+                                field.onBlur();
+                                setFocused(null);
+                              }}
                             />
                           </FormControl>
                         </div>
@@ -323,8 +337,11 @@ export default function UserRegistrationForm() {
                               type="email"
                               className="h-12 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                               onFocus={() => setFocused("email")}
-                              onBlur={() => setFocused(null)}
                               {...field}
+                              onBlur={(e) => {
+                                field.onBlur();
+                                setFocused(null);
+                              }}
                             />
                           </FormControl>
                         </div>
@@ -359,8 +376,11 @@ export default function UserRegistrationForm() {
                               maxLength={11}
                               className="h-12 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
                               onFocus={() => setFocused("phone_number")}
-                              onBlur={() => setFocused(null)}
                               {...field}
+                              onBlur={(e) => {
+                                field.onBlur();
+                                setFocused(null);
+                              }}
                             />
                           </FormControl>
                         </div>
@@ -404,8 +424,11 @@ export default function UserRegistrationForm() {
                                 placeholder="Enter your password"
                                 className="h-12 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 pr-10"
                                 onFocus={() => setFocused("password")}
-                                onBlur={() => setFocused(null)}
                                 {...field}
+                                onBlur={(e) => {
+                                  field.onBlur();
+                                  setFocused(null);
+                                }}
                               />
                               <button
                                 type="button"
@@ -451,8 +474,11 @@ export default function UserRegistrationForm() {
                                 placeholder="Confirm your password"
                                 className="h-12 border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 pr-10"
                                 onFocus={() => setFocused("confirmPassword")}
-                                onBlur={() => setFocused(null)}
                                 {...field}
+                                onBlur={(e) => {
+                                  field.onBlur();
+                                  setFocused(null);
+                                }}
                               />
                               <button
                                 type="button"
