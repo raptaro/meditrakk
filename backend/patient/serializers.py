@@ -151,11 +151,19 @@ class DiagnosisSerializer(serializers.ModelSerializer):
 
 class PrescriptionSerializer(serializers.ModelSerializer):
     medication = MedicineSerializer(read_only=True)
-    medicine_id = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Prescription
-        fields = ['id', 'medicine_id', 'medication', 'dosage', 'frequency', 'quantity', 'start_date', 'end_date']
-
+        fields = [
+            'id',
+            'medication',
+            'dosage',
+            'frequency',
+            'quantity',
+            'start_date',
+            'end_date',
+        ]
+        read_only_fields = fields
 
 class UserAccountReadSerializer(serializers.Serializer):
     id = serializers.CharField(read_only=True)
@@ -227,19 +235,33 @@ class LabResultSerializer(serializers.ModelSerializer):
     submitted_by = UserAccountReadSerializer(read_only=True)
 
     def get_image_url(self, obj):
-        if obj.image:
-            supabase_url = os.getenv("SUPABASE_URL")
-            bucket_name = "lab_results"
+        try:
+            project_ref = "wczowfydbgmwbotbxaxa"
+            bucket = "lab_results"
             
-            # Use the full path exactly as stored in Supabase
-            # If the file is stored in lab_results/lab_results/filename.png
-            file_path = obj.image.name  # This should be "lab_results/Screenshot 2025-09-16 164802.png"
+            # Get the filename from the image field
+            filename = obj.image.name if obj.image else ""
             
-            # Properly encode the filename
-            encoded_file_path = quote(file_path)
-            return f"{supabase_url}/storage/v1/object/public/lab_results/{bucket_name}/{encoded_file_path}"
-        return None
-    
+            if not filename:
+                return None
+            
+            # Based on your create view and working URL example, construct the path
+            # Your create view uses: f"lab_results/{patient_segment}/{unique_name}"
+            # Your working URL shows: "lab_results/lab/8abc1d15d48447b8bab1181ac2dd2f58.png"
+            
+            # If the filename already contains the full path, use it directly
+            if filename.startswith("lab_results/"):
+                actual_file_path = filename
+            else:
+                # Otherwise, construct the path based on your storage structure
+                # Adjust this pattern based on how your files are actually organized
+                actual_file_path = f"lab_results/lab/{filename}"
+            
+            public_url = f"https://{project_ref}.supabase.co/storage/v1/object/public/{bucket}/{actual_file_path}"
+            return public_url
+        except Exception as e:
+            print(f"Error generating Supabase URL for {obj.id}: {e}")
+            return None
     class Meta:
         model = LabResult
         fields = ['id', 'lab_request', 'image', 'image_url', 'uploaded_at', 'submitted_by']

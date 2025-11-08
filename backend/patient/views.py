@@ -1,3 +1,4 @@
+import boto3
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -7,7 +8,7 @@ from django.db.models.functions import Lower
 from django.utils.timezone import now
 
 from queueing.serializers import PreliminaryAssessmentBasicSerializer
-from .serializers import PatientMedicalRecordSerializer, PatientSerializer, PatientRegistrationSerializer, LabRequestSerializer, LabResultSerializer, PatientVisitSerializer, PatientLabTestSerializer, CommonDiseasesSerializer
+from .serializers import PatientMedicalRecordSerializer, PatientSerializer, PatientRegistrationSerializer, LabRequestSerializer, LabResultSerializer, PatientVisitSerializer, PatientLabTestSerializer, CommonDiseasesSerializer, PrescriptionSerializer
 from queueing.models import  PreliminaryAssessment, TemporaryStorageQueue
 from queueing.models import Treatment as TreatmentModel
 
@@ -48,6 +49,7 @@ from asgiref.sync import async_to_sync
 from queueing.utils import compute_queue_snapshot
 import logging
 
+from rest_framework.exceptions import PermissionDenied
 logger = logging.getLogger(__name__)
 
 
@@ -1229,7 +1231,7 @@ class LabResultCreateView(generics.CreateAPIView):
             # Save LabResult via serializer (keep original behavior)
             lab_result = serializer.save(
                 submitted_by=self.request.user,
-                image=file_obj.name
+                image=file_obj.name  # This saves the actual upload path
             )
 
             # Attach storage metadata to model if fields exist
@@ -1299,7 +1301,8 @@ class LabResultListView(generics.ListAPIView):
         patient_id = self.kwargs.get('patient_id')
         queryset = LabResult.objects.filter(
             lab_request__patient__patient_id=patient_id
-        )
+        ).select_related('lab_request').order_by('-uploaded_at')
+        
         if not queryset.exists():
             raise Http404("No Lab Results found for the given patient.")
         return queryset
@@ -1307,7 +1310,25 @@ class LabResultListView(generics.ListAPIView):
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
         serializer = self.get_serializer(queryset, many=True)
-        return Response({"lab_results": serializer.data})
+        
+        # Format the response for your table
+        formatted_results = []
+        for result in serializer.data:
+            formatted_results.append({
+                "id": result["id"],
+                "date": result["uploaded_at"],
+                "status": "Completed",  # You might want to get this from lab_request
+                "image_url": result["image_url"],
+                "file_name": result["image"] if result["image"] else f"lab_result_{result['id']}",
+                "notes": "",
+                "request_date": result["uploaded_at"],  # You might want to get this from lab_request
+                "lab_request_id": result["lab_request"]
+            })
+        
+        return Response({
+            "lab_results": formatted_results,
+            "total_count": len(formatted_results)
+        })
 
 
 ## download
@@ -1674,3 +1695,255 @@ class PatientTreatmentRecordsView(APIView):
         treatments = TreatmentModel.objects.filter(patient=patient).order_by('-created_at')
         serializer = PatientMedicalRecordSerializer(treatments, many=True)
         return Response(serializer.data)
+
+# patient view prescription
+class PatientMyPrescriptionsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            # Get patient_id from the logged-in user's patient profile
+            patient_id = request.user.patient_profile.patient_id
+            
+            # Fetch treatments with prescriptions for this patient - REMOVED description
+            treatment_response = supabase.table("queueing_treatment").select(
+                """
+                id, 
+                created_at, 
+                updated_at, 
+                doctor_id(
+                    id,
+                    first_name,
+                    last_name,
+                    user_doctor(specialization)
+                ),
+                queueing_treatment_prescriptions(
+                    id, 
+                    treatment_id, 
+                    prescription_id, 
+                    patient_prescription(*, medicine_medicine(id, name))
+                )
+                """
+            ).eq("patient_id", patient_id).order("created_at", desc=True).execute()
+            
+            treatments = treatment_response.data
+
+            # Extract and flatten all prescriptions
+            all_prescriptions = []
+            for treatment in treatments:
+                # Safe doctor info extraction
+                raw_doc = treatment.get("doctor_id") or {}
+                raw_profile = raw_doc.get("user_doctor") or {}
+                
+                doctor_info = {
+                    "id": raw_doc.get("id"),
+                    "name": " ".join(filter(None, [raw_doc.get("first_name"), raw_doc.get("last_name")])),
+                    "specialization": raw_profile.get("specialization")
+                }
+
+                # Process prescriptions for this treatment
+                for prescription_relation in treatment.get("queueing_treatment_prescriptions", []):
+                    prescription_data = prescription_relation.get("patient_prescription")
+                    if not prescription_data:
+                        continue
+                    
+                    medication_data = prescription_data.pop("medicine_medicine", {})
+                    
+                    prescription_entry = {
+                        **prescription_data,
+                        "medication": medication_data,
+                        "doctor_info": doctor_info,
+                        "treatment_date": treatment.get("created_at"),
+                        "treatment_id": treatment.get("id")
+                    }
+                    all_prescriptions.append(prescription_entry)
+
+            # Sort prescriptions by date (newest first)
+            all_prescriptions.sort(key=lambda x: x.get("treatment_date", ""), reverse=True)
+
+            return Response({
+                "prescriptions": all_prescriptions,
+                "total_count": len(all_prescriptions),
+                "patient_name": f"{request.user.first_name} {request.user.last_name}"
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class PatientRecordsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        try:
+            patient_id = request.user.patient_profile.patient_id
+            
+            # Fetch treatments with both prescriptions and diagnoses
+            treatment_response = supabase.table("queueing_treatment").select(
+                """
+                id, 
+                treatment_notes, 
+                created_at, 
+                updated_at, 
+                doctor_id(
+                    id,
+                    first_name,
+                    last_name,
+                    user_doctor(specialization)
+                ),
+                queueing_treatment_diagnoses(
+                    id, 
+                    treatment_id, 
+                    diagnosis_id, 
+                    patient_diagnosis(*)
+                ), 
+                queueing_treatment_prescriptions(
+                    id, 
+                    treatment_id, 
+                    prescription_id, 
+                    patient_prescription(*, medicine_medicine(id, name))
+                )
+                """
+            ).eq("patient_id", patient_id).order("created_at", desc=True).execute()
+            
+            treatments = treatment_response.data
+            print(f"Found {len(treatments)} treatments for patient {patient_id}")
+
+            records = []
+            
+            for treatment in treatments:
+                # Safe doctor info extraction
+                raw_doc = treatment.get("doctor_id") or {}
+                raw_profile = raw_doc.get("user_doctor") or {}
+                
+                doctor_info = {
+                    "id": raw_doc.get("id"),
+                    "name": " ".join(filter(None, [raw_doc.get("first_name"), raw_doc.get("last_name")])),
+                    "specialization": raw_profile.get("specialization")
+                }
+
+                treatment_date = treatment.get("created_at")
+                treatment_notes = treatment.get("treatment_notes", "")
+                
+                # Process diagnoses for this treatment
+                for diagnosis_relation in treatment.get("queueing_treatment_diagnoses", []):
+                    diagnosis_data = diagnosis_relation.get("patient_diagnosis")
+                    if diagnosis_data:
+                        # Extract diagnosis code and description
+                        diagnosis_code = diagnosis_data.get("diagnosis_code") or diagnosis_data.get("code") or "UNKNOWN"
+                        diagnosis_description = diagnosis_data.get("diagnosis_description") or diagnosis_data.get("description") or diagnosis_data.get("diagnosis_notes") or treatment_notes
+                        
+                        # Format title as "Diagnosis: LVRCNCR - Liver Cancer"
+                        diagnosis_title = f"Diagnosis: {diagnosis_code} - {diagnosis_description}"
+                        
+                        record = {
+                            "id": f"diagnosis_{diagnosis_data['id']}",
+                            "type": "diagnosis",
+                            "date": treatment_date,
+                            "doctor": doctor_info,
+                            "title": diagnosis_title,
+                            "description": diagnosis_description,
+                            "status": "completed",
+                            "treatment_id": treatment.get("id"),
+                            "diagnosis_details": diagnosis_data,
+                            "diagnosis_code": diagnosis_code
+                        }
+                        records.append(record)
+
+                # Process prescriptions for this treatment
+                for prescription_relation in treatment.get("queueing_treatment_prescriptions", []):
+                    prescription_data = prescription_relation.get("patient_prescription")
+                    if prescription_data:
+                        medication_data = prescription_data.pop("medicine_medicine", {})
+                        medication_name = medication_data.get('name', 'Unknown Medication')
+                        
+                        record = {
+                            "id": f"prescription_{prescription_data['id']}",
+                            "type": "prescription",
+                            "date": treatment_date,
+                            "doctor": doctor_info,
+                            "title": f"Prescription: {medication_name}",
+                            "description": f"{prescription_data.get('dosage', '')} - {prescription_data.get('frequency', '')}",
+                            "status": "completed",
+                            "treatment_id": treatment.get("id"),
+                            "medication": medication_data,
+                            "prescription_details": prescription_data
+                        }
+                        records.append(record)
+
+            # Sort all records by date (newest first)
+            records.sort(key=lambda x: x.get("date", ""), reverse=True)
+
+            return Response({
+                "records": records,
+                "total_count": len(records),
+                "patient_name": f"{request.user.first_name} {request.user.last_name}"
+            }, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"Error in PatientRecordsView: {str(e)}")
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class PatientLabResultsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_supabase_public_url(self, file_path):
+        """Generate direct Supabase public URL"""
+        try:
+            project_ref = "wczowfydbgmwbotbxaxa"
+            bucket = "lab_results"
+            
+            # Since your create view uses paths like "lab_results/{patient_segment}/{unique_name}"
+            # but saves only the original filename, we need to guess the actual path
+            # You might need to adjust this logic based on your actual file structure
+            actual_file_path = f"lab_results/lab/{file_path}"  # Adjust this pattern as needed
+            
+            public_url = f"https://{project_ref}.supabase.co/storage/v1/object/public/{bucket}/{actual_file_path}"
+            return public_url
+        except Exception as e:
+            print(f"Error generating Supabase URL: {e}")
+            return None
+
+    def get(self, request, *args, **kwargs):
+        try:
+            patient_id = request.user.patient_profile.patient_id
+            
+            # Fetch lab results
+            lab_results_qs = LabResult.objects.filter(
+                lab_request__patient__patient_id=patient_id
+            ).select_related('lab_request')
+            
+            processed_results = []
+            
+            for lab_result in lab_results_qs:
+                # Get the filename from the image field
+                file_name = lab_result.image.name if lab_result.image else ""
+                
+                # Generate URL - you'll need to adjust the path construction
+                image_url = self.get_supabase_public_url(file_name) if file_name else ""
+                
+                lab_request = lab_result.lab_request
+                test_type = lab_request.test_name or lab_request.custom_test or 'Laboratory Test'
+                
+                result = {
+                    "id": lab_result.id,
+                    "date": lab_result.uploaded_at.isoformat(),
+                    "test_type": test_type,
+                    "status": lab_request.status,
+                    "image_url": image_url,
+                    "file_name": file_name,
+                    "notes": "",
+                    "request_date": lab_request.created_at.isoformat(),
+                    "lab_request_id": lab_request.id
+                }
+                processed_results.append(result)
+            
+            return Response({
+                "lab_results": processed_results,
+                "total_count": len(processed_results),
+                "patient_name": f"{request.user.first_name} {request.user.last_name}"
+            })
+            
+        except Exception as e:
+            print(f"Error: {e}")
+            return Response({"error": str(e)})

@@ -240,7 +240,6 @@ export function LoginForm({
               )}
             />
 
-            {/* Submit */}
             <Button
               type="submit"
               className={cn(
@@ -268,6 +267,18 @@ export function LoginForm({
                 </>
               )}
             </Button>
+
+            {/* Add this section */}
+            <div className="mt-4 text-center">
+              <span className="text-sm text‑foreground/70">Don’t have an account? </span>
+              <a
+                href="/register"
+                className="text-sm font-medium text-primary hover:underline"
+              >
+                Register Here
+              </a>
+            </div>
+
           </form>
         </Form>
       </div>

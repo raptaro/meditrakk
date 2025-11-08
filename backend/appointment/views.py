@@ -243,7 +243,7 @@ class ScheduleAppointment(APIView):
 
 class AppointmentViewSet(viewsets.ModelViewSet):
     serializer_class = AppointmentSerializer
-    permission_classes = [IsAuthenticated, IsDoctorOrOnCallDoctor]
+    permission_classes = [IsAuthenticated, IsReferralParticipant]
 
     def get_queryset(self):
         user = self.request.user
@@ -440,7 +440,71 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         
         return Response(result)
     
+    @action(detail=False, methods=['get'], url_path='upcoming')
+    def patient_upcoming_appointments(self, request):
+        """Get all upcoming appointments for the current patient"""
+        user = request.user
+        
+        if not hasattr(user, 'patient_profile'):
+            return Response(
+                {'error': 'Only patients can access this endpoint'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        now = timezone.now()
+        
+        # Get all upcoming appointments for this patient
+        upcoming_appointments = Appointment.objects.filter(
+            patient=user.patient_profile,
+            appointment_date__gte=now,
+            status__in=['Scheduled', 'Waiting', 'PendingPayment']
+        ).select_related(
+            'patient__user', 
+            'doctor__user',
+            'scheduled_by',
+            'referral'
+        ).prefetch_related('payment').order_by('appointment_date')
+        
+        result = {
+            'upcoming': AppointmentSerializer(upcoming_appointments, many=True).data,
+            'total_count': upcoming_appointments.count(),
+            'patient_name': user.get_full_name()
+        }
+        
+        return Response(result)
     
+    @action(detail=False, methods=['get'], url_path='past')
+    def patient_past_appointments(self, request):
+        """Get all upcoming appointments for the current patient"""
+        user = request.user
+        
+        if not hasattr(user, 'patient_profile'):
+            return Response(
+                {'error': 'Only patients can access this endpoint'}, 
+                status=status.HTTP_403_FORBIDDEN
+            )
+        
+        now = timezone.now()
+        
+        # Get all upcoming appointments for this patient
+        past_appointments = Appointment.objects.filter(
+            patient=user.patient_profile,
+            appointment_date__lt=now,
+            status__in=['Completed', 'Cancelled']
+        ).select_related(
+            'patient__user', 
+            'doctor__user',
+            'scheduled_by',
+            'referral'
+        ).prefetch_related('payment').order_by('-appointment_date')
+        
+        result = {
+            'past': AppointmentSerializer(past_appointments, many=True).data,
+            'total_count': past_appointments.count(),
+            'patient_name': user.get_full_name()
+        }
+        
+        return Response(result)
 class AppointmentReferralViewSet(viewsets.ModelViewSet):
     serializer_class = AppointmentReferralSerializer
     permission_classes = [IsAuthenticated, IsReferralParticipant]
