@@ -201,8 +201,9 @@ model Prescription {
   medicineId String
   medicine   MedicineType @relation(fields: [medicineId], references: [id])
 
-  dosage   String
-  duration String
+  quantity  Int
+  frequency String
+  duration  String
 }
 
 model Post {
