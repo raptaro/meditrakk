@@ -21,3 +21,9 @@ export interface MedicineBatch {
   quantity: number;
   expiryDate:  Date;
 }
+
+export interface Doctor {
+  id: string;
+  name: string;
+    field: string;
+}
