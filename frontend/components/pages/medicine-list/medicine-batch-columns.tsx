@@ -2,6 +2,7 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { MedicineBatch } from "@/app/types";
 import { EditMedicineBatch } from "./components/edit-medicine-batch";
+import { FormattedDate } from "@/utils/formattedDate";
 
 export const MedicineBatchColumns: ColumnDef<MedicineBatch>[] = [
   {
@@ -19,10 +20,7 @@ export const MedicineBatchColumns: ColumnDef<MedicineBatch>[] = [
   {
     accessorKey: "expiryDate",
     header: "Expiry Date",
-    cell: ({ row }) => {
-      const date = row.original.expiryDate;
-      return new Date(date).toLocaleDateString();
-    },
+    cell: ({ row }) => <FormattedDate date={row.original.expiryDate} />,
   },
   {
     id: "actions",

@@ -1,6 +1,5 @@
 "use client";
 import * as React from "react";
-
 import {
   ColumnDef,
   SortingState,
@@ -10,6 +9,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
+  InitialTableState,
 } from "@tanstack/react-table";
 
 import {
@@ -20,33 +20,40 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   title?: string;
+  initialState?: Partial<InitialTableState>;
 }
-
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 export function DataTable<TData, TValue>({
   columns,
   data,
   title,
+  initialState,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = React.useState<SortingState>([]);
+  const [sorting, setSorting] = React.useState<SortingState>(
+    initialState?.sorting || []
+  );
 
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    onSortingChange: setSorting,
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    onSortingChange: setSorting,
     state: {
       sorting,
+      pagination: {
+        pageIndex: initialState?.pagination?.pageIndex ?? 0,
+        pageSize: initialState?.pagination?.pageSize ?? 10,
+      },
     },
   });
 
@@ -71,23 +78,22 @@ export function DataTable<TData, TValue>({
           <TableHeader className="bg-muted">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext()
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
+
           <TableBody>
-            {table.getRowModel().rows?.length ? (
+            {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
@@ -117,22 +123,15 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
 
-      {/* Pagination and item count */}
       <div className="flex items-center justify-between pt-4">
-        {/* Item count on the left */}
         <div className="text-sm text-muted-foreground">
           Total: {table.getFilteredRowModel().rows.length} item(s)
         </div>
-
-        {/* Pagination controls on the right */}
         <div className="flex items-center space-x-6">
-          {/* Page info */}
           <div className="text-sm text-muted-foreground">
             Page {table.getState().pagination.pageIndex + 1} of{" "}
             {table.getPageCount()}
           </div>
-
-          {/* Navigation buttons */}
           <div className="flex items-center space-x-2">
             <Button
               variant="outline"
