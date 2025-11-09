@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import { MedicineColumns } from "./medicine-columns";
+import { MedicineColumns } from "./medicine-type-columns";
 import MedicineSummaryCards from "./components/medicine-summary-cards";
 import { AddMedicineBatch } from "./components/add-medicine-batch";
 import { DataTable } from "@/components/ui/data-table";
