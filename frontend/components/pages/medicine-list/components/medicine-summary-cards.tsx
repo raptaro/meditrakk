@@ -1,28 +1,31 @@
 import { prisma } from "@/lib/prisma";
 
 export default async function MedicineSummaryCards() {
-  const totalMedicines = await prisma.medicineType.count();
-  const batchQuantities = await prisma.medicineBatch.groupBy({
-    by: ["medicineId"],
-    _sum: { quantity: true },
+  // Fetch all medicine types with their batches
+  const medicineTypes = await prisma.medicineType.findMany({
+    include: {
+      medicineBatch: {
+        select: { quantity: true, expiryDate: true },
+      },
+    },
   });
 
-  type BatchQuantity = {
-    medicineId: string;
-    _sum: { quantity: number | null };
-  };
+  // Calculate total available quantity per medicine type (only unexpired)
+  const medicineQuantities = medicineTypes.map((type) => {
+    const availableQuantity = type.medicineBatch
+      .filter((b) => new Date(b.expiryDate) > new Date())
+      .reduce((sum, b) => sum + (b.quantity ?? 0), 0);
 
-  const goodStock = (batchQuantities as BatchQuantity[]).filter(
-    (b) => (b._sum.quantity ?? 0) > 10
-  ).length;
+    return { id: type.id, quantity: availableQuantity };
+  });
 
-  const lowStock = (batchQuantities as BatchQuantity[]).filter(
-    (b) => (b._sum.quantity ?? 0) >= 1 && (b._sum.quantity ?? 0) <= 10
-  ).length;
+  const totalMedicines = medicineTypes.length;
 
-  const outOfStock = (batchQuantities as BatchQuantity[]).filter(
-    (b) => (b._sum.quantity ?? 0) === 0
+  const goodStock = medicineQuantities.filter((m) => m.quantity > 10).length;
+  const lowStock = medicineQuantities.filter(
+    (m) => m.quantity >= 1 && m.quantity <= 10
   ).length;
+  const outOfStock = medicineQuantities.filter((m) => m.quantity === 0).length;
 
   const medicine = [
     { id: 1, value: totalMedicines, name: "Total Medicines" },
