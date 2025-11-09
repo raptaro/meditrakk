@@ -42,7 +42,6 @@ interface CommonMedicine {
   prescription_count: number;
 }
 
-
 export default function ReportDashboard() {
   const [isClient, setIsClient] = useState(false);
   const [patientVisitsData, setPatientVisitsData] = useState<MonthlyVisit[]>([]);
@@ -56,6 +55,14 @@ export default function ReportDashboard() {
   const [loadingPatients, setLoadingPatients] = useState(true);
   const [loadingMedicines, setLoadingMedicines] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Simple Skeleton component (tailwind-based)
+  const SkeletonCard = ({ className = "" }: { className?: string }) => (
+    <div className={`animate-pulse rounded-lg bg-white p-6 shadow-sm ${className}`}>
+      <div className="h-4 w-1/3 bg-gray-200 mb-4 rounded" />
+      <div className="h-8 w-2/3 bg-gray-200 rounded" />
+    </div>
+  );
 
   useEffect(() => {
     async function fetchPatients() {
@@ -90,11 +97,16 @@ export default function ReportDashboard() {
 
       if (!accessToken) {
         console.error("Access token not found in localStorage.");
+        // still set loaders to false so skeletons stop if desired
+        setLoadingVisits(false);
+        setLoadingLabTests(false);
+        setLoadingDiseases(false);
+        setLoadingMedicines(false);
         return;
       }
 
       try {
-        const [visitsRes, labRes, diseaseRes, medRes ] = await Promise.all([
+        const [visitsRes, labRes, diseaseRes, medRes] = await Promise.all([
           axios.get<MonthlyVisit[]>(
             `${process.env.NEXT_PUBLIC_API_BASE}/patient/reports/monthly-visits/`,
             { headers: { Authorization: `Bearer ${accessToken}` } }
@@ -116,7 +128,7 @@ export default function ReportDashboard() {
         setPatientVisitsData(visitsRes.data);
         setLabTestsData(labRes.data);
         setCommonDiseases(diseaseRes.data);
-        setCommonMedicines(medRes.data.medicines);
+        setCommonMedicines(medRes.data.medicines || []);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -135,35 +147,115 @@ export default function ReportDashboard() {
 
   if (!isClient) return null;
 
-  const totalVisits = patientVisitsData.reduce((sum, entry) => sum + entry.count, 0);
-  const totalLabTests = labTestsData.reduce((sum, entry) => sum + entry.count, 0);
+  // total visits across all months (fallback)
+  const totalVisits = patientVisitsData.reduce((sum, entry) => sum + (entry.count || 0), 0);
+  const totalLabTests = labTestsData.reduce((sum, entry) => sum + (entry.count || 0), 0);
+
+  // Active medicine counts:
+  // - distinct medicines (how many unique medicines are prescribed)
+  // - total prescriptions (sum of prescription_count)
+  const distinctMedicineCount = commonMedicines.length;
+  const totalMedicinesPrescribed = commonMedicines.reduce(
+    (sum, m) => sum + (Number(m.prescription_count) || 0),
+    0
+  );
+
+  // Helper to robustly parse common month strings. Returns Date or null.
+  const monthStringToDate = (monthStr: string | undefined): Date | null => {
+    if (!monthStr) return null;
+
+    // Try ISO year-month formats first (YYYY-MM or YYYY-MM-DD)
+    if (/^\d{4}-\d{2}(-\d{2})?$/.test(monthStr)) {
+      const d = new Date(monthStr);
+      return isNaN(d.getTime()) ? null : d;
+    }
+
+    // Try parseable by Date
+    const parsed = new Date(monthStr);
+    if (!isNaN(parsed.getTime())) return parsed;
+
+    // Try common "MMM YYYY" or "MMMM YYYY" formats by appending day and parsing
+    const tryAppend = new Date(`${monthStr} 01`);
+    if (!isNaN(tryAppend.getTime())) return tryAppend;
+
+    // Try matching short month names (Jan, Feb, ...) optionally with year
+    const monthNamesShort = [
+      "jan", "feb", "mar", "apr", "may", "jun",
+      "jul", "aug", "sep", "oct", "nov", "dec",
+    ];
+    const parts = monthStr.trim().toLowerCase().split(/\s+/);
+    if (parts.length >= 1) {
+      const mIndex = monthNamesShort.indexOf(parts[0].slice(0, 3));
+      if (mIndex >= 0) {
+        const year = parts.length >= 2 && /^\d{4}$/.test(parts[1]) ? Number(parts[1]) : new Date().getFullYear();
+        const d = new Date(year, mIndex, 1);
+        return isNaN(d.getTime()) ? null : d;
+      }
+    }
+
+    return null;
+  };
+
+  // Count patients added (visits) in the current month
+  const now = new Date();
+  const patientsThisMonth = patientVisitsData.reduce((sum, entry) => {
+    const d = monthStringToDate(entry.month);
+    if (!d) return sum;
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear()
+      ? sum + (entry.count || 0)
+      : sum;
+  }, 0);
+
+  // If no monthly entry exists, fallback to 0
+  const patientsThisMonthDisplay = loadingVisits ? "Loading..." : patientsThisMonth;
 
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <h1 className="mb-8 text-3xl font-bold text-gray-800">Medical Reports Dashboard</h1>
 
       <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-lg bg-white p-6 shadow-sm">
-          <h3 className="text-gray-500">Total Patients</h3>
-          {error ? (
-            <p className="text-red-500">{error}</p>
-          ) : (
-            <p className="text-3xl font-bold">{loadingPatients ? "Loading..." : count.toLocaleString()}</p>
-          )}
-        </div>
+        {loadingPatients ? (
+          <SkeletonCard />
+        ) : (
+          <div className="rounded-lg bg-white p-6 shadow-sm">
+            <h3 className="text-gray-500">Total Patients</h3>
+            {error ? (
+              <p className="text-red-500">{error}</p>
+            ) : (
+              <p className="text-3xl font-bold">{count.toLocaleString()}</p>
+            )}
+          </div>
+        )}
 
-        <div className="rounded-lg bg-white p-6 shadow-sm">
-          <h3 className="text-gray-500">Monthly Visits</h3>
-          <p className="text-3xl font-bold">{loadingVisits ? "Loading..." : totalVisits}</p>
-        </div>
-        <div className="rounded-lg bg-white p-6 shadow-sm">
-          <h3 className="text-gray-500">Lab Tests (Total)</h3>
-          <p className="text-3xl font-bold">{loadingLabTests ? "Loading..." : totalLabTests}</p>
-        </div>
-        <div className="rounded-lg bg-white p-6 shadow-sm">
-          <h3 className="text-gray-500">Active Prescriptions</h3>
-          <p className="text-3xl font-bold">432</p>
-        </div>
+        {/* Monthly Visits — show total visits and patients added this month */}
+        {loadingVisits ? (
+          <SkeletonCard />
+        ) : (
+          <div className="rounded-lg bg-white p-6 shadow-sm">
+            <h3 className="text-gray-500">Monthly Visits (Total)</h3>
+            <p className="text-3xl font-bold">{patientsThisMonthDisplay}</p>
+          </div>
+        )}
+
+        {/* Lab Tests */}
+        {loadingLabTests ? (
+          <SkeletonCard />
+        ) : (
+          <div className="rounded-lg bg-white p-6 shadow-sm">
+            <h3 className="text-gray-500">Lab Tests (Total)</h3>
+            <p className="text-3xl font-bold">{totalLabTests}</p>
+          </div>
+        )}
+
+        {/* Active Medicines: show total prescriptions and distinct medicines */}
+        {loadingMedicines ? (
+          <SkeletonCard />
+        ) : (
+          <div className="rounded-lg bg-white p-6 shadow-sm">
+            <h3 className="text-gray-500">Prescribed Medicines</h3>
+            <p className="text-3xl font-bold">{distinctMedicineCount}</p>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -171,7 +263,9 @@ export default function ReportDashboard() {
           <div>
             <h2 className="mb-4 text-xl font-semibold">Monthly Patient Visits</h2>
             {loadingVisits ? (
-              <p className="text-gray-500">Loading chart...</p>
+              <div className="animate-pulse space-y-3">
+                <div className="h-56 bg-gray-100 rounded" />
+              </div>
             ) : (
               <BarChart width={500} height={300} data={patientVisitsData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -194,7 +288,9 @@ export default function ReportDashboard() {
           <div>
             <h2 className="mb-4 text-xl font-semibold">Laboratory Tests</h2>
             {loadingLabTests ? (
-              <p className="text-gray-500">Loading chart...</p>
+              <div className="animate-pulse space-y-3">
+                <div className="h-56 bg-gray-100 rounded" />
+              </div>
             ) : (
               <BarChart width={500} height={300} data={labTestsData}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -250,11 +346,14 @@ export default function ReportDashboard() {
             </Link>
           </div>
         </div>
+
         <div className="rounded-lg bg-white p-6 shadow-sm flex flex-col justify-between">
           <div>
             <h2 className="mb-4 text-xl font-semibold">Frequent Medications</h2>
             {loadingMedicines ? (
-              <p className="text-gray-500">Loading medications...</p>
+              <div className="animate-pulse space-y-3">
+                <div className="h-48 bg-gray-100 rounded" />
+              </div>
             ) : error ? (
               <p className="text-red-500">{error}</p>
             ) : (
@@ -275,15 +374,14 @@ export default function ReportDashboard() {
             )}
           </div>
           <div className="mt-4 text-right">
-            <Link 
-              href="/doctor/frequent-medicines-view-all" 
+            <Link
+              href="/doctor/frequent-medicines-view-all"
               className="text-sm text-blue-600 hover:underline"
             >
               View All
             </Link>
           </div>
         </div>
-
       </div>
 
       <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2">

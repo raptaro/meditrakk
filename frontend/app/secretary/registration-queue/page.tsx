@@ -16,14 +16,15 @@ export interface PatientQueueItem {
   first_name: string;
   last_name: string;
   age: number | null;
-  phone_number?: string;
-  date_of_birth?: string;
+  phone_number: string | null;
+  date_of_birth: string | null;
   complaint: string;
   queue_number: number;
-  status?: string;
-  priority_level?: string;
-  created_at?: string;
-  is_new_patient?: boolean;
+  status: string;
+  priority_level: string;
+  created_at: string;
+  is_new_patient: boolean;
+  position?: number; // Add position field
 }
 
 interface Patient {
@@ -36,6 +37,7 @@ interface Patient {
   status: string;
   created_at: string;
   queue_date: string;
+  is_new_patient?: boolean; // Add this field
 }
 
 export default function RegistrationQueue() {
@@ -51,9 +53,9 @@ export default function RegistrationQueue() {
     next2: null as PatientQueueItem | null,
   });
 
-  const [selectedPatient, setSelectedPatient] =
-    useState<PatientQueueItem | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<PatientQueueItem | null>(null);
   const [isRoutingModalOpen, setIsRoutingModalOpen] = useState(false);
+
   const router = useRouter();
 
   const convertToPatient = (
@@ -70,6 +72,7 @@ export default function RegistrationQueue() {
       status: queueItem.status || "Waiting",
       created_at: queueItem.created_at || new Date().toISOString(),
       queue_date: queueItem.created_at || new Date().toISOString(),
+      is_new_patient: queueItem.is_new_patient || false,
     };
   };
 
@@ -77,6 +80,7 @@ export default function RegistrationQueue() {
     if (age === null || age === undefined) return "N/A";
     return `${age}`;
   };
+
 
   useEffect(() => {
     const fetchQueueData = async () => {
@@ -95,16 +99,35 @@ export default function RegistrationQueue() {
         if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
         const data = await resp.json();
 
+        console.log("Queue data received:", data); // Debug log
+
+        // Process priority queue
         const pr = [
           data.priority_current,
           data.priority_next1,
           data.priority_next2,
-        ].filter(Boolean);
+        ].map(item => item ? {
+          ...item,
+          first_name: item.first_name || "Unknown",
+          last_name: item.last_name || "Patient",
+          phone_number: item.phone_number || null,
+          age: item.age || null,
+          is_new_patient: item.is_new_patient ?? true
+        } : null);
+
+        // Process regular queue
         const rg = [
           data.regular_current,
           data.regular_next1,
           data.regular_next2,
-        ].filter(Boolean);
+        ].map(item => item ? {
+          ...item,
+          first_name: item.first_name || "Unknown",
+          last_name: item.last_name || "Patient",
+          phone_number: item.phone_number || null,
+          age: item.age || null,
+          is_new_patient: item.is_new_patient ?? true
+        } : null);
 
         setPriorityQueue({
           current: pr[0] ?? null,
@@ -116,6 +139,8 @@ export default function RegistrationQueue() {
           next1: rg[1] ?? null,
           next2: rg[2] ?? null,
         });
+
+        // Also fetch all queue data for the table
       } catch (err) {
         console.error("Error fetching queue:", err);
       }
@@ -136,16 +161,33 @@ export default function RegistrationQueue() {
     socket.onmessage = (ev) => {
       try {
         const msg = JSON.parse(ev.data);
+        console.log("WebSocket message received:", msg); // Debug log
+
         const pr = [
           msg.priority_current,
           msg.priority_next1,
           msg.priority_next2,
-        ].filter(Boolean);
+        ].map(item => item ? {
+          ...item,
+          first_name: item.first_name || "Unknown",
+          last_name: item.last_name || "Patient",
+          phone_number: item.phone_number || null,
+          age: item.age || null,
+          is_new_patient: item.is_new_patient ?? true
+        } : null);
+
         const rg = [
           msg.regular_current,
           msg.regular_next1,
           msg.regular_next2,
-        ].filter(Boolean);
+        ].map(item => item ? {
+          ...item,
+          first_name: item.first_name || "Unknown",
+          last_name: item.last_name || "Patient",
+          phone_number: item.phone_number || null,
+          age: item.age || null,
+          is_new_patient: item.is_new_patient ?? true
+        } : null);
 
         setPriorityQueue({
           current: pr[0] ?? null,
@@ -157,6 +199,8 @@ export default function RegistrationQueue() {
           next1: rg[1] ?? null,
           next2: rg[2] ?? null,
         });
+
+        // Refresh all queue data when WebSocket updates
       } catch (err) {
         console.error("Error parsing WS message:", err);
       }
@@ -218,6 +262,16 @@ export default function RegistrationQueue() {
       <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-lg">
         <h3 className="mb-4 border-b border-blue-100 pb-2 text-xl font-semibold text-blue-700">
           Patient Information
+          {queueItem.is_new_patient && (
+            <span className="ml-2 rounded-full bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+              New Patient
+            </span>
+          )}
+          {!queueItem.is_new_patient && queueItem.patient_id && (
+            <span className="ml-2 rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+              Existing Patient
+            </span>
+          )}
         </h3>
 
         <div className="mb-3 space-y-1">
@@ -250,13 +304,13 @@ export default function RegistrationQueue() {
             Accept
           </button>
           <button
-            onClick={() => router.push("/payments")}
+            onClick={() => router.push(`/patient/edit/${queueItem.patient_id || queueItem.id}`)}
             className={buttonVariants({ variant: "outline" })}
           >
             Edit
           </button>
           <button
-            onClick={() => router.push("/payments")}
+            onClick={() => handleRoutePatient(queueItem, "cancel")}
             className={buttonVariants({ variant: "destructive" })}
           >
             Cancel
@@ -285,7 +339,7 @@ export default function RegistrationQueue() {
         w-64 h-72 p-6 cursor-default select-none`}
       title={
         queueItem
-          ? `${queueItem.first_name} ${queueItem.last_name} - ${queueItem.complaint}`
+          ? `${queueItem.first_name} ${queueItem.last_name} - ${queueItem.complaint}${queueItem.is_new_patient ? " (New)" : ""}`
           : undefined
       }
     >
@@ -304,6 +358,16 @@ export default function RegistrationQueue() {
       >
         {status === "current" ? "Current Patient" : "Next in Queue"}
       </span>
+      {queueItem && (
+        <div className="mt-2 text-xs text-gray-600 text-center">
+          <p>{queueItem.first_name} {queueItem.last_name}</p>
+          <p className={`text-xs ${
+            queueItem.is_new_patient ? "text-yellow-600" : "text-green-600"
+          }`}>
+            {queueItem.is_new_patient ? "New Patient" : "Existing Patient"}
+          </p>
+        </div>
+      )}
     </div>
   );
 
@@ -375,13 +439,6 @@ export default function RegistrationQueue() {
           />
           {renderPatientInfo(regularQueue.current)}
         </div>
-      </section>
-
-      <section>
-        <h2 className="mb-6 text-2xl font-semibold text-gray-700">
-          All Registrations
-        </h2>
-        <DashboardTable columns={columns} data={registrations ?? []} />
       </section>
 
       <PatientRoutingModal

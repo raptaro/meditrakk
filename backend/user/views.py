@@ -135,7 +135,42 @@ class UserAccountViewSet(viewsets.ModelViewSet):
             serializer = self.get_serializer(user)
             return Response(serializer.data, status=status.HTTP_200_OK)
         return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
-
+        
+    @action(detail=False, methods=['get'], url_path='current-patient')
+    def current_patient(self, request):
+        user = request.user
+        if user.is_authenticated:
+            try:
+                # Get user data with patient profile
+                user_data = self.get_serializer(user).data
+                
+                # Add patient profile data if it exists
+                if hasattr(user, 'patient_profile'):
+                    patient = user.patient_profile
+                    user_data.update({
+                        'patient_id': patient.patient_id,
+                        'first_name': patient.first_name,
+                        'middle_name': patient.middle_name,
+                        'last_name': patient.last_name,
+                        'gender': patient.gender,
+                        'phone_number': patient.phone_number,
+                        'date_of_birth': patient.date_of_birth,
+                        'street_address': patient.street_address,
+                        'barangay': patient.barangay,
+                        'municipal_city': patient.municipal_city,
+                        'age': patient.get_age() if patient.date_of_birth else None
+                    })
+                
+                return Response(user_data, status=status.HTTP_200_OK)
+            except Exception as e:
+                return Response(
+                    {'detail': f'Error retrieving patient data: {str(e)}'}, 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+        return Response(
+            {'detail': 'Authentication credentials were not provided.'}, 
+            status=status.HTTP_401_UNAUTHORIZED
+        )
     @action(detail=False, methods=['patch'], url_path='update-me')
     def update_me(self, request):
         user = request.user

@@ -82,6 +82,135 @@ interface EditableAppointment {
   };
 }
 
+// Skeleton Loading Components
+const SkeletonTable = ({ rows = 5, showDoctorType = false }: { rows?: number; showDoctorType?: boolean }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6 animate-pulse">
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-slate-200">
+        <div className="h-6 bg-slate-200 rounded w-48"></div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-16"></div></th>
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-20"></div></th>
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-20"></div></th>
+              {showDoctorType && <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-16"></div></th>}
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-24"></div></th>
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-16"></div></th>
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-28"></div></th>
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-20"></div></th>
+              <th className="text-center px-6 py-4"><div className="h-4 bg-slate-200 rounded w-16 mx-auto"></div></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {Array.from({ length: rows }).map((_, index) => (
+              <tr key={index}>
+                <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-12"></div></td>
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-slate-200 rounded w-32 mb-2"></div>
+                  <div className="h-3 bg-slate-200 rounded w-24"></div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-slate-200 rounded w-28 mb-2"></div>
+                  <div className="h-3 bg-slate-200 rounded w-20"></div>
+                </td>
+                {showDoctorType && <td className="px-6 py-4"><div className="h-6 bg-slate-200 rounded w-20"></div></td>}
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-slate-200 rounded w-24 mb-2"></div>
+                  <div className="h-3 bg-slate-200 rounded w-16"></div>
+                </td>
+                <td className="px-6 py-4"><div className="h-6 bg-slate-200 rounded w-20"></div></td>
+                <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-24"></div></td>
+                <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-32"></div></td>
+                <td className="px-6 py-4">
+                  <div className="flex justify-center gap-2">
+                    <div className="h-8 w-8 bg-slate-200 rounded"></div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const SkeletonHeader = () => (
+  <div className="mb-8 animate-pulse">
+    <div className="h-8 bg-slate-200 rounded w-1/3 mb-2"></div>
+    <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+  </div>
+);
+
+const SkeletonSearch = () => (
+  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6 animate-pulse">
+    <div className="h-12 bg-slate-200 rounded"></div>
+  </div>
+);
+
+const SkeletonTabs = () => (
+  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-2 mb-6 inline-flex animate-pulse">
+    <div className="h-10 bg-slate-200 rounded-lg w-32 mr-2"></div>
+    <div className="h-10 bg-slate-200 rounded-lg w-32"></div>
+  </div>
+);
+
+const SkeletonModal = () => (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="bg-white rounded-xl shadow-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto animate-pulse">
+      <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-4 rounded-t-xl">
+        <div className="h-6 bg-blue-500 rounded w-1/3 mb-2"></div>
+        <div className="h-4 bg-blue-400 rounded w-1/4"></div>
+      </div>
+      <div className="p-6 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4">
+            <div>
+              <div className="h-6 bg-slate-200 rounded w-40 mb-3"></div>
+              <div className="space-y-3">
+                <div><div className="h-4 bg-slate-200 rounded w-24 mb-1"></div><div className="h-5 bg-slate-200 rounded w-32"></div></div>
+                <div><div className="h-4 bg-slate-200 rounded w-20 mb-1"></div><div className="h-5 bg-slate-200 rounded w-28"></div></div>
+              </div>
+            </div>
+            <div>
+              <div className="h-6 bg-slate-200 rounded w-48 mb-3"></div>
+              <div className="space-y-3">
+                <div><div className="h-4 bg-slate-200 rounded w-28 mb-1"></div><div className="h-10 bg-slate-200 rounded"></div></div>
+                <div><div className="h-4 bg-slate-200 rounded w-20 mb-1"></div><div className="h-6 bg-slate-200 rounded w-24"></div></div>
+              </div>
+            </div>
+          </div>
+          <div className="space-y-4">
+            <div>
+              <div className="h-6 bg-slate-200 rounded w-40 mb-3"></div>
+              <div className="space-y-3">
+                <div><div className="h-4 bg-slate-200 rounded w-32 mb-1"></div><div className="h-5 bg-slate-200 rounded w-36"></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div>
+          <div className="h-6 bg-slate-200 rounded w-32 mb-3"></div>
+          <div className="h-20 bg-slate-200 rounded"></div>
+        </div>
+        <div className="flex justify-between pt-4 border-t border-slate-200">
+          <div className="flex gap-3">
+            <div className="h-10 bg-slate-200 rounded w-32"></div>
+            <div className="h-10 bg-slate-200 rounded w-32"></div>
+          </div>
+          <div className="flex gap-3">
+            <div className="h-10 bg-slate-200 rounded w-24"></div>
+            <div className="h-10 bg-slate-200 rounded w-28"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
 export default function AppointmentView() {
   const [appointmentData, setAppointmentData] = useState<AppointmentResponse>({});
   const [searchTerm, setSearchTerm] = useState('');
@@ -97,6 +226,17 @@ export default function AppointmentView() {
   const [editableAppointment, setEditableAppointment] = useState<EditableAppointment | null>(null);
   const [saving, setSaving] = useState(false);
   const router = useRouter();
+
+  // Get display notes - use referral reason if notes are null/empty
+  const getDisplayNotes = (appointment: Appointment) => {
+    if (appointment.notes && appointment.notes.trim() !== '') {
+      return appointment.notes;
+    }
+    if (appointment.referral_info?.reason) {
+      return `Referral: ${appointment.referral_info.reason}`;
+    }
+    return 'No notes';
+  };
 
   // Fetch appointments from backend
   useEffect(() => {
@@ -589,9 +729,6 @@ export default function AppointmentView() {
                 <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">ID</th>
                 <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Patient</th>
                 <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Doctor</th>
-                {showDoctorType && (
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Type</th>
-                )}
                 <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Date & Time</th>
                 <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Status</th>
                 <th className="text-left px-6 py-4 text-xs font-semibold text-slate-700 uppercase tracking-wider">Appointment Type</th>
@@ -610,7 +747,7 @@ export default function AppointmentView() {
                 appointments.map((appointment) => {
                   const { date, time } = formatDateTime(appointment.appointment_date);
                   const isExpanded = expandedNotes.includes(appointment.id);
-                  const notes = appointment.notes || 'No notes';
+                  const notes = getDisplayNotes(appointment);
                   const shortNotes = notes.length > 40
                     ? notes.substring(0, 40) + '...'
                     : notes;
@@ -644,17 +781,6 @@ export default function AppointmentView() {
                           </div>
                         )}
                       </td>
-                      {showDoctorType && (
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            canPerformActions 
-                              ? 'bg-blue-100 text-blue-700 border border-blue-200' 
-                              : 'bg-green-100 text-green-700 border border-green-200'
-                          }`}>
-                            {canPerformActions ? 'My Patient' : 'Other Doctor'}
-                          </span>
-                        </td>
-                      )}
                       <td className="px-6 py-4">
                         <div>
                           <div className="text-sm font-medium text-slate-900">{date}</div>
@@ -891,7 +1017,7 @@ export default function AppointmentView() {
               ) : (
                 <div className="bg-slate-50 rounded-lg p-4">
                   <p className="text-slate-700">
-                    {selectedAppointment.notes || 'No notes provided for this appointment.'}
+                    {getDisplayNotes(selectedAppointment)}
                   </p>
                 </div>
               )}
@@ -1096,10 +1222,13 @@ export default function AppointmentView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Loading appointments...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-8">
+        <div className="max-w-[1800px] mx-auto">
+          <SkeletonHeader />
+          <SkeletonTabs />
+          <SkeletonSearch />
+          <SkeletonTable rows={5} showDoctorType={currentUser?.role === 'doctor'} />
+          <SkeletonTable rows={3} showDoctorType={currentUser?.role === 'doctor'} />
         </div>
       </div>
     );
@@ -1216,7 +1345,7 @@ export default function AppointmentView() {
         )}
 
         {/* Appointment Summary Modal */}
-        {isSummaryModalOpen && <AppointmentSummaryModal />}
+        {isSummaryModalOpen && (loading ? <SkeletonModal /> : <AppointmentSummaryModal />)}
       </div>
     </div>
   );

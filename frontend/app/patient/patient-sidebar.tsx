@@ -81,7 +81,7 @@ export function PatientSidebar() {
               </SidebarMenuItem>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <Link href="/register">
+                  <Link href="/patient/patient-register">
                     <Hospital/>
                     <span>Register</span>
                   </Link>

@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect } from 'react';
-import { Edit2, Trash2, ArrowRight, Search, Eye, EyeOff, Calendar, User } from 'lucide-react';
+import {Trash2, ArrowRight, Search, Eye, EyeOff, Calendar, User } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 interface Appointment {
@@ -63,6 +63,77 @@ interface UserData {
   last_name: string;
   email: string;
 }
+
+// Skeleton Loading Components
+const SkeletonTable = ({ rows = 5, showDoctorType = false }: { rows?: number; showDoctorType?: boolean }) => {
+  return (
+    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-6 animate-pulse">
+      <div className="bg-gradient-to-r from-slate-50 to-slate-100 px-6 py-4 border-b border-slate-200">
+        <div className="h-6 bg-slate-200 rounded w-48"></div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full">
+          <thead>
+            <tr className="bg-slate-50 border-b border-slate-200">
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-16"></div></th>
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-20"></div></th>
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-20"></div></th>
+              {showDoctorType && <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-16"></div></th>}
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-24"></div></th>
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-16"></div></th>
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-28"></div></th>
+              <th className="text-left px-6 py-4"><div className="h-4 bg-slate-200 rounded w-20"></div></th>
+              <th className="text-center px-6 py-4"><div className="h-4 bg-slate-200 rounded w-16 mx-auto"></div></th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-100">
+            {Array.from({ length: rows }).map((_, index) => (
+              <tr key={index}>
+                <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-12"></div></td>
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-slate-200 rounded w-32 mb-2"></div>
+                  <div className="h-3 bg-slate-200 rounded w-24"></div>
+                </td>
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-slate-200 rounded w-28 mb-2"></div>
+                  <div className="h-3 bg-slate-200 rounded w-20"></div>
+                </td>
+                {showDoctorType && <td className="px-6 py-4"><div className="h-6 bg-slate-200 rounded w-20"></div></td>}
+                <td className="px-6 py-4">
+                  <div className="h-4 bg-slate-200 rounded w-24 mb-2"></div>
+                  <div className="h-3 bg-slate-200 rounded w-16"></div>
+                </td>
+                <td className="px-6 py-4"><div className="h-6 bg-slate-200 rounded w-20"></div></td>
+                <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-24"></div></td>
+                <td className="px-6 py-4"><div className="h-4 bg-slate-200 rounded w-32"></div></td>
+                <td className="px-6 py-4">
+                  <div className="flex justify-center gap-2">
+                    <div className="h-8 w-8 bg-slate-200 rounded"></div>
+                    <div className="h-8 w-8 bg-slate-200 rounded"></div>
+                    <div className="h-8 w-8 bg-slate-200 rounded"></div>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const SkeletonHeader = () => (
+  <div className="mb-8 animate-pulse">
+    <div className="h-8 bg-slate-200 rounded w-1/3 mb-2"></div>
+    <div className="h-4 bg-slate-200 rounded w-1/2"></div>
+  </div>
+);
+
+const SkeletonSearch = () => (
+  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6 animate-pulse">
+    <div className="h-12 bg-slate-200 rounded"></div>
+  </div>
+);
 
 export default function AppointmentView() {
   const [appointmentData, setAppointmentData] = useState<AppointmentResponse>({});
@@ -137,6 +208,17 @@ export default function AppointmentView() {
 
     fetchCurrentUser();
   }, []);
+
+  // Get display notes - use referral reason if notes are null/empty
+  const getDisplayNotes = (appointment: Appointment) => {
+    if (appointment.notes && appointment.notes.trim() !== '') {
+      return appointment.notes;
+    }
+    if (appointment.referral_info?.reason) {
+      return `Referral: ${appointment.referral_info.reason}`;
+    }
+    return 'No notes';
+  };
 
   // SIMPLIFIED PERMISSION CHECK - Always show actions for on-call doctors
   const canUserEditAppointment = (appointment: Appointment) => {
@@ -492,7 +574,7 @@ export default function AppointmentView() {
                 appointments.map((appointment) => {
                   const { date, time } = formatDateTime(appointment.appointment_date);
                   const isExpanded = expandedNotes.includes(appointment.id);
-                  const notes = appointment.notes || 'No notes';
+                  const notes = getDisplayNotes(appointment);
                   const shortNotes = notes.length > 40
                     ? notes.substring(0, 40) + '...'
                     : notes;
@@ -574,16 +656,6 @@ export default function AppointmentView() {
                               {appointment.status === 'Scheduled' && (
                                 <>
                                   <button
-                                    onClick={() => handleEdit(appointment)}
-                                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors group relative"
-                                    title="Edit"
-                                  >
-                                    <Edit2 className="w-4 h-4" />
-                                    <span className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                      Edit
-                                    </span>
-                                  </button>
-                                  <button
                                     onClick={() => handleProceed(appointment.patient, appointment.id)}
                                     className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors group relative"
                                     title="Proceed to Treatment"
@@ -641,10 +713,12 @@ export default function AppointmentView() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-8 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-slate-600">Loading appointments...</p>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-slate-100 p-8">
+        <div className="max-w-[1800px] mx-auto">
+          <SkeletonHeader />
+          <SkeletonSearch />
+          <SkeletonTable rows={5} showDoctorType={currentUser?.role === 'doctor'} />
+          <SkeletonTable rows={3} showDoctorType={currentUser?.role === 'doctor'} />
         </div>
       </div>
     );

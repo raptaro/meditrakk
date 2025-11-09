@@ -28,7 +28,7 @@ class Appointment(models.Model):
         blank=True,       # allow empty forms
         related_name='scheduled_appointments'
     )
-    appointment_type = models.CharField(max_length=20, choices=APPOINTMENT_TYPES, default='patient_request')
+    appointment_type = models.CharField(max_length=20, choices=APPOINTMENT_TYPES, default='clinic_scheduled')
     appointment_date = models.DateTimeField()
     status = models.CharField(max_length=20, choices=STATUS, default='PendingPayment')
     notes = models.TextField(max_length=250, blank=True, null=True)

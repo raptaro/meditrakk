@@ -23,7 +23,7 @@ from appointment.models import AppointmentReferral, Appointment
 from .utils import compute_queue_snapshot
 
 class PatientRegistrationQueue(APIView):
-    permission_classes = [isSecretary]
+    permission_classes = []
 
     def get(self, request):
         try:
@@ -36,7 +36,7 @@ class PatientRegistrationQueue(APIView):
 
 # display patient assessment queue
 class PreliminaryAssessmentQueue(APIView):
-    permission_classes = [isSecretary]
+    permission_classes = []
     def get(self, request):
         table_name = 'queueing_temporarystoragequeue'
 
