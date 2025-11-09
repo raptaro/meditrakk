@@ -3,7 +3,7 @@ import { MedicineBatchColumns } from "../medicine-batch-columns";
 import { AddMedicineBatch } from "./add-medicine-batch";
 import { DataTable } from "@/components/ui/data-table";
 
-export default async function MedicineList() {
+export default async function MedicineBatch() {
   const medicineBatches = await prisma.medicineBatch.findMany();
 
   return (
