@@ -126,6 +126,7 @@ exports.Prisma.UserScalarFieldEnum = {
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   name: 'name',
+  email: 'email',
   role: 'role'
 };
 
@@ -219,6 +220,7 @@ exports.Prisma.DoctorScalarFieldEnum = {
   updatedAt: 'updatedAt',
   archived: 'archived',
   userId: 'userId',
+  name: 'name',
   field: 'field'
 };
 
