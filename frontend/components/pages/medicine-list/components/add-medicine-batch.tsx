@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useEffect } from "react";
 import { Plus } from "lucide-react";
-import { addMedicineBatch } from "@/actions";
+import { addMedicineBatch } from "@/actions/medicine";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
