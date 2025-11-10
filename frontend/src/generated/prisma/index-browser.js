@@ -242,12 +242,12 @@ exports.Prisma.MedicineTypeScalarFieldEnum = {
 
 exports.Prisma.MedicineBatchScalarFieldEnum = {
   id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
   medicineId: 'medicineId',
   batchNumber: 'batchNumber',
-  expiryDate: 'expiryDate',
   quantity: 'quantity',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  expiryDate: 'expiryDate'
 };
 
 exports.Prisma.PrescriptionScalarFieldEnum = {
@@ -257,7 +257,8 @@ exports.Prisma.PrescriptionScalarFieldEnum = {
   patientId: 'patientId',
   doctorId: 'doctorId',
   medicineId: 'medicineId',
-  dosage: 'dosage',
+  quantity: 'quantity',
+  frequency: 'frequency',
   duration: 'duration'
 };
 
