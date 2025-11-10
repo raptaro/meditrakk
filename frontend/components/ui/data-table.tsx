@@ -10,6 +10,7 @@ import {
   getSortedRowModel,
   useReactTable,
   InitialTableState,
+  PaginationState,
 } from "@tanstack/react-table";
 
 import {
@@ -40,6 +41,11 @@ export function DataTable<TData, TValue>({
     initialState?.sorting || []
   );
 
+  const [pagination, setPagination] = React.useState<PaginationState>({
+    pageIndex: initialState?.pagination?.pageIndex ?? 0,
+    pageSize: initialState?.pagination?.pageSize ?? 10,
+  });
+
   const table = useReactTable({
     data,
     columns,
@@ -48,12 +54,10 @@ export function DataTable<TData, TValue>({
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
+    onPaginationChange: setPagination,
     state: {
       sorting,
-      pagination: {
-        pageIndex: initialState?.pagination?.pageIndex ?? 0,
-        pageSize: initialState?.pagination?.pageSize ?? 10,
-      },
+      pagination,
     },
   });
 
@@ -65,21 +69,25 @@ export function DataTable<TData, TValue>({
           <Input
             placeholder="Search Name"
             value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-            onChange={(event) =>
-              table.getColumn("name")?.setFilterValue(event.target.value)
-            }
+            onChange={(event) => {
+              table.getColumn("name")?.setFilterValue(event.target.value);
+              setPagination((prev) => ({ ...prev, pageIndex: 0 }));
+            }}
             className="max-w-40 rounded-[10px]"
           />
         </div>
       </div>
 
       <div className="overflow-hidden rounded-md border">
-        <Table>
+        <Table className="w-full table-fixed">
           <TableHeader className="bg-muted">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className="max-w-[200px] break-words"
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -91,7 +99,6 @@ export function DataTable<TData, TValue>({
               </TableRow>
             ))}
           </TableHeader>
-
           <TableBody>
             {table.getRowModel().rows.length ? (
               table.getRowModel().rows.map((row) => (
@@ -100,7 +107,11 @@ export function DataTable<TData, TValue>({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className="max-w-[200px] break-words"
+                      title={cell.getValue() as string}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
