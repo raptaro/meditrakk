@@ -1,9 +1,4 @@
-export interface CustomHelpProps {
-  title: string;
-  content: string;
-}
-
-export interface CustomSelectProps {
-  title: string;
-  items: string[];
+export interface Secretary {
+  id: string;
+  name: string;
 }
