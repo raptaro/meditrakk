@@ -7,8 +7,6 @@ export type User = {
   email: string;
   first_name: string;
   last_name: string;
-  role: "admin" | "doctor" | "secretary";
-  is_active?: boolean;
 };
 
 export const columns: ColumnDef<User>[] = [
@@ -23,13 +21,5 @@ export const columns: ColumnDef<User>[] = [
   {
     accessorKey: "email",
     header: "Email",
-  },
-  {
-    accessorKey: "role",
-    header: "Role",
-  },
-  {
-    accessorKey: "is_active",
-    header: "Active",
   },
 ];

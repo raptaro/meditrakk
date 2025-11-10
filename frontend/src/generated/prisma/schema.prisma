@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client-js"
-  output   = "./generated/prisma"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -170,7 +170,7 @@ model Appointment {
 
 model MedicineType {
   id       String @id @default(cuid())
-  name     String
+  name     String @unique
   form     String
   strength String
 
