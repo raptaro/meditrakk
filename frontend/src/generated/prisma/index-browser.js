@@ -264,6 +264,14 @@ exports.Prisma.PrescriptionScalarFieldEnum = {
   duration: 'duration'
 };
 
+exports.Prisma.SecretaryScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  archived: 'archived',
+  name: 'name'
+};
+
 exports.Prisma.PostScalarFieldEnum = {
   id: 'id',
   createdAt: 'createdAt',
@@ -319,6 +327,7 @@ exports.Prisma.ModelName = {
   MedicineType: 'MedicineType',
   MedicineBatch: 'MedicineBatch',
   Prescription: 'Prescription',
+  Secretary: 'Secretary',
   Post: 'Post'
 };
 

@@ -74,6 +74,11 @@ export type MedicineBatch = $Result.DefaultSelection<Prisma.$MedicineBatchPayloa
  */
 export type Prescription = $Result.DefaultSelection<Prisma.$PrescriptionPayload>
 /**
+ * Model Secretary
+ * 
+ */
+export type Secretary = $Result.DefaultSelection<Prisma.$SecretaryPayload>
+/**
  * Model Post
  * 
  */
@@ -335,6 +340,16 @@ export class PrismaClient<
     * ```
     */
   get prescription(): Prisma.PrescriptionDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.secretary`: Exposes CRUD operations for the **Secretary** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Secretaries
+    * const secretaries = await prisma.secretary.findMany()
+    * ```
+    */
+  get secretary(): Prisma.SecretaryDelegate<ExtArgs, ClientOptions>;
 
   /**
    * `prisma.post`: Exposes CRUD operations for the **Post** model.
@@ -798,6 +813,7 @@ export namespace Prisma {
     MedicineType: 'MedicineType',
     MedicineBatch: 'MedicineBatch',
     Prescription: 'Prescription',
+    Secretary: 'Secretary',
     Post: 'Post'
   };
 
@@ -817,7 +833,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "user" | "patient" | "patientVisit" | "assessment" | "treatment" | "followUp" | "medicalRecord" | "doctor" | "appointment" | "medicineType" | "medicineBatch" | "prescription" | "post"
+      modelProps: "user" | "patient" | "patientVisit" | "assessment" | "treatment" | "followUp" | "medicalRecord" | "doctor" | "appointment" | "medicineType" | "medicineBatch" | "prescription" | "secretary" | "post"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1709,6 +1725,80 @@ export namespace Prisma {
           }
         }
       }
+      Secretary: {
+        payload: Prisma.$SecretaryPayload<ExtArgs>
+        fields: Prisma.SecretaryFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.SecretaryFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecretaryPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.SecretaryFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecretaryPayload>
+          }
+          findFirst: {
+            args: Prisma.SecretaryFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecretaryPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.SecretaryFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecretaryPayload>
+          }
+          findMany: {
+            args: Prisma.SecretaryFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecretaryPayload>[]
+          }
+          create: {
+            args: Prisma.SecretaryCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecretaryPayload>
+          }
+          createMany: {
+            args: Prisma.SecretaryCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.SecretaryCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecretaryPayload>[]
+          }
+          delete: {
+            args: Prisma.SecretaryDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecretaryPayload>
+          }
+          update: {
+            args: Prisma.SecretaryUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecretaryPayload>
+          }
+          deleteMany: {
+            args: Prisma.SecretaryDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.SecretaryUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.SecretaryUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecretaryPayload>[]
+          }
+          upsert: {
+            args: Prisma.SecretaryUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$SecretaryPayload>
+          }
+          aggregate: {
+            args: Prisma.SecretaryAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateSecretary>
+          }
+          groupBy: {
+            args: Prisma.SecretaryGroupByArgs<ExtArgs>
+            result: $Utils.Optional<SecretaryGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.SecretaryCountArgs<ExtArgs>
+            result: $Utils.Optional<SecretaryCountAggregateOutputType> | number
+          }
+        }
+      }
       Post: {
         payload: Prisma.$PostPayload<ExtArgs>
         fields: Prisma.PostFieldRefs
@@ -1891,6 +1981,7 @@ export namespace Prisma {
     medicineType?: MedicineTypeOmit
     medicineBatch?: MedicineBatchOmit
     prescription?: PrescriptionOmit
+    secretary?: SecretaryOmit
     post?: PostOmit
   }
 
@@ -16208,6 +16299,1001 @@ export namespace Prisma {
 
 
   /**
+   * Model Secretary
+   */
+
+  export type AggregateSecretary = {
+    _count: SecretaryCountAggregateOutputType | null
+    _min: SecretaryMinAggregateOutputType | null
+    _max: SecretaryMaxAggregateOutputType | null
+  }
+
+  export type SecretaryMinAggregateOutputType = {
+    id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    archived: boolean | null
+    name: string | null
+  }
+
+  export type SecretaryMaxAggregateOutputType = {
+    id: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+    archived: boolean | null
+    name: string | null
+  }
+
+  export type SecretaryCountAggregateOutputType = {
+    id: number
+    createdAt: number
+    updatedAt: number
+    archived: number
+    name: number
+    _all: number
+  }
+
+
+  export type SecretaryMinAggregateInputType = {
+    id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
+    name?: true
+  }
+
+  export type SecretaryMaxAggregateInputType = {
+    id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
+    name?: true
+  }
+
+  export type SecretaryCountAggregateInputType = {
+    id?: true
+    createdAt?: true
+    updatedAt?: true
+    archived?: true
+    name?: true
+    _all?: true
+  }
+
+  export type SecretaryAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Secretary to aggregate.
+     */
+    where?: SecretaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Secretaries to fetch.
+     */
+    orderBy?: SecretaryOrderByWithRelationInput | SecretaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: SecretaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Secretaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Secretaries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Secretaries
+    **/
+    _count?: true | SecretaryCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: SecretaryMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: SecretaryMaxAggregateInputType
+  }
+
+  export type GetSecretaryAggregateType<T extends SecretaryAggregateArgs> = {
+        [P in keyof T & keyof AggregateSecretary]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateSecretary[P]>
+      : GetScalarType<T[P], AggregateSecretary[P]>
+  }
+
+
+
+
+  export type SecretaryGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: SecretaryWhereInput
+    orderBy?: SecretaryOrderByWithAggregationInput | SecretaryOrderByWithAggregationInput[]
+    by: SecretaryScalarFieldEnum[] | SecretaryScalarFieldEnum
+    having?: SecretaryScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: SecretaryCountAggregateInputType | true
+    _min?: SecretaryMinAggregateInputType
+    _max?: SecretaryMaxAggregateInputType
+  }
+
+  export type SecretaryGroupByOutputType = {
+    id: string
+    createdAt: Date
+    updatedAt: Date
+    archived: boolean
+    name: string
+    _count: SecretaryCountAggregateOutputType | null
+    _min: SecretaryMinAggregateOutputType | null
+    _max: SecretaryMaxAggregateOutputType | null
+  }
+
+  type GetSecretaryGroupByPayload<T extends SecretaryGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<SecretaryGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof SecretaryGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], SecretaryGroupByOutputType[P]>
+            : GetScalarType<T[P], SecretaryGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type SecretarySelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
+    name?: boolean
+  }, ExtArgs["result"]["secretary"]>
+
+  export type SecretarySelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
+    name?: boolean
+  }, ExtArgs["result"]["secretary"]>
+
+  export type SecretarySelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
+    name?: boolean
+  }, ExtArgs["result"]["secretary"]>
+
+  export type SecretarySelectScalar = {
+    id?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    archived?: boolean
+    name?: boolean
+  }
+
+  export type SecretaryOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "archived" | "name", ExtArgs["result"]["secretary"]>
+
+  export type $SecretaryPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Secretary"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      createdAt: Date
+      updatedAt: Date
+      archived: boolean
+      name: string
+    }, ExtArgs["result"]["secretary"]>
+    composites: {}
+  }
+
+  type SecretaryGetPayload<S extends boolean | null | undefined | SecretaryDefaultArgs> = $Result.GetResult<Prisma.$SecretaryPayload, S>
+
+  type SecretaryCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<SecretaryFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: SecretaryCountAggregateInputType | true
+    }
+
+  export interface SecretaryDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Secretary'], meta: { name: 'Secretary' } }
+    /**
+     * Find zero or one Secretary that matches the filter.
+     * @param {SecretaryFindUniqueArgs} args - Arguments to find a Secretary
+     * @example
+     * // Get one Secretary
+     * const secretary = await prisma.secretary.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends SecretaryFindUniqueArgs>(args: SelectSubset<T, SecretaryFindUniqueArgs<ExtArgs>>): Prisma__SecretaryClient<$Result.GetResult<Prisma.$SecretaryPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Secretary that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {SecretaryFindUniqueOrThrowArgs} args - Arguments to find a Secretary
+     * @example
+     * // Get one Secretary
+     * const secretary = await prisma.secretary.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends SecretaryFindUniqueOrThrowArgs>(args: SelectSubset<T, SecretaryFindUniqueOrThrowArgs<ExtArgs>>): Prisma__SecretaryClient<$Result.GetResult<Prisma.$SecretaryPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Secretary that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecretaryFindFirstArgs} args - Arguments to find a Secretary
+     * @example
+     * // Get one Secretary
+     * const secretary = await prisma.secretary.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends SecretaryFindFirstArgs>(args?: SelectSubset<T, SecretaryFindFirstArgs<ExtArgs>>): Prisma__SecretaryClient<$Result.GetResult<Prisma.$SecretaryPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Secretary that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecretaryFindFirstOrThrowArgs} args - Arguments to find a Secretary
+     * @example
+     * // Get one Secretary
+     * const secretary = await prisma.secretary.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends SecretaryFindFirstOrThrowArgs>(args?: SelectSubset<T, SecretaryFindFirstOrThrowArgs<ExtArgs>>): Prisma__SecretaryClient<$Result.GetResult<Prisma.$SecretaryPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Secretaries that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecretaryFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Secretaries
+     * const secretaries = await prisma.secretary.findMany()
+     * 
+     * // Get first 10 Secretaries
+     * const secretaries = await prisma.secretary.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const secretaryWithIdOnly = await prisma.secretary.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends SecretaryFindManyArgs>(args?: SelectSubset<T, SecretaryFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SecretaryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Secretary.
+     * @param {SecretaryCreateArgs} args - Arguments to create a Secretary.
+     * @example
+     * // Create one Secretary
+     * const Secretary = await prisma.secretary.create({
+     *   data: {
+     *     // ... data to create a Secretary
+     *   }
+     * })
+     * 
+     */
+    create<T extends SecretaryCreateArgs>(args: SelectSubset<T, SecretaryCreateArgs<ExtArgs>>): Prisma__SecretaryClient<$Result.GetResult<Prisma.$SecretaryPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Secretaries.
+     * @param {SecretaryCreateManyArgs} args - Arguments to create many Secretaries.
+     * @example
+     * // Create many Secretaries
+     * const secretary = await prisma.secretary.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends SecretaryCreateManyArgs>(args?: SelectSubset<T, SecretaryCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Secretaries and returns the data saved in the database.
+     * @param {SecretaryCreateManyAndReturnArgs} args - Arguments to create many Secretaries.
+     * @example
+     * // Create many Secretaries
+     * const secretary = await prisma.secretary.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Secretaries and only return the `id`
+     * const secretaryWithIdOnly = await prisma.secretary.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends SecretaryCreateManyAndReturnArgs>(args?: SelectSubset<T, SecretaryCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SecretaryPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Secretary.
+     * @param {SecretaryDeleteArgs} args - Arguments to delete one Secretary.
+     * @example
+     * // Delete one Secretary
+     * const Secretary = await prisma.secretary.delete({
+     *   where: {
+     *     // ... filter to delete one Secretary
+     *   }
+     * })
+     * 
+     */
+    delete<T extends SecretaryDeleteArgs>(args: SelectSubset<T, SecretaryDeleteArgs<ExtArgs>>): Prisma__SecretaryClient<$Result.GetResult<Prisma.$SecretaryPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Secretary.
+     * @param {SecretaryUpdateArgs} args - Arguments to update one Secretary.
+     * @example
+     * // Update one Secretary
+     * const secretary = await prisma.secretary.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends SecretaryUpdateArgs>(args: SelectSubset<T, SecretaryUpdateArgs<ExtArgs>>): Prisma__SecretaryClient<$Result.GetResult<Prisma.$SecretaryPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Secretaries.
+     * @param {SecretaryDeleteManyArgs} args - Arguments to filter Secretaries to delete.
+     * @example
+     * // Delete a few Secretaries
+     * const { count } = await prisma.secretary.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends SecretaryDeleteManyArgs>(args?: SelectSubset<T, SecretaryDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Secretaries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecretaryUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Secretaries
+     * const secretary = await prisma.secretary.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends SecretaryUpdateManyArgs>(args: SelectSubset<T, SecretaryUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Secretaries and returns the data updated in the database.
+     * @param {SecretaryUpdateManyAndReturnArgs} args - Arguments to update many Secretaries.
+     * @example
+     * // Update many Secretaries
+     * const secretary = await prisma.secretary.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Secretaries and only return the `id`
+     * const secretaryWithIdOnly = await prisma.secretary.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends SecretaryUpdateManyAndReturnArgs>(args: SelectSubset<T, SecretaryUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SecretaryPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Secretary.
+     * @param {SecretaryUpsertArgs} args - Arguments to update or create a Secretary.
+     * @example
+     * // Update or create a Secretary
+     * const secretary = await prisma.secretary.upsert({
+     *   create: {
+     *     // ... data to create a Secretary
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Secretary we want to update
+     *   }
+     * })
+     */
+    upsert<T extends SecretaryUpsertArgs>(args: SelectSubset<T, SecretaryUpsertArgs<ExtArgs>>): Prisma__SecretaryClient<$Result.GetResult<Prisma.$SecretaryPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Secretaries.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecretaryCountArgs} args - Arguments to filter Secretaries to count.
+     * @example
+     * // Count the number of Secretaries
+     * const count = await prisma.secretary.count({
+     *   where: {
+     *     // ... the filter for the Secretaries we want to count
+     *   }
+     * })
+    **/
+    count<T extends SecretaryCountArgs>(
+      args?: Subset<T, SecretaryCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], SecretaryCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Secretary.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecretaryAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends SecretaryAggregateArgs>(args: Subset<T, SecretaryAggregateArgs>): Prisma.PrismaPromise<GetSecretaryAggregateType<T>>
+
+    /**
+     * Group by Secretary.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {SecretaryGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends SecretaryGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: SecretaryGroupByArgs['orderBy'] }
+        : { orderBy?: SecretaryGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, SecretaryGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetSecretaryGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Secretary model
+   */
+  readonly fields: SecretaryFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Secretary.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__SecretaryClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Secretary model
+   */
+  interface SecretaryFieldRefs {
+    readonly id: FieldRef<"Secretary", 'String'>
+    readonly createdAt: FieldRef<"Secretary", 'DateTime'>
+    readonly updatedAt: FieldRef<"Secretary", 'DateTime'>
+    readonly archived: FieldRef<"Secretary", 'Boolean'>
+    readonly name: FieldRef<"Secretary", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Secretary findUnique
+   */
+  export type SecretaryFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+    /**
+     * Filter, which Secretary to fetch.
+     */
+    where: SecretaryWhereUniqueInput
+  }
+
+  /**
+   * Secretary findUniqueOrThrow
+   */
+  export type SecretaryFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+    /**
+     * Filter, which Secretary to fetch.
+     */
+    where: SecretaryWhereUniqueInput
+  }
+
+  /**
+   * Secretary findFirst
+   */
+  export type SecretaryFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+    /**
+     * Filter, which Secretary to fetch.
+     */
+    where?: SecretaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Secretaries to fetch.
+     */
+    orderBy?: SecretaryOrderByWithRelationInput | SecretaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Secretaries.
+     */
+    cursor?: SecretaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Secretaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Secretaries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Secretaries.
+     */
+    distinct?: SecretaryScalarFieldEnum | SecretaryScalarFieldEnum[]
+  }
+
+  /**
+   * Secretary findFirstOrThrow
+   */
+  export type SecretaryFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+    /**
+     * Filter, which Secretary to fetch.
+     */
+    where?: SecretaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Secretaries to fetch.
+     */
+    orderBy?: SecretaryOrderByWithRelationInput | SecretaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Secretaries.
+     */
+    cursor?: SecretaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Secretaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Secretaries.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Secretaries.
+     */
+    distinct?: SecretaryScalarFieldEnum | SecretaryScalarFieldEnum[]
+  }
+
+  /**
+   * Secretary findMany
+   */
+  export type SecretaryFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+    /**
+     * Filter, which Secretaries to fetch.
+     */
+    where?: SecretaryWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Secretaries to fetch.
+     */
+    orderBy?: SecretaryOrderByWithRelationInput | SecretaryOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Secretaries.
+     */
+    cursor?: SecretaryWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Secretaries from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Secretaries.
+     */
+    skip?: number
+    distinct?: SecretaryScalarFieldEnum | SecretaryScalarFieldEnum[]
+  }
+
+  /**
+   * Secretary create
+   */
+  export type SecretaryCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+    /**
+     * The data needed to create a Secretary.
+     */
+    data: XOR<SecretaryCreateInput, SecretaryUncheckedCreateInput>
+  }
+
+  /**
+   * Secretary createMany
+   */
+  export type SecretaryCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Secretaries.
+     */
+    data: SecretaryCreateManyInput | SecretaryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Secretary createManyAndReturn
+   */
+  export type SecretaryCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+    /**
+     * The data used to create many Secretaries.
+     */
+    data: SecretaryCreateManyInput | SecretaryCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Secretary update
+   */
+  export type SecretaryUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+    /**
+     * The data needed to update a Secretary.
+     */
+    data: XOR<SecretaryUpdateInput, SecretaryUncheckedUpdateInput>
+    /**
+     * Choose, which Secretary to update.
+     */
+    where: SecretaryWhereUniqueInput
+  }
+
+  /**
+   * Secretary updateMany
+   */
+  export type SecretaryUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Secretaries.
+     */
+    data: XOR<SecretaryUpdateManyMutationInput, SecretaryUncheckedUpdateManyInput>
+    /**
+     * Filter which Secretaries to update
+     */
+    where?: SecretaryWhereInput
+    /**
+     * Limit how many Secretaries to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Secretary updateManyAndReturn
+   */
+  export type SecretaryUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+    /**
+     * The data used to update Secretaries.
+     */
+    data: XOR<SecretaryUpdateManyMutationInput, SecretaryUncheckedUpdateManyInput>
+    /**
+     * Filter which Secretaries to update
+     */
+    where?: SecretaryWhereInput
+    /**
+     * Limit how many Secretaries to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Secretary upsert
+   */
+  export type SecretaryUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+    /**
+     * The filter to search for the Secretary to update in case it exists.
+     */
+    where: SecretaryWhereUniqueInput
+    /**
+     * In case the Secretary found by the `where` argument doesn't exist, create a new Secretary with this data.
+     */
+    create: XOR<SecretaryCreateInput, SecretaryUncheckedCreateInput>
+    /**
+     * In case the Secretary was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<SecretaryUpdateInput, SecretaryUncheckedUpdateInput>
+  }
+
+  /**
+   * Secretary delete
+   */
+  export type SecretaryDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+    /**
+     * Filter which Secretary to delete.
+     */
+    where: SecretaryWhereUniqueInput
+  }
+
+  /**
+   * Secretary deleteMany
+   */
+  export type SecretaryDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Secretaries to delete
+     */
+    where?: SecretaryWhereInput
+    /**
+     * Limit how many Secretaries to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Secretary without action
+   */
+  export type SecretaryDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Secretary
+     */
+    select?: SecretarySelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Secretary
+     */
+    omit?: SecretaryOmit<ExtArgs> | null
+  }
+
+
+  /**
    * Model Post
    */
 
@@ -17421,6 +18507,17 @@ export namespace Prisma {
   export type PrescriptionScalarFieldEnum = (typeof PrescriptionScalarFieldEnum)[keyof typeof PrescriptionScalarFieldEnum]
 
 
+  export const SecretaryScalarFieldEnum: {
+    id: 'id',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt',
+    archived: 'archived',
+    name: 'name'
+  };
+
+  export type SecretaryScalarFieldEnum = (typeof SecretaryScalarFieldEnum)[keyof typeof SecretaryScalarFieldEnum]
+
+
   export const PostScalarFieldEnum: {
     id: 'id',
     createdAt: 'createdAt',
@@ -18533,6 +19630,58 @@ export namespace Prisma {
     duration?: StringWithAggregatesFilter<"Prescription"> | string
   }
 
+  export type SecretaryWhereInput = {
+    AND?: SecretaryWhereInput | SecretaryWhereInput[]
+    OR?: SecretaryWhereInput[]
+    NOT?: SecretaryWhereInput | SecretaryWhereInput[]
+    id?: StringFilter<"Secretary"> | string
+    createdAt?: DateTimeFilter<"Secretary"> | Date | string
+    updatedAt?: DateTimeFilter<"Secretary"> | Date | string
+    archived?: BoolFilter<"Secretary"> | boolean
+    name?: StringFilter<"Secretary"> | string
+  }
+
+  export type SecretaryOrderByWithRelationInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
+    name?: SortOrder
+  }
+
+  export type SecretaryWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: SecretaryWhereInput | SecretaryWhereInput[]
+    OR?: SecretaryWhereInput[]
+    NOT?: SecretaryWhereInput | SecretaryWhereInput[]
+    createdAt?: DateTimeFilter<"Secretary"> | Date | string
+    updatedAt?: DateTimeFilter<"Secretary"> | Date | string
+    archived?: BoolFilter<"Secretary"> | boolean
+    name?: StringFilter<"Secretary"> | string
+  }, "id">
+
+  export type SecretaryOrderByWithAggregationInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
+    name?: SortOrder
+    _count?: SecretaryCountOrderByAggregateInput
+    _max?: SecretaryMaxOrderByAggregateInput
+    _min?: SecretaryMinOrderByAggregateInput
+  }
+
+  export type SecretaryScalarWhereWithAggregatesInput = {
+    AND?: SecretaryScalarWhereWithAggregatesInput | SecretaryScalarWhereWithAggregatesInput[]
+    OR?: SecretaryScalarWhereWithAggregatesInput[]
+    NOT?: SecretaryScalarWhereWithAggregatesInput | SecretaryScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Secretary"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Secretary"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Secretary"> | Date | string
+    archived?: BoolWithAggregatesFilter<"Secretary"> | boolean
+    name?: StringWithAggregatesFilter<"Secretary"> | string
+  }
+
   export type PostWhereInput = {
     AND?: PostWhereInput | PostWhereInput[]
     OR?: PostWhereInput[]
@@ -19641,6 +20790,62 @@ export namespace Prisma {
     duration?: StringFieldUpdateOperationsInput | string
   }
 
+  export type SecretaryCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
+    name: string
+  }
+
+  export type SecretaryUncheckedCreateInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
+    name: string
+  }
+
+  export type SecretaryUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type SecretaryUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type SecretaryCreateManyInput = {
+    id?: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    archived?: boolean
+    name: string
+  }
+
+  export type SecretaryUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type SecretaryUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    archived?: BoolFieldUpdateOperationsInput | boolean
+    name?: StringFieldUpdateOperationsInput | string
+  }
+
   export type PostCreateInput = {
     id?: string
     createdAt?: Date | string
@@ -20601,6 +21806,30 @@ export namespace Prisma {
 
   export type PrescriptionSumOrderByAggregateInput = {
     quantity?: SortOrder
+  }
+
+  export type SecretaryCountOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
+    name?: SortOrder
+  }
+
+  export type SecretaryMaxOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
+    name?: SortOrder
+  }
+
+  export type SecretaryMinOrderByAggregateInput = {
+    id?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    archived?: SortOrder
+    name?: SortOrder
   }
 
   export type PostCountOrderByAggregateInput = {

@@ -27,3 +27,8 @@ export interface Doctor {
   name: string;
     field: string;
 }
+
+export interface Secretary {
+  id: string;
+  name: string;
+}
