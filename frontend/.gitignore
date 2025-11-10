@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Prisma
+.prisma/client/
+prisma/migrations/
+query_engine-*.dll.node
+query_engine-*.dylib.node
+query_engine-*.so.node
