@@ -18296,15 +18296,15 @@ export namespace Prisma {
 
   export type MedicineTypeWhereUniqueInput = Prisma.AtLeast<{
     id?: string
-    name?: string
     AND?: MedicineTypeWhereInput | MedicineTypeWhereInput[]
     OR?: MedicineTypeWhereInput[]
     NOT?: MedicineTypeWhereInput | MedicineTypeWhereInput[]
+    name?: StringFilter<"MedicineType"> | string
     form?: StringFilter<"MedicineType"> | string
     strength?: StringFilter<"MedicineType"> | string
     medicineBatch?: MedicineBatchListRelationFilter
     prescription?: PrescriptionListRelationFilter
-  }, "id" | "name">
+  }, "id">
 
   export type MedicineTypeOrderByWithAggregationInput = {
     id?: SortOrder

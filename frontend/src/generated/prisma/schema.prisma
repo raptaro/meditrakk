@@ -168,7 +168,7 @@ model Appointment {
 
 model MedicineType {
   id       String @id @default(cuid())
-  name     String @unique
+  name     String
   form     String
   strength String
 

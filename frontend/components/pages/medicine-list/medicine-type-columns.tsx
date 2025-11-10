@@ -22,11 +22,16 @@ export const MedicineColumns: ColumnDef<MedicineTypeWithComputed>[] = [
   {
     accessorKey: "form",
     header: "Form",
+    cell: ({ row }) =>
+      row.original.form?.trim() === "null" ? "-" : row.original.form,
   },
   {
     accessorKey: "strength",
     header: "Strength",
+    cell: ({ row }) =>
+      row.original.strength?.trim() === "null" ? "-" : row.original.strength,
   },
+
   {
     accessorKey: "available_quantity",
     header: ({ column }) => (
