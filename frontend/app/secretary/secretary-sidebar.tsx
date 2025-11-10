@@ -53,8 +53,8 @@ const menu_items = [
     icon: LayoutDashboard,
   },
   {
-    title: "Medicine List",
-    url: "/secretary/medicine-list",
+    title: "Medicine",
+    url: "/secretary/medicine",
     icon: Pill,
   },
   {

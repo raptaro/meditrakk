@@ -1,5 +1,5 @@
 import Help from "@/components/molecules/custom-help";
-import { CustomHelpProps } from "@/app/types";
+import { CustomHelpProps } from "@/app/types/types";
 
 export default function Page() {
   const helpItems: CustomHelpProps[] = [
