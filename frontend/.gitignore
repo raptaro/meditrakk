@@ -40,4 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-/lib/generated/prisma
+# Prisma
+frontend/prisma/generated/prisma
+.prisma/client/
+prisma/migrations/
+query_engine-*.dll.node
+query_engine-*.dylib.node
+query_engine-*.so.node
+
