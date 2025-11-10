@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { SquarePen } from "lucide-react";
-import { editMedicineBatch } from "@/actions"; // make sure this updates a batch
+import { editMedicineBatch } from "@/actions/medicine";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
