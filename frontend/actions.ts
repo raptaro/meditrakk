@@ -59,12 +59,12 @@ export async function editDoctor(doctorId: string, data: { field: string }) {
 }
 
 export async function addDoctor(formData: FormData) {
-  const userId = formData.get("userId") as string;
+  const name = formData.get("name") as string;
   const field = formData.get("field") as string;
 
   await prisma.doctor.create({
     data: {
-      userId,
+      name,
       field,
     },
   });

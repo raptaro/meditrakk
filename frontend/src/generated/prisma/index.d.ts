@@ -2235,6 +2235,7 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     name: string | null
+    email: string | null
     role: string | null
   }
 
@@ -2243,6 +2244,7 @@ export namespace Prisma {
     createdAt: Date | null
     updatedAt: Date | null
     name: string | null
+    email: string | null
     role: string | null
   }
 
@@ -2251,6 +2253,7 @@ export namespace Prisma {
     createdAt: number
     updatedAt: number
     name: number
+    email: number
     role: number
     _all: number
   }
@@ -2261,6 +2264,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     name?: true
+    email?: true
     role?: true
   }
 
@@ -2269,6 +2273,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     name?: true
+    email?: true
     role?: true
   }
 
@@ -2277,6 +2282,7 @@ export namespace Prisma {
     createdAt?: true
     updatedAt?: true
     name?: true
+    email?: true
     role?: true
     _all?: true
   }
@@ -2358,6 +2364,7 @@ export namespace Prisma {
     createdAt: Date
     updatedAt: Date
     name: string
+    email: string
     role: string
     _count: UserCountAggregateOutputType | null
     _min: UserMinAggregateOutputType | null
@@ -2383,6 +2390,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     name?: boolean
+    email?: boolean
     role?: boolean
     patient?: boolean | User$patientArgs<ExtArgs>
     doctor?: boolean | User$doctorArgs<ExtArgs>
@@ -2393,6 +2401,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     name?: boolean
+    email?: boolean
     role?: boolean
   }, ExtArgs["result"]["user"]>
 
@@ -2401,6 +2410,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     name?: boolean
+    email?: boolean
     role?: boolean
   }, ExtArgs["result"]["user"]>
 
@@ -2409,10 +2419,11 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     name?: boolean
+    email?: boolean
     role?: boolean
   }
 
-  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "role", ExtArgs["result"]["user"]>
+  export type UserOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "name" | "email" | "role", ExtArgs["result"]["user"]>
   export type UserInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     patient?: boolean | User$patientArgs<ExtArgs>
     doctor?: boolean | User$doctorArgs<ExtArgs>
@@ -2431,6 +2442,7 @@ export namespace Prisma {
       createdAt: Date
       updatedAt: Date
       name: string
+      email: string
       role: string
     }, ExtArgs["result"]["user"]>
     composites: {}
@@ -2861,6 +2873,7 @@ export namespace Prisma {
     readonly createdAt: FieldRef<"User", 'DateTime'>
     readonly updatedAt: FieldRef<"User", 'DateTime'>
     readonly name: FieldRef<"User", 'String'>
+    readonly email: FieldRef<"User", 'String'>
     readonly role: FieldRef<"User", 'String'>
   }
     
@@ -10581,6 +10594,7 @@ export namespace Prisma {
     updatedAt: Date | null
     archived: boolean | null
     userId: string | null
+    name: string | null
     field: string | null
   }
 
@@ -10590,6 +10604,7 @@ export namespace Prisma {
     updatedAt: Date | null
     archived: boolean | null
     userId: string | null
+    name: string | null
     field: string | null
   }
 
@@ -10599,6 +10614,7 @@ export namespace Prisma {
     updatedAt: number
     archived: number
     userId: number
+    name: number
     field: number
     _all: number
   }
@@ -10610,6 +10626,7 @@ export namespace Prisma {
     updatedAt?: true
     archived?: true
     userId?: true
+    name?: true
     field?: true
   }
 
@@ -10619,6 +10636,7 @@ export namespace Prisma {
     updatedAt?: true
     archived?: true
     userId?: true
+    name?: true
     field?: true
   }
 
@@ -10628,6 +10646,7 @@ export namespace Prisma {
     updatedAt?: true
     archived?: true
     userId?: true
+    name?: true
     field?: true
     _all?: true
   }
@@ -10709,7 +10728,8 @@ export namespace Prisma {
     createdAt: Date
     updatedAt: Date
     archived: boolean
-    userId: string
+    userId: string | null
+    name: string
     field: string
     _count: DoctorCountAggregateOutputType | null
     _min: DoctorMinAggregateOutputType | null
@@ -10736,8 +10756,9 @@ export namespace Prisma {
     updatedAt?: boolean
     archived?: boolean
     userId?: boolean
+    name?: boolean
     field?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Doctor$userArgs<ExtArgs>
     appointment?: boolean | Doctor$appointmentArgs<ExtArgs>
     prescription?: boolean | Doctor$prescriptionArgs<ExtArgs>
     _count?: boolean | DoctorCountOutputTypeDefaultArgs<ExtArgs>
@@ -10749,8 +10770,9 @@ export namespace Prisma {
     updatedAt?: boolean
     archived?: boolean
     userId?: boolean
+    name?: boolean
     field?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Doctor$userArgs<ExtArgs>
   }, ExtArgs["result"]["doctor"]>
 
   export type DoctorSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -10759,8 +10781,9 @@ export namespace Prisma {
     updatedAt?: boolean
     archived?: boolean
     userId?: boolean
+    name?: boolean
     field?: boolean
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Doctor$userArgs<ExtArgs>
   }, ExtArgs["result"]["doctor"]>
 
   export type DoctorSelectScalar = {
@@ -10769,27 +10792,28 @@ export namespace Prisma {
     updatedAt?: boolean
     archived?: boolean
     userId?: boolean
+    name?: boolean
     field?: boolean
   }
 
-  export type DoctorOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "archived" | "userId" | "field", ExtArgs["result"]["doctor"]>
+  export type DoctorOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "createdAt" | "updatedAt" | "archived" | "userId" | "name" | "field", ExtArgs["result"]["doctor"]>
   export type DoctorInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Doctor$userArgs<ExtArgs>
     appointment?: boolean | Doctor$appointmentArgs<ExtArgs>
     prescription?: boolean | Doctor$prescriptionArgs<ExtArgs>
     _count?: boolean | DoctorCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type DoctorIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Doctor$userArgs<ExtArgs>
   }
   export type DoctorIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    user?: boolean | UserDefaultArgs<ExtArgs>
+    user?: boolean | Doctor$userArgs<ExtArgs>
   }
 
   export type $DoctorPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "Doctor"
     objects: {
-      user: Prisma.$UserPayload<ExtArgs>
+      user: Prisma.$UserPayload<ExtArgs> | null
       appointment: Prisma.$AppointmentPayload<ExtArgs>[]
       prescription: Prisma.$PrescriptionPayload<ExtArgs>[]
     }
@@ -10798,7 +10822,8 @@ export namespace Prisma {
       createdAt: Date
       updatedAt: Date
       archived: boolean
-      userId: string
+      userId: string | null
+      name: string
       field: string
     }, ExtArgs["result"]["doctor"]>
     composites: {}
@@ -11194,7 +11219,7 @@ export namespace Prisma {
    */
   export interface Prisma__DoctorClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    user<T extends Doctor$userArgs<ExtArgs> = {}>(args?: Subset<T, Doctor$userArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     appointment<T extends Doctor$appointmentArgs<ExtArgs> = {}>(args?: Subset<T, Doctor$appointmentArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AppointmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     prescription<T extends Doctor$prescriptionArgs<ExtArgs> = {}>(args?: Subset<T, Doctor$prescriptionArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PrescriptionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
@@ -11231,6 +11256,7 @@ export namespace Prisma {
     readonly updatedAt: FieldRef<"Doctor", 'DateTime'>
     readonly archived: FieldRef<"Doctor", 'Boolean'>
     readonly userId: FieldRef<"Doctor", 'String'>
+    readonly name: FieldRef<"Doctor", 'String'>
     readonly field: FieldRef<"Doctor", 'String'>
   }
     
@@ -11625,6 +11651,25 @@ export namespace Prisma {
      * Limit how many Doctors to delete.
      */
     limit?: number
+  }
+
+  /**
+   * Doctor.user
+   */
+  export type Doctor$userArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the User
+     */
+    select?: UserSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the User
+     */
+    omit?: UserOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: UserInclude<ExtArgs> | null
+    where?: UserWhereInput
   }
 
   /**
@@ -17202,6 +17247,7 @@ export namespace Prisma {
     createdAt: 'createdAt',
     updatedAt: 'updatedAt',
     name: 'name',
+    email: 'email',
     role: 'role'
   };
 
@@ -17316,6 +17362,7 @@ export namespace Prisma {
     updatedAt: 'updatedAt',
     archived: 'archived',
     userId: 'userId',
+    name: 'name',
     field: 'field'
   };
 
@@ -17535,6 +17582,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"User"> | Date | string
     updatedAt?: DateTimeFilter<"User"> | Date | string
     name?: StringFilter<"User"> | string
+    email?: StringFilter<"User"> | string
     role?: StringFilter<"User"> | string
     patient?: XOR<PatientNullableScalarRelationFilter, PatientWhereInput> | null
     doctor?: XOR<DoctorNullableScalarRelationFilter, DoctorWhereInput> | null
@@ -17545,6 +17593,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     name?: SortOrder
+    email?: SortOrder
     role?: SortOrder
     patient?: PatientOrderByWithRelationInput
     doctor?: DoctorOrderByWithRelationInput
@@ -17552,6 +17601,7 @@ export namespace Prisma {
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
     id?: string
+    email?: string
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
@@ -17561,13 +17611,14 @@ export namespace Prisma {
     role?: StringFilter<"User"> | string
     patient?: XOR<PatientNullableScalarRelationFilter, PatientWhereInput> | null
     doctor?: XOR<DoctorNullableScalarRelationFilter, DoctorWhereInput> | null
-  }, "id">
+  }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
     id?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     name?: SortOrder
+    email?: SortOrder
     role?: SortOrder
     _count?: UserCountOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -17582,6 +17633,7 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
     name?: StringWithAggregatesFilter<"User"> | string
+    email?: StringWithAggregatesFilter<"User"> | string
     role?: StringWithAggregatesFilter<"User"> | string
   }
 
@@ -18142,9 +18194,10 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Doctor"> | Date | string
     updatedAt?: DateTimeFilter<"Doctor"> | Date | string
     archived?: BoolFilter<"Doctor"> | boolean
-    userId?: StringFilter<"Doctor"> | string
+    userId?: StringNullableFilter<"Doctor"> | string | null
+    name?: StringFilter<"Doctor"> | string
     field?: StringFilter<"Doctor"> | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     appointment?: AppointmentListRelationFilter
     prescription?: PrescriptionListRelationFilter
   }
@@ -18154,7 +18207,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     archived?: SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    name?: SortOrder
     field?: SortOrder
     user?: UserOrderByWithRelationInput
     appointment?: AppointmentOrderByRelationAggregateInput
@@ -18170,8 +18224,9 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"Doctor"> | Date | string
     updatedAt?: DateTimeFilter<"Doctor"> | Date | string
     archived?: BoolFilter<"Doctor"> | boolean
+    name?: StringFilter<"Doctor"> | string
     field?: StringFilter<"Doctor"> | string
-    user?: XOR<UserScalarRelationFilter, UserWhereInput>
+    user?: XOR<UserNullableScalarRelationFilter, UserWhereInput> | null
     appointment?: AppointmentListRelationFilter
     prescription?: PrescriptionListRelationFilter
   }, "id" | "userId">
@@ -18181,7 +18236,8 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     archived?: SortOrder
-    userId?: SortOrder
+    userId?: SortOrderInput | SortOrder
+    name?: SortOrder
     field?: SortOrder
     _count?: DoctorCountOrderByAggregateInput
     _max?: DoctorMaxOrderByAggregateInput
@@ -18196,7 +18252,8 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"Doctor"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Doctor"> | Date | string
     archived?: BoolWithAggregatesFilter<"Doctor"> | boolean
-    userId?: StringWithAggregatesFilter<"Doctor"> | string
+    userId?: StringNullableWithAggregatesFilter<"Doctor"> | string | null
+    name?: StringWithAggregatesFilter<"Doctor"> | string
     field?: StringWithAggregatesFilter<"Doctor"> | string
   }
 
@@ -18543,6 +18600,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     name: string
+    email: string
     role: string
     patient?: PatientCreateNestedOneWithoutUserInput
     doctor?: DoctorCreateNestedOneWithoutUserInput
@@ -18553,6 +18611,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     name: string
+    email: string
     role: string
     patient?: PatientUncheckedCreateNestedOneWithoutUserInput
     doctor?: DoctorUncheckedCreateNestedOneWithoutUserInput
@@ -18563,6 +18622,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     patient?: PatientUpdateOneWithoutUserNestedInput
     doctor?: DoctorUpdateOneWithoutUserNestedInput
@@ -18573,6 +18633,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     patient?: PatientUncheckedUpdateOneWithoutUserNestedInput
     doctor?: DoctorUncheckedUpdateOneWithoutUserNestedInput
@@ -18583,6 +18644,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     name: string
+    email: string
     role: string
   }
 
@@ -18591,6 +18653,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
   }
 
@@ -18599,6 +18662,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
   }
 
@@ -19223,8 +19287,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     archived?: boolean
+    name: string
     field: string
-    user: UserCreateNestedOneWithoutDoctorInput
+    user?: UserCreateNestedOneWithoutDoctorInput
     appointment?: AppointmentCreateNestedManyWithoutDoctorInput
     prescription?: PrescriptionCreateNestedManyWithoutDoctorInput
   }
@@ -19234,7 +19299,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     archived?: boolean
-    userId: string
+    userId?: string | null
+    name: string
     field: string
     appointment?: AppointmentUncheckedCreateNestedManyWithoutDoctorInput
     prescription?: PrescriptionUncheckedCreateNestedManyWithoutDoctorInput
@@ -19245,8 +19311,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     archived?: BoolFieldUpdateOperationsInput | boolean
+    name?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
-    user?: UserUpdateOneRequiredWithoutDoctorNestedInput
+    user?: UserUpdateOneWithoutDoctorNestedInput
     appointment?: AppointmentUpdateManyWithoutDoctorNestedInput
     prescription?: PrescriptionUpdateManyWithoutDoctorNestedInput
   }
@@ -19256,7 +19323,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     archived?: BoolFieldUpdateOperationsInput | boolean
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
     appointment?: AppointmentUncheckedUpdateManyWithoutDoctorNestedInput
     prescription?: PrescriptionUncheckedUpdateManyWithoutDoctorNestedInput
@@ -19267,7 +19335,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     archived?: boolean
-    userId: string
+    userId?: string | null
+    name: string
     field: string
   }
 
@@ -19276,6 +19345,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     archived?: BoolFieldUpdateOperationsInput | boolean
+    name?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
   }
 
@@ -19284,7 +19354,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     archived?: BoolFieldUpdateOperationsInput | boolean
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
   }
 
@@ -19681,6 +19752,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     name?: SortOrder
+    email?: SortOrder
     role?: SortOrder
   }
 
@@ -19689,6 +19761,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     name?: SortOrder
+    email?: SortOrder
     role?: SortOrder
   }
 
@@ -19697,6 +19770,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     name?: SortOrder
+    email?: SortOrder
     role?: SortOrder
   }
 
@@ -20343,17 +20417,13 @@ export namespace Prisma {
     notes?: SortOrder
   }
 
-  export type UserScalarRelationFilter = {
-    is?: UserWhereInput
-    isNot?: UserWhereInput
-  }
-
   export type DoctorCountOrderByAggregateInput = {
     id?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     archived?: SortOrder
     userId?: SortOrder
+    name?: SortOrder
     field?: SortOrder
   }
 
@@ -20363,6 +20433,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     archived?: SortOrder
     userId?: SortOrder
+    name?: SortOrder
     field?: SortOrder
   }
 
@@ -20372,6 +20443,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     archived?: SortOrder
     userId?: SortOrder
+    name?: SortOrder
     field?: SortOrder
   }
 
@@ -21207,10 +21279,12 @@ export namespace Prisma {
     connect?: PrescriptionWhereUniqueInput | PrescriptionWhereUniqueInput[]
   }
 
-  export type UserUpdateOneRequiredWithoutDoctorNestedInput = {
+  export type UserUpdateOneWithoutDoctorNestedInput = {
     create?: XOR<UserCreateWithoutDoctorInput, UserUncheckedCreateWithoutDoctorInput>
     connectOrCreate?: UserCreateOrConnectWithoutDoctorInput
     upsert?: UserUpsertWithoutDoctorInput
+    disconnect?: UserWhereInput | boolean
+    delete?: UserWhereInput | boolean
     connect?: UserWhereUniqueInput
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutDoctorInput, UserUpdateWithoutDoctorInput>, UserUncheckedUpdateWithoutDoctorInput>
   }
@@ -21755,6 +21829,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     archived?: boolean
+    name: string
     field: string
     appointment?: AppointmentCreateNestedManyWithoutDoctorInput
     prescription?: PrescriptionCreateNestedManyWithoutDoctorInput
@@ -21765,6 +21840,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     archived?: boolean
+    name: string
     field: string
     appointment?: AppointmentUncheckedCreateNestedManyWithoutDoctorInput
     prescription?: PrescriptionUncheckedCreateNestedManyWithoutDoctorInput
@@ -21838,6 +21914,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     archived?: BoolFieldUpdateOperationsInput | boolean
+    name?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
     appointment?: AppointmentUpdateManyWithoutDoctorNestedInput
     prescription?: PrescriptionUpdateManyWithoutDoctorNestedInput
@@ -21848,6 +21925,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     archived?: BoolFieldUpdateOperationsInput | boolean
+    name?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
     appointment?: AppointmentUncheckedUpdateManyWithoutDoctorNestedInput
     prescription?: PrescriptionUncheckedUpdateManyWithoutDoctorNestedInput
@@ -21858,6 +21936,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     name: string
+    email: string
     role: string
     doctor?: DoctorCreateNestedOneWithoutUserInput
   }
@@ -21867,6 +21946,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     name: string
+    email: string
     role: string
     doctor?: DoctorUncheckedCreateNestedOneWithoutUserInput
   }
@@ -22102,6 +22182,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     doctor?: DoctorUpdateOneWithoutUserNestedInput
   }
@@ -22111,6 +22192,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     doctor?: DoctorUncheckedUpdateOneWithoutUserNestedInput
   }
@@ -23083,6 +23165,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     name: string
+    email: string
     role: string
     patient?: PatientCreateNestedOneWithoutUserInput
   }
@@ -23092,6 +23175,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     name: string
+    email: string
     role: string
     patient?: PatientUncheckedCreateNestedOneWithoutUserInput
   }
@@ -23179,6 +23263,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     patient?: PatientUpdateOneWithoutUserNestedInput
   }
@@ -23188,6 +23273,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     name?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
     role?: StringFieldUpdateOperationsInput | string
     patient?: PatientUncheckedUpdateOneWithoutUserNestedInput
   }
@@ -23270,8 +23356,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     archived?: boolean
+    name: string
     field: string
-    user: UserCreateNestedOneWithoutDoctorInput
+    user?: UserCreateNestedOneWithoutDoctorInput
     prescription?: PrescriptionCreateNestedManyWithoutDoctorInput
   }
 
@@ -23280,7 +23367,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     archived?: boolean
-    userId: string
+    userId?: string | null
+    name: string
     field: string
     prescription?: PrescriptionUncheckedCreateNestedManyWithoutDoctorInput
   }
@@ -23353,8 +23441,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     archived?: BoolFieldUpdateOperationsInput | boolean
+    name?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
-    user?: UserUpdateOneRequiredWithoutDoctorNestedInput
+    user?: UserUpdateOneWithoutDoctorNestedInput
     prescription?: PrescriptionUpdateManyWithoutDoctorNestedInput
   }
 
@@ -23363,7 +23452,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     archived?: BoolFieldUpdateOperationsInput | boolean
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
     prescription?: PrescriptionUncheckedUpdateManyWithoutDoctorNestedInput
   }
@@ -23567,8 +23657,9 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     archived?: boolean
+    name: string
     field: string
-    user: UserCreateNestedOneWithoutDoctorInput
+    user?: UserCreateNestedOneWithoutDoctorInput
     appointment?: AppointmentCreateNestedManyWithoutDoctorInput
   }
 
@@ -23577,7 +23668,8 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     archived?: boolean
-    userId: string
+    userId?: string | null
+    name: string
     field: string
     appointment?: AppointmentUncheckedCreateNestedManyWithoutDoctorInput
   }
@@ -23671,8 +23763,9 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     archived?: BoolFieldUpdateOperationsInput | boolean
+    name?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
-    user?: UserUpdateOneRequiredWithoutDoctorNestedInput
+    user?: UserUpdateOneWithoutDoctorNestedInput
     appointment?: AppointmentUpdateManyWithoutDoctorNestedInput
   }
 
@@ -23681,7 +23774,8 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     archived?: BoolFieldUpdateOperationsInput | boolean
-    userId?: StringFieldUpdateOperationsInput | string
+    userId?: NullableStringFieldUpdateOperationsInput | string | null
+    name?: StringFieldUpdateOperationsInput | string
     field?: StringFieldUpdateOperationsInput | string
     appointment?: AppointmentUncheckedUpdateManyWithoutDoctorNestedInput
   }
