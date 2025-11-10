@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
-import { addSecretary } from "@/actions";
+import { addSecretary } from "@/app/actions/secretary";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

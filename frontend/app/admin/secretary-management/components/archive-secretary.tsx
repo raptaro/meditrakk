@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Trash } from "lucide-react";
-import { archiveSecretary } from "@/actions";
+import { archiveSecretary } from "@/app/actions/secretary";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

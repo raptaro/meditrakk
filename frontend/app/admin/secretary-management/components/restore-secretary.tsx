@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { ArrowUpCircle } from "lucide-react";
-import { restoreSecretary } from "@/actions";
+import { restoreSecretary } from "@/app/actions/secretary";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,

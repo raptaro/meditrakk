@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { SquarePen } from "lucide-react";
-import { editSecretary } from "@/actions";
+import { editSecretary } from "@/app/actions/secretary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
