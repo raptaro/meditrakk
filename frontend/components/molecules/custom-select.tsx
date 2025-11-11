@@ -6,7 +6,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { CustomSelectProps } from "@/app/types/types";
+import { CustomSelectProps } from "@/app/types";
 
 export function CustomSelect({ title, items }: CustomSelectProps) {
   return (
