@@ -24,7 +24,7 @@ export interface PatientQueueItem {
   priority_level: string;
   created_at: string;
   is_new_patient: boolean;
-  position?: number; // Add position field
+  position?: number;
 }
 
 interface Patient {
@@ -37,7 +37,226 @@ interface Patient {
   status: string;
   created_at: string;
   queue_date: string;
-  is_new_patient?: boolean; // Add this field
+  is_new_patient?: boolean;
+}
+
+// Edit Modal Component
+interface EditPatientModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  patient: PatientQueueItem | null;
+  onSave: (patient: PatientQueueItem) => void;
+}
+
+function EditPatientModal({ isOpen, onClose, patient, onSave }: EditPatientModalProps) {
+  const [formData, setFormData] = useState({
+    temp_first_name: "",
+    temp_last_name: "",
+    temp_phone_number: "",
+    temp_date_of_birth: "",
+    complaint: "",
+    priority_level: "Regular",
+  });
+
+  const complaintOptions = [
+    { value: "General Illness", label: "General Illness" },
+    { value: "Injury", label: "Injury" },
+    { value: "Check-up", label: "Check-up" },
+    { value: "Other", label: "Other" },
+  ];
+
+  const priorityOptions = [
+    { value: "Regular", label: "Regular" },
+    { value: "Priority", label: "Priority" },
+  ];
+
+  useEffect(() => {
+    if (patient) {
+      // Map the current patient data to the serializer fields
+      setFormData({
+        temp_first_name: patient.first_name || "",
+        temp_last_name: patient.last_name || "",
+        temp_phone_number: patient.phone_number || "",
+        temp_date_of_birth: patient.date_of_birth || "",
+        complaint: patient.complaint || "",
+        priority_level: patient.priority_level || "Regular",
+      });
+    }
+  }, [patient]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (patient) {
+      // Map back to the original fields for saving
+      const updatedPatient = {
+        ...patient,
+        first_name: formData.temp_first_name,
+        last_name: formData.temp_last_name,
+        phone_number: formData.temp_phone_number,
+        date_of_birth: formData.temp_date_of_birth,
+        complaint: formData.complaint,
+        priority_level: formData.priority_level,
+      };
+      onSave(updatedPatient);
+    }
+  };
+
+  const calculateAge = (dateString: string): number | null => {
+    if (!dateString) return null;
+    const birthDate = new Date(dateString);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
+
+  if (!isOpen || !patient) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-xl">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Edit Patient Information</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Queue Number: <span className="font-semibold">#{patient.queue_number}</span>
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                First Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.temp_first_name}
+                onChange={(e) => setFormData({ ...formData, temp_first_name: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+                placeholder="Enter first name"
+              />
+            </div>
+            
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Last Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.temp_last_name}
+                onChange={(e) => setFormData({ ...formData, temp_last_name: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+                placeholder="Enter last name"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                value={formData.temp_phone_number}
+                onChange={(e) => setFormData({ ...formData, temp_phone_number: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+                placeholder="Enter phone number"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Date of Birth
+              </label>
+              <input
+                type="date"
+                value={formData.temp_date_of_birth}
+                onChange={(e) => setFormData({ ...formData, temp_date_of_birth: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              />
+              {formData.temp_date_of_birth && (
+                <p className="text-sm text-gray-500 mt-1">
+                  Age: {calculateAge(formData.temp_date_of_birth) ?? "N/A"}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Priority Level *
+              </label>
+              <select
+                required
+                value={formData.priority_level}
+                onChange={(e) => setFormData({ ...formData, priority_level: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              >
+                {priorityOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Complaint *
+              </label>
+              <select
+                required
+                value={formData.complaint}
+                onChange={(e) => setFormData({ ...formData, complaint: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              >
+                <option value="">Select a complaint</option>
+                {complaintOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className={buttonVariants({ variant: "outline" }) + " min-w-[100px]"}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={buttonVariants({ variant: "default" }) + " min-w-[100px]"}
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
 }
 
 export default function RegistrationQueue() {
@@ -55,6 +274,8 @@ export default function RegistrationQueue() {
 
   const [selectedPatient, setSelectedPatient] = useState<PatientQueueItem | null>(null);
   const [isRoutingModalOpen, setIsRoutingModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [patientToEdit, setPatientToEdit] = useState<PatientQueueItem | null>(null);
 
   const router = useRouter();
 
@@ -81,7 +302,6 @@ export default function RegistrationQueue() {
     return `${age}`;
   };
 
-
   useEffect(() => {
     const fetchQueueData = async () => {
       try {
@@ -99,9 +319,9 @@ export default function RegistrationQueue() {
         if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
         const data = await resp.json();
 
-        console.log("Queue data received:", data); // Debug log
+        console.log("Queue data received:", data);
 
-        // Process priority queue
+        // Process priority queue - KEEPING ORIGINAL FIELD NAMES
         const pr = [
           data.priority_current,
           data.priority_next1,
@@ -111,11 +331,12 @@ export default function RegistrationQueue() {
           first_name: item.first_name || "Unknown",
           last_name: item.last_name || "Patient",
           phone_number: item.phone_number || null,
+          date_of_birth: item.date_of_birth || null,
           age: item.age || null,
           is_new_patient: item.is_new_patient ?? true
         } : null);
 
-        // Process regular queue
+        // Process regular queue - KEEPING ORIGINAL FIELD NAMES
         const rg = [
           data.regular_current,
           data.regular_next1,
@@ -125,6 +346,7 @@ export default function RegistrationQueue() {
           first_name: item.first_name || "Unknown",
           last_name: item.last_name || "Patient",
           phone_number: item.phone_number || null,
+          date_of_birth: item.date_of_birth || null,
           age: item.age || null,
           is_new_patient: item.is_new_patient ?? true
         } : null);
@@ -140,7 +362,6 @@ export default function RegistrationQueue() {
           next2: rg[2] ?? null,
         });
 
-        // Also fetch all queue data for the table
       } catch (err) {
         console.error("Error fetching queue:", err);
       }
@@ -161,8 +382,9 @@ export default function RegistrationQueue() {
     socket.onmessage = (ev) => {
       try {
         const msg = JSON.parse(ev.data);
-        console.log("WebSocket message received:", msg); // Debug log
+        console.log("WebSocket message received:", msg);
 
+        // KEEPING ORIGINAL FIELD NAMES
         const pr = [
           msg.priority_current,
           msg.priority_next1,
@@ -172,6 +394,7 @@ export default function RegistrationQueue() {
           first_name: item.first_name || "Unknown",
           last_name: item.last_name || "Patient",
           phone_number: item.phone_number || null,
+          date_of_birth: item.date_of_birth || null,
           age: item.age || null,
           is_new_patient: item.is_new_patient ?? true
         } : null);
@@ -185,6 +408,7 @@ export default function RegistrationQueue() {
           first_name: item.first_name || "Unknown",
           last_name: item.last_name || "Patient",
           phone_number: item.phone_number || null,
+          date_of_birth: item.date_of_birth || null,
           age: item.age || null,
           is_new_patient: item.is_new_patient ?? true
         } : null);
@@ -200,7 +424,6 @@ export default function RegistrationQueue() {
           next2: rg[2] ?? null,
         });
 
-        // Refresh all queue data when WebSocket updates
       } catch (err) {
         console.error("Error parsing WS message:", err);
       }
@@ -217,6 +440,106 @@ export default function RegistrationQueue() {
     setSelectedPatient(queueItem);
     setIsRoutingModalOpen(true);
   };
+
+  const handleEdit = (queueItem: PatientQueueItem) => {
+    setPatientToEdit(queueItem);
+    setIsEditModalOpen(true);
+  };
+
+const handleSaveEdit = async (updatedPatient: PatientQueueItem) => {
+  try {
+    const token = localStorage.getItem("access");
+    if (!token) {
+      console.error("No access token found. User may need to sign in.");
+      return;
+    }
+
+    const url = `${process.env.NEXT_PUBLIC_API_BASE}/registration-viewset/${updatedPatient.id}/patient-edit/`;
+
+    // Prepare payload using serializer field names expected by Django
+    const payload = {
+      temp_first_name: updatedPatient.first_name,
+      temp_last_name: updatedPatient.last_name,
+      temp_phone_number: updatedPatient.phone_number,
+      temp_date_of_birth: updatedPatient.date_of_birth, // ensure ISO format if required
+      complaint: updatedPatient.complaint,
+      priority_level: updatedPatient.priority_level,
+    };
+
+    const resp = await fetch(url, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    // Handle common HTTP errors
+    if (resp.status === 401 || resp.status === 403) {
+      throw new Error(`Authorization error (status ${resp.status}).`);
+    }
+    if (!resp.ok) {
+      // try to include server error details if available
+      let text = await resp.text();
+      try {
+        const json = JSON.parse(text);
+        throw new Error(`HTTP ${resp.status}: ${JSON.stringify(json)}`);
+      } catch {
+        throw new Error(`HTTP ${resp.status}: ${text}`);
+      }
+    }
+
+    // If the server returns JSON with the updated instance, use it.
+    // Some APIs return 204 No Content for PATCH — guard for that.
+    let serverData: any = null;
+    const contentType = resp.headers.get("content-type") || "";
+    if (contentType.includes("application/json")) {
+      serverData = await resp.json();
+    }
+
+    // Update local queues with the server-canonical representation if available,
+    // otherwise fall back to the optimistic `updatedPatient`.
+    const newItem = serverData ?? updatedPatient;
+
+    const updateQueue = (queue: typeof priorityQueue) => {
+      // If your queues are objects keyed by something other than index,
+      // adapt the logic below. This assumes queue is a plain object mapping keys -> item,
+      // which matches your original code.
+      const updated = { ...queue };
+      Object.keys(updated).forEach((key) => {
+        const queueItem = updated[key as keyof typeof queue] as any;
+        if (queueItem && queueItem.id === updatedPatient.id) {
+          // Map server fields into the shape your UI expects if needed:
+          // e.g. if server returns temp_first_name, map to first_name
+          updated[key as keyof typeof queue] = {
+            ...queueItem,
+            // use server values when present, otherwise keep existing UI fields
+            id: newItem.id ?? queueItem.id,
+            first_name: newItem.temp_first_name ?? newItem.first_name ?? queueItem.first_name,
+            last_name: newItem.temp_last_name ?? newItem.last_name ?? queueItem.last_name,
+            phone_number: newItem.temp_phone_number ?? queueItem.phone_number,
+            date_of_birth: newItem.temp_date_of_birth ?? queueItem.date_of_birth,
+            complaint: newItem.complaint ?? queueItem.complaint,
+            priority_level: newItem.priority_level ?? queueItem.priority_level,
+            // include any other UI fields you rely on
+          };
+        }
+      });
+      return updated;
+    };
+
+    setPriorityQueue((prev) => updateQueue(prev));
+    setRegularQueue((prev) => updateQueue(prev));
+
+    setIsEditModalOpen(false);
+    setPatientToEdit(null);
+  } catch (error) {
+    console.error("Error updating patient:", error);
+    // optionally show user-facing notification here
+  }
+};
+
 
   const handleRoutePatient = async (
     queueItem: PatientQueueItem | null,
@@ -245,6 +568,73 @@ export default function RegistrationQueue() {
       console.error("Error updating queue:", error);
     }
   };
+
+const handleCancelPatient = async (queueItem: PatientQueueItem) => {
+  try {
+    const token = localStorage.getItem("access");
+    if (!token) {
+      console.error("No access token found; user likely needs to sign in.");
+      // optionally show user-facing error here
+      return;
+    }
+
+    // Optional: ask for confirmation before cancelling
+    const confirmed = window.confirm(`Cancel patient ${queueItem.first_name} ${queueItem.last_name}?`);
+    if (!confirmed) return;
+
+    // Disable UI / mark item as processing if you have that state
+    // setIsProcessingId(queueItem.id);
+
+    const url = `${process.env.NEXT_PUBLIC_API_BASE}/registration-viewset/${queueItem.id}/cancel-patient/`;
+    const resp = await fetch(url, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    // Handle common HTTP statuses
+    if (resp.status === 401 || resp.status === 403) {
+      throw new Error(`Authorization error (status ${resp.status}).`);
+    }
+
+    // 204 No Content is expected; treat 200/204 as success. 404 => already deleted.
+    if (resp.status === 404) {
+      console.warn("Item not found on server (already cancelled). Will remove locally.");
+    } else if (!resp.ok) {
+      // try to extract server error info
+      let body = await resp.text();
+      try {
+        const json = JSON.parse(body);
+        throw new Error(`HTTP ${resp.status}: ${JSON.stringify(json)}`);
+      } catch {
+        throw new Error(`HTTP ${resp.status}: ${body}`);
+      }
+    }
+
+    // Success — remove the item from local queues
+    const removeFromQueues = (queueObj: typeof priorityQueue) => {
+      const updated = { ...queueObj };
+      Object.keys(updated).forEach((key) => {
+        const item = updated[key as keyof typeof updated] as any;
+        if (item && item.id === queueItem.id) {
+          delete updated[key as keyof typeof updated]; // or set to null depending on your structure
+        }
+      });
+      return updated;
+    };
+
+    setPriorityQueue(prev => removeFromQueues(prev));
+    setRegularQueue(prev => removeFromQueues(prev));
+
+    // Optional: user feedback
+    // showToast("Patient cancelled successfully.");
+  } catch (error) {
+    console.error("Error canceling patient:", error);
+    // Optionally show user-facing error (toast/snackbar)
+  } finally {
+    // clear processing state if set: setIsProcessingId(null)
+  }
+};
+
 
   const renderPatientInfo = (queueItem: PatientQueueItem | null) => {
     if (!queueItem) {
@@ -283,6 +673,16 @@ export default function RegistrationQueue() {
             <span className="font-semibold text-gray-700">Age: </span>
             {displayAge(queueItem.age)}
           </p>
+          <p>
+            <span className="font-semibold text-gray-700">Priority: </span>
+            <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+              queueItem.priority_level === 'Priority' 
+                ? 'bg-red-100 text-red-800'
+                : 'bg-gray-100 text-gray-800'
+            }`}>
+              {queueItem.priority_level}
+            </span>
+          </p>
         </div>
 
         <div className="mb-4 border-t border-gray-200 pt-3">
@@ -291,7 +691,7 @@ export default function RegistrationQueue() {
             {queueItem.phone_number || "N/A"}
           </p>
           <p>
-            <span className="font-semibold text-gray-700">Reason: </span>
+            <span className="font-semibold text-gray-700">Complaint: </span>
             {queueItem.complaint || "N/A"}
           </p>
         </div>
@@ -304,13 +704,13 @@ export default function RegistrationQueue() {
             Accept
           </button>
           <button
-            onClick={() => router.push(`/patient/edit/${queueItem.patient_id || queueItem.id}`)}
+            onClick={() => handleEdit(queueItem)}
             className={buttonVariants({ variant: "outline" })}
           >
             Edit
           </button>
           <button
-            onClick={() => handleRoutePatient(queueItem, "cancel")}
+            onClick={() => handleCancelPatient(queueItem)}
             className={buttonVariants({ variant: "destructive" })}
           >
             Cancel
@@ -360,7 +760,6 @@ export default function RegistrationQueue() {
       </span>
       {queueItem && (
         <div className="mt-2 text-xs text-gray-600 text-center">
-          <p>{queueItem.first_name} {queueItem.last_name}</p>
           <p className={`text-xs ${
             queueItem.is_new_patient ? "text-yellow-600" : "text-green-600"
           }`}>
@@ -451,6 +850,16 @@ export default function RegistrationQueue() {
         onRoutePatient={(patient, action) => {
           handleRoutePatient(selectedPatient, action);
         }}
+      />
+
+      <EditPatientModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setPatientToEdit(null);
+        }}
+        patient={patientToEdit}
+        onSave={handleSaveEdit}
       />
     </main>
   );

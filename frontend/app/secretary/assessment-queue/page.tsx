@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import userRole from "@/hooks/userRole";
 
 export interface PatientQueueItem {
+  queue_id: string;      // Use this for canceling
   patient_id: string;
   first_name: string;
   last_name: string;
@@ -52,17 +53,31 @@ export default function Page() {
         if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
         const data = await response.json();
 
-        const priorityPatients = [
+        const mapQueue = (patients: any[]) =>
+          patients
+            .filter(Boolean)
+            .map(p => ({
+              queue_id: p.id,       
+              patient_id: p.patient_id,
+              first_name: p.temp_first_name || p.first_name,
+              last_name: p.temp_last_name || p.last_name,
+              age: p.age,
+              complaint: p.complaint,
+              phone_number: p.temp_phone_number || p.phone_number,
+              queue_number: p.queue_number,
+            }));
+
+        const priorityPatients = mapQueue([
           data.priority_current,
           data.priority_next1,
           data.priority_next2,
-        ].filter(Boolean);
+        ]);
 
-        const regularPatients = [
+        const regularPatients = mapQueue([
           data.regular_current,
           data.regular_next1,
           data.regular_next2,
-        ].filter(Boolean);
+        ]);
 
         setPriorityQueue({
           current: priorityPatients[0] ?? null,
@@ -83,6 +98,44 @@ export default function Page() {
     fetchQueue();
   }, []);
 
+  const handleCancelPatient = async (queueItem: PatientQueueItem) => {
+    try {
+      const token = localStorage.getItem("access");
+      if (!token) return console.error("No access token found.");
+
+      const confirmed = window.confirm(`Cancel patient ${queueItem.first_name} ${queueItem.last_name}?`);
+      if (!confirmed) return;
+
+      const url = `${process.env.NEXT_PUBLIC_API_BASE}/registration-viewset/${queueItem.queue_id}/cancel-patient/`;
+      const resp = await fetch(url, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!resp.ok && resp.status !== 204) {
+        const body = await resp.text();
+        throw new Error(`HTTP ${resp.status}: ${body}`);
+      }
+
+      // Remove canceled patient from queues
+      const removeFromQueues = (queueObj: typeof priorityQueue) => {
+        const updated = { ...queueObj };
+        Object.keys(updated).forEach(key => {
+          const item = updated[key as keyof typeof updated];
+          if (item && item.queue_id === queueItem.queue_id) {
+            updated[key as keyof typeof updated] = null;
+          }
+        });
+        return updated;
+      };
+
+      setPriorityQueue(prev => removeFromQueues(prev));
+      setRegularQueue(prev => removeFromQueues(prev));
+    } catch (error) {
+      console.error("Error canceling patient:", error);
+    }
+  };
+
   const QueueCard = ({
     queueItem,
     label,
@@ -100,25 +153,13 @@ export default function Page() {
             : "border-gray-300 bg-white hover:shadow-md transition-shadow duration-300"
         }
         w-64 h-72 p-6 cursor-default select-none`}
-      title={
-        queueItem
-          ? `${queueItem.first_name} ${queueItem.last_name} - ${queueItem.complaint}`
-          : undefined
-      }
+      title={queueItem ? `${queueItem.first_name} ${queueItem.last_name} - ${queueItem.complaint}` : undefined}
     >
-      <p
-        className={`text-7xl font-extrabold mb-4 ${
-          status === "current" ? "text-blue-600" : "text-gray-400"
-        }`}
-      >
+      <p className={`text-7xl font-extrabold mb-4 ${status === "current" ? "text-blue-600" : "text-gray-400"}`}>
         {queueItem ? `#${queueItem.queue_number}` : "N/A"}
       </p>
       <span className="text-lg font-semibold text-gray-800">{label}</span>
-      <span
-        className={`text-sm mt-1 ${
-          status === "current" ? "text-blue-600" : "text-gray-500"
-        }`}
-      >
+      <span className={`text-sm mt-1 ${status === "current" ? "text-blue-600" : "text-gray-500"}`}>
         {status === "current" ? "Current Patient" : "Next in Queue"}
       </span>
     </div>
@@ -176,13 +217,7 @@ export default function Page() {
             Accept
           </button>
           <button
-            onClick={() => router.push("/payments")}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => router.push("/payments")}
+            onClick={() => handleCancelPatient(queueItem)}
             className={buttonVariants({ variant: "destructive" })}
           >
             Cancel
@@ -212,21 +247,9 @@ export default function Page() {
           Priority Queue
         </h2>
         <div className="flex flex-wrap justify-center gap-8">
-          <QueueCard
-            queueItem={priorityQueue.current}
-            label="Priority"
-            status="current"
-          />
-          <QueueCard
-            queueItem={priorityQueue.next1}
-            label="Priority"
-            status="next"
-          />
-          <QueueCard
-            queueItem={priorityQueue.next2}
-            label="Priority"
-            status="next"
-          />
+          <QueueCard queueItem={priorityQueue.current} label="Priority" status="current" />
+          <QueueCard queueItem={priorityQueue.next1} label="Priority" status="next" />
+          <QueueCard queueItem={priorityQueue.next2} label="Priority" status="next" />
           {renderPatientInfo(priorityQueue.current)}
         </div>
       </section>
@@ -237,21 +260,9 @@ export default function Page() {
           Regular Queue
         </h2>
         <div className="flex flex-wrap justify-center gap-8">
-          <QueueCard
-            queueItem={regularQueue.current}
-            label="Regular"
-            status="current"
-          />
-          <QueueCard
-            queueItem={regularQueue.next1}
-            label="Regular"
-            status="next"
-          />
-          <QueueCard
-            queueItem={regularQueue.next2}
-            label="Regular"
-            status="next"
-          />
+          <QueueCard queueItem={regularQueue.current} label="Regular" status="current" />
+          <QueueCard queueItem={regularQueue.next1} label="Regular" status="next" />
+          <QueueCard queueItem={regularQueue.next2} label="Regular" status="next" />
           {renderPatientInfo(regularQueue.current)}
         </div>
       </section>

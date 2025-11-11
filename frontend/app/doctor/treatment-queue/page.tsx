@@ -6,6 +6,7 @@ import { buttonVariants } from "@/components/ui/button";
 import userRole from "@/hooks/userRole";
 
 export interface PatientQueueItem {
+  id: number;
   patient_id: string;
   first_name: string;
   last_name: string;
@@ -32,16 +33,23 @@ export default function Page() {
   const router = useRouter();
 
   useEffect(() => {
-    const token = localStorage.getItem("access");
-    fetch(`${process.env.NEXT_PUBLIC_API_BASE}/queueing/treatment_queueing/`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-    })
-      .then((res) => res.json())
-      .then((data) => {
+    const fetchQueue = async () => {
+      try {
+        const token = localStorage.getItem("access");
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_API_BASE}/queueing/treatment_queueing/`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
+        const data = await response.json();
+
         const priorityPatients = [
           data.priority_current,
           data.priority_next1,
@@ -65,9 +73,67 @@ export default function Page() {
           next1: regularPatients[1] || null,
           next2: regularPatients[2] || null,
         });
-      })
-      .catch(console.error);
+      } catch (error) {
+        console.error("Error fetching queue:", error);
+      }
+    };
+
+    fetchQueue();
   }, []);
+
+const handleCancelPatient = async (queueItem: PatientQueueItem) => {
+  try {
+    const token = localStorage.getItem("access");
+    if (!token) return;
+
+    const confirmed = window.confirm(`Cancel patient ${queueItem.first_name} ${queueItem.last_name}?`);
+    if (!confirmed) return;
+
+    const url = `${process.env.NEXT_PUBLIC_API_BASE}/registration-viewset/${queueItem.id}/cancel-patient/`;
+    const resp = await fetch(url, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    if (!resp.ok) throw new Error(`Failed to cancel (status ${resp.status})`);
+
+    // REFRESH QUEUE AFTER CANCEL
+    const refreshQueue = async () => {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/queueing/treatment_queueing/`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      const data = await response.json();
+
+      const priorityPatients = [data.priority_current, data.priority_next1, data.priority_next2].filter(Boolean);
+      const regularPatients = [data.regular_current, data.regular_next1, data.regular_next2].filter(Boolean);
+
+      setPriorityQueue({
+        current: priorityPatients[0] || null,
+        next1: priorityPatients[1] || null,
+        next2: priorityPatients[2] || null,
+      });
+
+      setRegularQueue({
+        current: regularPatients[0] || null,
+        next1: regularPatients[1] || null,
+        next2: regularPatients[2] || null,
+      });
+    };
+
+    await refreshQueue();
+
+  } catch (error) {
+    console.error("Error canceling patient:", error);
+  }
+};
+
 
   const renderPatientInfo = (patient: PatientQueueItem | null) => {
     if (!patient) return null;
@@ -112,13 +178,7 @@ export default function Page() {
             Accept
           </button>
           <button
-            onClick={() => router.push("/payments")}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Edit
-          </button>
-          <button
-            onClick={() => router.push("/payments")}
+            onClick={() => handleCancelPatient(patient)}
             className={buttonVariants({ variant: "destructive" })}
           >
             Cancel

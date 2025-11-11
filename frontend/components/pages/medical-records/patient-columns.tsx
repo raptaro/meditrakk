@@ -22,6 +22,8 @@ function ActionsCell({ patientId }: { patientId: string }) {
   const pathname = usePathname();
   const basePath = pathname.includes("oncall-doctors")
     ? "/oncall-doctors"
+    : pathname.includes("secretary")
+    ? "/secretary"
     : "/doctor";
 
   return (

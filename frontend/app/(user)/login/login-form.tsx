@@ -104,32 +104,32 @@ export function LoginForm({
     }
   }
 
-  // const testAccounts = [
-  //   {
-  //     label: "General Doctor",
-  //     email: "generaldoctor@hospital.com",
-  //     password: "securepassword123",
-  //     icon: Stethoscope,
-  //   },
-  //   {
-  //     label: "Secretary",
-  //     email: "secretaryaccount@gmail.com",
-  //     password: "nVmTfEkCFeB3APi",
-  //     icon: Clipboard,
-  //   },
-  //   {
-  //     label: "On-Call Doctor",
-  //     email: "cardiologist@hospital.com",
-  //     password: "securepassword123",
-  //     icon: Shield,
-  //   },
-  //   {
-  //     label: "Admin",
-  //     email: "admin@gmail.com",
-  //     password: "10200922",
-  //     icon: User,
-  //   },
-  // ];
+  const testAccounts = [
+    {
+      label: "General Doctor",
+      email: "generaldoctor@hospital.com",
+      password: "securepassword123",
+      icon: Stethoscope,
+    },
+    {
+      label: "Secretary",
+      email: "secretaryaccount@gmail.com",
+      password: "nVmTfEkCFeB3APi",
+      icon: Clipboard,
+    },
+    {
+      label: "On-Call Doctor",
+      email: "cardiologist@hospital.com",
+      password: "securepassword123",
+      icon: Shield,
+    },
+    {
+      label: "Admin",
+      email: "admin@gmail.com",
+      password: "10200922",
+      icon: User,
+    },
+  ];
 
   // Autofill helper
   const autoFill = (email: string, password: string) => {
@@ -155,7 +155,7 @@ export function LoginForm({
 
       <div className="bg-card p-6 shadow-lg">
         {/* Autofill buttons */}
-        {/* <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
           {testAccounts.map((acc) => {
             const Icon = acc.icon;
             return (
@@ -171,7 +171,7 @@ export function LoginForm({
               </Button>
             );
           })}
-        </div> */}
+        </div>
 
         <Form {...form}>
           <form

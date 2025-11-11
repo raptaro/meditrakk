@@ -564,8 +564,8 @@ export default function PatientMedicalRecord() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {all_diagnoses.map((diagnosis, index) => (
-                <div key={`${diagnosis.id}-${index}`} className="p-3 bg-gray-50 rounded border border-gray-200">
+              {all_diagnoses.map((diagnosis) => (
+                <div key={diagnosis.id} className="p-3 bg-gray-50 rounded border border-gray-200">
                   <div className="flex justify-between items-start">
                     <div>
                       <h4 className="font-medium text-gray-900">

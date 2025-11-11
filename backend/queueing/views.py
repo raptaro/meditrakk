@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework import status
 from rest_framework.response import Response
 from .models import Patient, TemporaryStorageQueue, Treatment
-from .serializers import PreliminaryAssessmentSerializer
+from .serializers import PreliminaryAssessmentSerializer, TemporaryStorageQueueSerializer
 from backend.supabase_client import supabase
 
 
@@ -16,8 +16,8 @@ from patient.models import Diagnosis, Prescription
 from medicine.models import Medicine
 
 from user.permissions import IsMedicalStaff, isDoctor, isSecretary, IsTreatmentParticipant
-from django.utils.timezone import now, localdate
-
+from rest_framework import status, viewsets
+from rest_framework.decorators import action
 from appointment.models import AppointmentReferral, Appointment
 # display patient registration queue
 from .utils import compute_queue_snapshot
@@ -378,3 +378,23 @@ class PatientTreatmentForm(APIView):
                 )
 
         return Response({"message": "Treatment submitted successfully"}, status=status.HTTP_201_CREATED)
+
+class RegistrationViewSet(viewsets.ModelViewSet):
+    queryset = TemporaryStorageQueue.objects.all()
+    serializer_class = TemporaryStorageQueueSerializer
+    permission_classes = [IsMedicalStaff]
+
+    @action(detail=True, methods=['patch'], url_path='patient-edit')
+    def patient_edit(self, request, pk=None):
+        instance = self.get_object()              # resolves using pk
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(updated_by=request.user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['patch'], url_path='cancel-patient')
+    def cancel_patient(self, request, pk=None):
+        instance = self.get_object()
+        instance.status = "Cancelled"
+        instance.save(update_fields=["status"])
+        return Response(status=status.HTTP_204_NO_CONTENT)

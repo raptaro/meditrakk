@@ -27,7 +27,7 @@ class TemporaryStorageQueueSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = TemporaryStorageQueue
-        fields = ['id', 'temp_first_name', 'temp_last_name', 'temp_phone_number', 'temp_date_of_birth', 'age', 'priority_level', 'complaint', 'status', 'queue_number', 'position', 'created_at', 'is_new_patient']
+        fields = ['id', 'temp_first_name', 'temp_last_name', 'temp_phone_number', 'temp_date_of_birth', 'age', 'priority_level', 'complaint', 'status', 'queue_number', 'position', 'created_at', 'is_new_patient', 'queue_data']
 
     def get_age(self, obj):
         return obj.get_age()
@@ -40,18 +40,41 @@ class TemporaryStorageQueueSerializer(serializers.ModelSerializer):
         return f'#{queue_list.index(obj) + 1}' if obj in queue_list else 'N/A'
     
     def get_queue_data(self, obj):
-        """Fetch queue data for the patient using the correct related manager."""
-        # Access the patient's related temporary storage queues via the defined related_name.
-        queue_info = obj.patient.temporarystoragequeue.filter(status='Waiting').first()
-        if queue_info:
-            return {
-                'id': queue_info.id,
-                'priority_level': queue_info.priority_level,
-                'status': queue_info.status,
-                'created_at': queue_info.created_at,
-                'complaint': queue_info.complaint,
-            }
-        return None
+        """
+        Return the first Waiting queue entry for this patient.
+        Defensive: handles cases where obj.patient is None or related_name is different.
+        """
+        # 1) ensure we have a patient
+        patient = getattr(obj, "patient", None)
+        if not patient:
+            return None
+
+        # 2) prefer using the related manager if it exists and is usable
+        related_manager = getattr(patient, "temporarystoragequeue", None)
+        if related_manager is not None:
+            try:
+                queue_info = related_manager.filter(status="Waiting").order_by("created_at").first()
+            except Exception:
+                queue_info = None
+        else:
+            # 3) fallback: query by patient FK
+            try:
+                queue_info = TemporaryStorageQueue.objects.filter(patient=patient, status="Waiting").order_by("created_at").first()
+            except Exception:
+                queue_info = None
+
+        # 4) return a simple dict or None
+        if not queue_info:
+            return None
+
+        return {
+            "id": queue_info.id,
+            "priority_level": queue_info.priority_level,
+            "status": queue_info.status,
+            "created_at": queue_info.created_at,
+            "complaint": queue_info.complaint,
+        }
+
 
     def get_complaint_display(self, obj):
         if isinstance(obj, dict):

@@ -1,4 +1,5 @@
 from datetime import date
+from django.utils import timezone
 from django.db import models
 from patient.models import Patient, Diagnosis, Prescription
 from  django.utils.timezone import now
@@ -91,13 +92,18 @@ class TemporaryStorageQueue(models.Model):
 
         super().save(*args, **kwargs)
         
-    def get_age(self):
-        if not self.date_of_birth:
+
+    @property
+    def date_of_birth(self):
+        # Backwards compatibility for code that still expects date_of_birth
+        return self.temp_date_of_birth
+
+    def get_age(self) -> int | None:
+        dob = getattr(self, "temp_date_of_birth", None) or getattr(self, "date_of_birth", None)
+        if not dob:
             return None
-        today = date.today()
-        return today.year - self.date_of_birth.year - (
-            (today.month, today.day) < (self.date_of_birth.month, self.date_of_birth.day)
-        )
+        today = timezone.localdate()
+        return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
         
     @property
     def display_name(self):

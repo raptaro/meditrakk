@@ -166,6 +166,8 @@ class PatientListView(APIView):
         except Exception as e:
             print("Exception occurred:", e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
 class PatientInfoView(APIView):
     permission_classes = [IsMedicalStaff]
     
@@ -183,7 +185,7 @@ class PatientInfoView(APIView):
             if patient_data.get("date_of_birth"):
                 try:
                     patient_data['date_of_birth'] = datetime.strptime(patient_data["date_of_birth"], "%Y-%m-%d").date()
-                except Exception as e:
+                except Exception:
                     patient_data["date_of_birth"] = None
                     
             patient_age = Patient(**patient_data)
@@ -206,9 +208,9 @@ class PatientInfoView(APIView):
                 "appointment_date, status, doctor_id, "
                 "appointment_appointmentreferral(id, reason)"
             ).eq('patient_id', patient_id).order('appointment_date', desc=True).execute()
-            appointment_data = appointment_response.data or [] 
-            print(appointment_data)
-            doctor_ids = list({a["doctor_id"] for a in appointment_data if a.get("doctor_id")})
+            appointment_data = appointment_response.data or []
+            # build doctor id list safely (only truthy doctor ids)
+            doctor_ids = list({a.get("doctor_id") for a in appointment_data if a.get("doctor_id")})
             doctor_name_map = {}
             
             if doctor_ids:
@@ -217,34 +219,40 @@ class PatientInfoView(APIView):
                     .in_("id", doctor_ids) \
                     .execute()
                 for doc in doctors_resp.data or []:
-                        ua = doc.get("user_useraccount") or {}
-                        doctor_name_map[doc["id"]] = f"{ua.get('first_name','')} {ua.get('last_name','')}".strip()
+                    ua = doc.get("user_useraccount") or {}
+                    doctor_name_map[doc["id"]] = f"{ua.get('first_name','')} {ua.get('last_name','')}".strip()
                             
             annotated_appts = []
             for a in appointment_data:
-                referral = a.get("appointment_appointmentreferral", {})
-                reason   = referral.get("reason", "")
+                # if the key exists but its value is None, a.get(...) returns None — use `or {}` to guard
+                referral = a.get("appointment_appointmentreferral") or {}
+                reason   = referral.get("reason", "") if isinstance(referral, dict) else ""
                 annotated_appts.append({
-                    "appointment_date": a["appointment_date"],
-                    "status": a["status"],
-                    "doctor_id": a["doctor_id"],
-                    "doctor_name": doctor_name_map.get(a["doctor_id"], ""),
-                    "reason":           reason,
+                    # use .get to avoid KeyError if any field is missing
+                    "appointment_date": a.get("appointment_date"),
+                    "status": a.get("status"),
+                    "doctor_id": a.get("doctor_id"),
+                    "doctor_name": doctor_name_map.get(a.get("doctor_id"), ""),
+                    "reason": reason,
                 })       
                     
             latest_treatment = treatment_response.data[0] if treatment_response.data else None
             if latest_treatment:
                 diagnoses = [
-                    d["patient_diagnosis"] for d in latest_treatment.get("queueing_treatment_diagnoses", []) if d.get("patient_diagnosis")
+                    d["patient_diagnosis"]
+                    for d in latest_treatment.get("queueing_treatment_diagnoses", [])
+                    if d and isinstance(d, dict) and d.get("patient_diagnosis")
                 ]
                 prescriptions = [
-                    p["patient_prescription"] for p in latest_treatment.get("queueing_treatment_prescriptions", []) if p.get("patient_prescription")
+                    p["patient_prescription"]
+                    for p in latest_treatment.get("queueing_treatment_prescriptions", [])
+                    if p and isinstance(p, dict) and p.get("patient_prescription")
                 ]
                 treatment_summary = {
-                    "id": latest_treatment["id"],
-                    "treatment_notes": latest_treatment["treatment_notes"],
-                    "created_at": latest_treatment["created_at"],
-                    "updated_at": latest_treatment["updated_at"],
+                    "id": latest_treatment.get("id"),
+                    "treatment_notes": latest_treatment.get("treatment_notes", ""),
+                    "created_at": latest_treatment.get("created_at"),
+                    "updated_at": latest_treatment.get("updated_at"),
                     "diagnoses": diagnoses,
                     "prescriptions": prescriptions,
                 }
@@ -273,7 +281,10 @@ class PatientInfoView(APIView):
             return Response(response_data, status=status.HTTP_200_OK)
 
         except Exception as e:
+            # Consider logging the full traceback to help debugging:
+            # logger.exception("Error in PatientInfoView")
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
          
 class PreliminaryAssessmentView(APIView):
     permission_classes = [IsMedicalStaff]
@@ -1229,21 +1240,28 @@ class PatientReportview(APIView):
 
     def get(self, request, patient_id):
         try:
-            #fetch patient
-            response = supabase.table("patient_patient").select("*").eq("patient_id",patient_id).execute()
-
+            # Fetch patient
+            response = supabase.table("patient_patient").select("*").eq("patient_id", patient_id).execute()
             if hasattr(response, 'error') and response.error:
                 error_msg = getattr(response.error, 'message', 'Unknown error')
                 return Response({"error": error_msg}, status=status.HTTP_400_BAD_REQUEST)
             patient_info = response.data[0] if response.data else None
-            #fetch patient latest preliminary assessment 
-            assessment_obj = PreliminaryAssessment.objects.filter(patient__patient_id=patient_id).order_by("-assessment_date").first()
-            if assessment_obj:
-                assessment_data = PreliminaryAssessmentBasicSerializer(assessment_obj).data
-            else:
-                assessment_data = None
-            
-            #fetch recent medications
+
+            # Fetch latest preliminary assessment
+            assessment_obj = PreliminaryAssessment.objects.filter(
+                patient__patient_id=patient_id
+            ).order_by("-assessment_date").first()
+            assessment_data = PreliminaryAssessmentBasicSerializer(assessment_obj).data if assessment_obj else None
+
+            # Fetch all complaints
+            complaint_resp = supabase.table("queueing_temporarystoragequeue") \
+                .select("complaint") \
+                .eq("patient_id", patient_id) \
+                .order("created_at", desc=True) \
+                .execute()
+            complaints = [r.get("complaint") for r in (complaint_resp.data or [])] if not getattr(complaint_resp, 'error', False) else []
+
+            # Fetch treatments
             treatment_response = supabase.table("queueing_treatment").select(
                 """
                 id, 
@@ -1270,87 +1288,92 @@ class PatientReportview(APIView):
                     patient_prescription(*, medicine_medicine(id, name))
                 )
             """
-            ).eq("patient_id", patient_id).order("created_at", desc=True).execute() 
-            treatments = treatment_response.data
-            
-            # laboratory fetch
-            lab_results_qs = LabResult.objects.filter(
-                lab_request__patient__patient_id=patient_id
-            )
-            lab_results_serialized = []
-            if lab_results_qs.exists():
-                lab_results_serialized = LabResultSerializer(
-                    lab_results_qs, many=True, context={'request': request}
-                ).data
-            else:
-                lab_results_serialized = []
-                
+            ).eq("patient_id", patient_id).order("created_at", desc=True).execute()
+            treatments = treatment_response.data or []
+
+            # Fetch laboratory results
+            lab_results_qs = LabResult.objects.filter(lab_request__patient__patient_id=patient_id)
+            lab_results_serialized = LabResultSerializer(lab_results_qs, many=True, context={'request': request}).data if lab_results_qs.exists() else []
+
             all_diagnoses = []
             all_prescriptions = []
             all_treatment_notes = []
-            
+
             patient_report = {
                 "patient": patient_info,
                 "preliminary_assessment": assessment_data,
                 "recent_treatment": None,
-                "all_treatment_notes": None,
-                "all_prescriptions": None,
-                "all_diagnoses": None,
-                "laboratories":  lab_results_serialized
+                "all_treatment_notes": [],
+                "all_prescriptions": [],
+                "all_diagnoses": [],
+                "laboratories": lab_results_serialized,
+                "complaint": complaints
             }
-            
+
             if treatments:
                 transformed_treatments = []
-                
-                for item in treatments:
-                    raw_doc     = item.get("doctor_id") or {}
-                    raw_profile = raw_doc.get("user_doctor") or {}                    
 
+                for item in treatments:
+                    # Doctor info
+                    raw_doc = item.get("doctor_id") or {}
+                    raw_profile = raw_doc.get("user_doctor") or {}
                     doctor_info = {
                         "id": raw_doc.get("id"),
                         "name": " ".join(filter(None, [raw_doc.get("first_name"), raw_doc.get("last_name")])),
                         "specialization": raw_profile.get("specialization")
                     }
-                    
+
+                    # Diagnoses
                     diagnoses = [
                         d["patient_diagnosis"]
                         for d in item.get("queueing_treatment_diagnoses", [])
                         if d.get("patient_diagnosis")
                     ]
                     all_diagnoses.extend(diagnoses)
-                    
+
+                    # Prescriptions
                     prescriptions = []
                     for p in item.get("queueing_treatment_prescriptions", []):
                         presc = p.get("patient_prescription")
-                        if not presc:
-                            continue
-                        med = presc.pop("medicine_medicine", None)
-                        prescriptions.append({ **presc, "medication": med })
+                        if presc:
+                            med = presc.pop("medicine_medicine", None)
+                            prescriptions.append({**presc, "medication": med})
                     all_prescriptions.extend(prescriptions)
-                    
-                    treatment_notes = item.get("treatment_notes")
-                    if treatment_notes:
-                        all_treatment_notes.append(treatment_notes)
-                    
+
+                    # Treatment notes
+                    note = item.get("treatment_notes")
+                    if note:
+                        all_treatment_notes.append(note)
+
+                    # Transform each treatment
                     transformed_treatments.append({
-                        "id":             item.get("id"),
-                        "treatment_notes":item.get("treatment_notes"),
-                        "created_at":     item.get("created_at"),
-                        "updated_at":     item.get("updated_at"),
-                        "doctor_info":    doctor_info,
-                        "diagnoses":      diagnoses,
-                        "prescriptions":  prescriptions
+                        "id": item.get("id"),
+                        "treatment_notes": item.get("treatment_notes"),
+                        "created_at": item.get("created_at"),
+                        "updated_at": item.get("updated_at"),
+                        "doctor_info": doctor_info,
+                        "diagnoses": diagnoses,
+                        "prescriptions": prescriptions
                     })
-                patient_report["recent_treatment"] = transformed_treatments[0]
-                patient_report["all_treatment_notes"] = all_treatment_notes
-                patient_report["all_prescriptions"] = all_prescriptions
-                patient_report["all_diagnoses"] = all_diagnoses
+
+                # Deduplicate diagnoses by 'id'
+                unique_diagnoses = {d['id']: d for d in all_diagnoses}.values()
+                # Deduplicate treatment notes
+                unique_treatment_notes = list(dict.fromkeys(all_treatment_notes))
+
+                patient_report.update({
+                    "recent_treatment": transformed_treatments[0],
+                    "all_treatment_notes": unique_treatment_notes,
+                    "all_prescriptions": all_prescriptions,
+                    "all_diagnoses": list(unique_diagnoses)
+                })
 
             return Response(patient_report, status=status.HTTP_200_OK)
 
         except Exception as e:
             print("Exception ", e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 class MonthlyVisitsAPIView(APIView):
     permission_classes = [IsMedicalStaff]

@@ -103,6 +103,7 @@ export default function TreatmentDetailsPage() {
   }
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [isReferModalOpen, setIsReferModalOpen] = useState(false);
+  const [isReferTypeModalOpen, setIsReferTypeModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredDoctors, setFilteredDoctors] = useState<Doctor[]>([]);
   const [selectedReferrals, setSelectedReferrals] = useState<
@@ -525,7 +526,7 @@ export default function TreatmentDetailsPage() {
               {/* Button Group Container – flush right with extra spacing and design */}
               <div className="ml-auto flex items-center space-x-2 rounded-lg p-2 backdrop-blur-sm">
                 <button
-                  onClick={() => setIsReferModalOpen(true)}
+                  onClick={() => setIsReferTypeModalOpen(true)}
                   className="flex items-center gap-2 rounded-full bg-blue-600 px-5 py-2 font-medium text-white transition-shadow duration-200 hover:bg-blue-700 hover:shadow-lg"
                 >
                   <svg
@@ -551,7 +552,7 @@ export default function TreatmentDetailsPage() {
                       treatmentDetails?.patient_info?.queue_data?.queue_number;
                     if (q) {
                       router.push(
-                        `/oncall-doctors/treatment-form/${patient_id}/${q}`
+                        `/doctor/treatment-form/${patient_id}/${q}`
                       );
                     } else {
                       alert("Queue number not found for this patient");
@@ -1178,23 +1179,324 @@ export default function TreatmentDetailsPage() {
                     </div>
                   </div>
                 )}
-                {isReferModalOpen && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm duration-300 animate-in fade-in">
-                    <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-border/50 bg-card shadow-lg duration-300 animate-in zoom-in-95">
-                      {/* Modal Header */}
-                      <div className="flex items-center justify-between border-b border-border bg-muted/30 p-5">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-full bg-primary/10 p-2">
+{/* Refer Type Selection Modal */}
+{isReferTypeModalOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm duration-300 animate-in fade-in">
+    <div className="w-full max-w-md overflow-hidden rounded-xl border border-border/50 bg-card shadow-lg duration-300 animate-in zoom-in-95">
+      {/* Modal Header */}
+      <div className="flex items-center justify-between border-b border-border bg-muted/30 p-5">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full bg-primary/10 p-2">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-primary"
+            >
+              <path
+                d="M9 6L15 12L9 18"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <div>
+            <h3 className="text-lg font-medium">Choose Referral Type</h3>
+            <p className="mt-1 text-sm text-gray-400">
+              Select how you want to refer the patient
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setIsReferTypeModalOpen(false)}
+          className="rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18M6 6L18 18"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {/* Modal Content */}
+      <div className="p-6">
+        <div className="grid grid-cols-1 gap-4">
+          {/* Internal Referral Button */}
+          <button
+            onClick={() => {
+              setIsReferTypeModalOpen(false);
+              setIsReferModalOpen(true);
+            }}
+            className="flex items-center gap-4 rounded-lg border border-border bg-background p-4 text-left transition-all hover:bg-muted/50 hover:shadow-md"
+          >
+            <div className="rounded-full bg-blue-100 p-3">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-blue-600"
+              >
+                <path
+                  d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55232C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89318 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88M13 7C13 9.20914 11.2091 11 9 11C6.79086 11 5 9.20914 5 7C5 4.79086 6.79086 3 9 3C11.2091 3 13 4.79086 13 7Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold">Internal Referral</h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                Refer to another doctor within the clinic
+              </p>
+            </div>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-muted-foreground"
+            >
+              <path
+                d="M9 6L15 12L9 18"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+
+          {/* External Referral Button */}
+          <button
+            onClick={() => {
+              setIsReferTypeModalOpen(false);
+              router.push(`/doctor/patient-report/${patient_id}`);
+            }}
+            className="flex items-center gap-4 rounded-lg border border-border bg-background p-4 text-left transition-all hover:bg-muted/50 hover:shadow-md"
+          >
+            <div className="rounded-full bg-green-100 p-3">
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="text-green-600"
+              >
+                <path
+                  d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M2 12H22"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+            <div className="flex-1">
+              <h4 className="font-semibold">External Referral</h4>
+              <p className="text-sm text-muted-foreground mt-1">
+                Refer to an external facility or generate referral reports
+              </p>
+            </div>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-muted-foreground"
+            >
+              <path
+                d="M9 6L15 12L9 18"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Modal Footer */}
+      <div className="flex justify-end border-t border-border bg-muted/30 p-5">
+        <button
+          onClick={() => setIsReferTypeModalOpen(false)}
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* Existing Referral Modal (Doctors List) */}
+{isReferModalOpen && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-sm duration-300 animate-in fade-in">
+    <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-border/50 bg-card shadow-lg duration-300 animate-in zoom-in-95">
+      {/* Modal Header */}
+      <div className="flex items-center justify-between border-b border-border bg-muted/30 p-5">
+        <div className="flex items-center gap-3">
+          <div className="rounded-full bg-primary/10 p-2">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-primary"
+            >
+              <path
+                d="M9 6L15 12L9 18"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </div>
+          <div className="border-b border-gray-200 p-1">
+            <h3 className="text-lg font-medium">Internal Referral</h3>
+            <p className="mt-0 text-sm text-gray-400">
+              You can select one or more referral
+            </p>
+          </div>
+        </div>
+        <button
+          onClick={() => setIsReferModalOpen(false)}
+          className="rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M18 6L6 18M6 6L18 18"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+      </div>
+
+      {/* Modal Content */}
+      <div className="space-y-4 p-5">
+        {/* Search Input */}
+        <div className="relative">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+          >
+            <path
+              d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search doctors..."
+            className="w-full rounded-lg border border-border bg-background py-2.5 pl-10 pr-4 transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+
+        {/* Doctors List */}
+        <div className="h-96 overflow-y-auto rounded-lg border border-border">
+          {filteredDoctors.length === 0 ? (
+            <div className="flex h-full flex-col items-center justify-center p-6 text-center">
+              <svg
+                width="40"
+                height="40"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                className="mb-3 text-muted-foreground"
+              >
+                <path
+                  d="M10 21H14M12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3ZM9 9H9.01M15 9H15.01M9.5 15C9.82379 15.3358 10.7333 16 12 16C13.2667 16 14.1762 15.3358 14.5 15"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+              <p className="text-muted-foreground">
+                No doctors found matching your search.
+              </p>
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {filteredDoctors.map((doctor) => {
+                const sel = !!selectedReferrals[doctor.id];
+                return (
+                  <div
+                    key={doctor.id}
+                    className={`p-4 transition-all ${
+                      sel ? "bg-primary/5" : "hover:bg-muted/50"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {sel ? (
+                          <div className="flex h-5 w-5 items-center justify-center rounded-md border border-primary bg-primary/10">
                             <svg
-                              width="18"
-                              height="18"
+                              width="14"
+                              height="14"
                               viewBox="0 0 24 24"
                               fill="none"
                               xmlns="http://www.w3.org/2000/svg"
                               className="text-primary"
                             >
                               <path
-                                d="M9 6L15 12L9 18"
+                                d="M20 6L9 17L4 12"
                                 stroke="currentColor"
                                 strokeWidth="2"
                                 strokeLinecap="round"
@@ -1202,249 +1504,135 @@ export default function TreatmentDetailsPage() {
                               />
                             </svg>
                           </div>
-                          <div className="border-b border-gray-200 p-1">
-                            <h3 className="text-lg font-medium">Referral</h3>
-                            <p className="mt-0 text-sm text-gray-400">
-                              You can select one or more referral
-                            </p>
-                          </div>
+                        ) : (
+                          <div className="h-5 w-5 rounded-md border border-border"></div>
+                        )}
+                        <div>
+                          <h4 className="font-medium">
+                            {doctor.first_name}{" "}
+                            {doctor.last_name}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            {
+                              doctor.doctor_profile
+                                .specialization
+                            }
+                          </p>
                         </div>
-                        <button
-                          onClick={() => setIsReferModalOpen(false)}
-                          className="rounded-full p-1 text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                          <svg
-                            width="18"
-                            height="18"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path
-                              d="M18 6L6 18M6 6L18 18"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        </button>
                       </div>
+                      <button
+                        onClick={() => toggleDoctor(doctor.id)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                          sel
+                            ? "bg-destructive/10 text-destructive hover:bg-destructive/20"
+                            : "bg-primary text-primary-foreground hover:bg-primary/90"
+                        }`}
+                      >
+                        {sel ? "Deselect" : "Select"}
+                      </button>
+                    </div>
 
-                      {/* Modal Content */}
-                      <div className="space-y-4 p-5">
-                        {/* Search Input */}
-                        <div className="relative">
-                          <svg
-                            width="16"
-                            height="16"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                          >
-                            <path
-                              d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
+                    {/* Referral Details - Animate in/out */}
+                    {sel && (
+                      <div className="mt-4 space-y-4 pl-8 duration-300 animate-in slide-in-from-top-2">
+                        <div>
+                          <label className="mb-1.5 block text-sm font-medium">
+                            Referral Reason
+                          </label>
                           <input
                             type="text"
-                            placeholder="Search doctors..."
-                            className="w-full rounded-lg border border-border bg-background py-2.5 pl-10 pr-4 transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
+                            value={
+                              selectedReferrals[doctor.id]
+                                .reason
+                            }
+                            onChange={(e) =>
+                              handleFieldChange(
+                                doctor.id,
+                                "reason",
+                                e.target.value
+                              )
+                            }
+                            className="w-full rounded-lg border border-border bg-background px-3 py-2 transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            placeholder="Enter referral reason..."
                           />
                         </div>
-
-                        {/* Doctors List */}
-                        <div className="h-96 overflow-y-auto rounded-lg border border-border">
-                          {filteredDoctors.length === 0 ? (
-                            <div className="flex h-full flex-col items-center justify-center p-6 text-center">
-                              <svg
-                                width="40"
-                                height="40"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="mb-3 text-muted-foreground"
-                              >
-                                <path
-                                  d="M10 21H14M12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3ZM9 9H9.01M15 9H15.01M9.5 15C9.82379 15.3358 10.7333 16 12 16C13.2667 16 14.1762 15.3358 14.5 15"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                />
-                              </svg>
-                              <p className="text-muted-foreground">
-                                No doctors found matching your search.
-                              </p>
-                            </div>
-                          ) : (
-                            <div className="divide-y divide-border">
-                              {filteredDoctors.map((doctor) => {
-                                const sel = !!selectedReferrals[doctor.id];
-                                return (
-                                  <div
-                                    key={doctor.id}
-                                    className={`p-4 transition-all ${
-                                      sel ? "bg-primary/5" : "hover:bg-muted/50"
-                                    }`}
-                                  >
-                                    <div className="flex items-center justify-between">
-                                      <div className="flex items-center gap-3">
-                                        {sel ? (
-                                          <div className="flex h-5 w-5 items-center justify-center rounded-md border border-primary bg-primary/10">
-                                            <svg
-                                              width="14"
-                                              height="14"
-                                              viewBox="0 0 24 24"
-                                              fill="none"
-                                              xmlns="http://www.w3.org/2000/svg"
-                                              className="text-primary"
-                                            >
-                                              <path
-                                                d="M20 6L9 17L4 12"
-                                                stroke="currentColor"
-                                                strokeWidth="2"
-                                                strokeLinecap="round"
-                                                strokeLinejoin="round"
-                                              />
-                                            </svg>
-                                          </div>
-                                        ) : (
-                                          <div className="h-5 w-5 rounded-md border border-border"></div>
-                                        )}
-                                        <div>
-                                          <h4 className="font-medium">
-                                            {doctor.first_name}{" "}
-                                            {doctor.last_name}
-                                          </h4>
-                                          <p className="text-sm text-muted-foreground">
-                                            {
-                                              doctor.doctor_profile
-                                                .specialization
-                                            }
-                                          </p>
-                                        </div>
-                                      </div>
-                                      <button
-                                        onClick={() => toggleDoctor(doctor.id)}
-                                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                                          sel
-                                            ? "bg-destructive/10 text-destructive hover:bg-destructive/20"
-                                            : "bg-primary text-primary-foreground hover:bg-primary/90"
-                                        }`}
-                                      >
-                                        {sel ? "Deselect" : "Select"}
-                                      </button>
-                                    </div>
-
-                                    {/* Referral Details - Animate in/out */}
-                                    {sel && (
-                                      <div className="mt-4 space-y-4 pl-8 duration-300 animate-in slide-in-from-top-2">
-                                        <div>
-                                          <label className="mb-1.5 block text-sm font-medium">
-                                            Referral Reason
-                                          </label>
-                                          <input
-                                            type="text"
-                                            value={
-                                              selectedReferrals[doctor.id]
-                                                .reason
-                                            }
-                                            onChange={(e) =>
-                                              handleFieldChange(
-                                                doctor.id,
-                                                "reason",
-                                                e.target.value
-                                              )
-                                            }
-                                            className="w-full rounded-lg border border-border bg-background px-3 py-2 transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                            placeholder="Enter referral reason..."
-                                          />
-                                        </div>
-                                        <div>
-                                          <label className="mb-1.5 block text-sm font-medium">
-                                            Referral Notes
-                                          </label>
-                                          <textarea
-                                            value={
-                                              selectedReferrals[doctor.id].notes
-                                            }
-                                            onChange={(e) =>
-                                              handleFieldChange(
-                                                doctor.id,
-                                                "notes",
-                                                e.target.value
-                                              )
-                                            }
-                                            className="h-24 w-full resize-none rounded-lg border border-border bg-background px-3 py-2 transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
-                                            placeholder="Add any additional notes..."
-                                          />
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
+                        <div>
+                          <label className="mb-1.5 block text-sm font-medium">
+                            Referral Notes
+                          </label>
+                          <textarea
+                            value={
+                              selectedReferrals[doctor.id].notes
+                            }
+                            onChange={(e) =>
+                              handleFieldChange(
+                                doctor.id,
+                                "notes",
+                                e.target.value
+                              )
+                            }
+                            className="h-24 w-full resize-none rounded-lg border border-border bg-background px-3 py-2 transition-all focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            placeholder="Add any additional notes..."
+                          />
                         </div>
-
-                        {/* Selected Count Banner */}
-                        {Object.keys(selectedReferrals).length > 0 && (
-                          <div className="flex items-center justify-between rounded-lg bg-primary/10 p-3 text-primary">
-                            <span className="text-sm font-medium">
-                              {Object.keys(selectedReferrals).length} doctor
-                              {Object.keys(selectedReferrals).length !== 1
-                                ? "s"
-                                : ""}{" "}
-                              selected
-                            </span>
-                            <button
-                              onClick={() => {
-                                // Clear all selections
-                                setSelectedReferrals({});
-                              }}
-                              className="text-sm hover:underline"
-                            >
-                              Clear all
-                            </button>
-                          </div>
-                        )}
                       </div>
-
-                      {/* Modal Footer */}
-                      <div className="flex justify-end gap-3 border-t border-border bg-muted/30 p-5">
-                        <button
-                          onClick={() => setIsReferModalOpen(false)}
-                          className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleSendReferrals}
-                          disabled={Object.keys(selectedReferrals).length === 0}
-                          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            Object.keys(selectedReferrals).length === 0
-                              ? "bg-primary/60 text-primary-foreground cursor-not-allowed"
-                              : "bg-primary text-primary-foreground hover:bg-primary/90"
-                          }`}
-                        >
-                          Send{" "}
-                          {Object.keys(selectedReferrals).length > 0
-                            ? `(${Object.keys(selectedReferrals).length})`
-                            : ""}
-                        </button>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                )}
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Selected Count Banner */}
+        {Object.keys(selectedReferrals).length > 0 && (
+          <div className="flex items-center justify-between rounded-lg bg-primary/10 p-3 text-primary">
+            <span className="text-sm font-medium">
+              {Object.keys(selectedReferrals).length} doctor
+              {Object.keys(selectedReferrals).length !== 1
+                ? "s"
+                : ""}{" "}
+              selected
+            </span>
+            <button
+              onClick={() => {
+                // Clear all selections
+                setSelectedReferrals({});
+              }}
+              className="text-sm hover:underline"
+            >
+              Clear all
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Modal Footer */}
+      <div className="flex justify-end gap-3 border-t border-border bg-muted/30 p-5">
+        <button
+          onClick={() => setIsReferModalOpen(false)}
+          className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSendReferrals}
+          disabled={Object.keys(selectedReferrals).length === 0}
+          className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+            Object.keys(selectedReferrals).length === 0
+              ? "bg-primary/60 text-primary-foreground cursor-not-allowed"
+              : "bg-primary text-primary-foreground hover:bg-primary/90"
+          }`}
+        >
+          Send{" "}
+          {Object.keys(selectedReferrals).length > 0
+            ? `(${Object.keys(selectedReferrals).length})`
+            : ""}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
               </div>
             )
           )}

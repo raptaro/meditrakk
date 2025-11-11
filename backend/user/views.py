@@ -17,7 +17,7 @@ class UserAccountViewSet(viewsets.ModelViewSet):
     def get_permissions(self):
         # update/partial_update/destroy => user-level (IsMe)
         if self.action in ['update', 'partial_update', 'destroy']:
-            return [IsMe()]
+            return [IsAdminOrGeneralDoctor()]
         # create/restore => admin-level
         if self.action in ['create', 'restore']:
             return [IsAdminOrGeneralDoctor()]

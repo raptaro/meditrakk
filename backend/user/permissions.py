@@ -49,7 +49,7 @@ class IsAdminOrGeneralDoctor(BasePermission):
         role = request.user.role.lower()
         email = request.user.email.lower()
 
-        if role == 'admin' or (role == 'doctor' and email == 'generaldoctor@hospital.com'):
+        if role == 'admin' or (role == 'doctor'):
             return True
         return False
     
