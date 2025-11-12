@@ -9,6 +9,7 @@ import {
   FaNotesMedical,
   FaPrescription,
   FaRegCalendarCheck,
+  FaLightbulb,
 } from "react-icons/fa6";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
@@ -176,42 +177,6 @@ const formatDateOnly = (dateString: string | undefined) => {
   }
 };
 
-// Alternative function that extracts UTC components directly
-const formatDateTimeUTC = (datetime: string | undefined) => {
-  if (!datetime) {
-    return { date: '-', time: '-' };
-  }
-
-  try {
-    const parsed = new Date(datetime);
-    if (Number.isNaN(parsed.getTime())) {
-      return { date: datetime, time: '' };
-    }
-
-    // Get UTC components directly
-    const year = parsed.getUTCFullYear();
-    const month = parsed.getUTCMonth();
-    const day = parsed.getUTCDate();
-    const hours = parsed.getUTCHours();
-    const minutes = parsed.getUTCMinutes();
-
-    // Format date
-    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-    const date = `${monthNames[month]} ${day}, ${year}`;
-
-    // Format time
-    const ampm = hours >= 12 ? 'PM' : 'AM';
-    const displayHours = hours % 12 || 12;
-    const displayMinutes = minutes.toString().padStart(2, '0');
-    const time = `${displayHours}:${displayMinutes} ${ampm}`;
-
-    return { date, time };
-  } catch (error) {
-    console.error('Error formatting date:', error);
-    return { date: datetime, time: '' };
-  }
-};
-
 // Skeleton Loading Components
 const SkeletonLoader = () => (
   <main className="min-h-screen p-8">
@@ -282,6 +247,17 @@ const SkeletonLoader = () => (
               {[1, 2, 3].map((item) => (
                 <div key={item} className="h-12 bg-gray-100 rounded animate-pulse"></div>
               ))}
+            </div>
+          </div>
+
+          {/* Health Tips Skeleton */}
+          <div className="rounded-xl border p-6 shadow-sm">
+            <div className="flex items-center justify-between border-b pb-4">
+              <div className="h-6 w-24 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="mt-6 space-y-3">
+              <div className="h-20 bg-gray-100 rounded-lg animate-pulse"></div>
             </div>
           </div>
         </div>
@@ -581,6 +557,176 @@ function ViewAllModal({ isOpen, onClose, title, children }: ViewAllModalProps) {
           </button>
         </div>
         {children}
+      </div>
+    </div>
+  );
+}
+
+// Health Tips Component
+interface HealthTipsProps {
+  patientData: PatientData | null;
+}
+
+function HealthTips({ patientData }: HealthTipsProps) {
+  const [healthTips, setHealthTips] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
+  const [originalTips, setOriginalTips] = useState("");
+
+  // Generate health tips based on patient data
+  const generateHealthTips = () => {
+    if (!patientData) return "";
+
+    const { patient, preliminary_assessment } = patientData;
+    const tips = [];
+
+    // Age-based tips
+    if (patient.age) {
+      if (patient.age > 50) {
+        tips.push("• Consider regular health screenings for age-related conditions.");
+      } else if (patient.age < 30) {
+        tips.push("• Focus on building healthy habits for long-term wellness.");
+      }
+    }
+
+    // Blood pressure tips
+    if (preliminary_assessment.blood_pressure) {
+      const bp = preliminary_assessment.blood_pressure;
+      if (bp.includes('/')) {
+        const [systolic, diastolic] = bp.split('/').map(Number);
+        if (systolic > 130 || diastolic > 85) {
+          tips.push("• Monitor your blood pressure regularly and reduce sodium intake.");
+        }
+      }
+    }
+
+    // Smoking status
+    if (preliminary_assessment.smoking_status && preliminary_assessment.smoking_status !== 'Never') {
+      tips.push("• Consider smoking cessation programs to improve overall health.");
+    }
+
+    // Alcohol use
+    if (preliminary_assessment.alcohol_use && preliminary_assessment.alcohol_use !== 'Never') {
+      tips.push("• Moderate alcohol consumption and consider alcohol-free days.");
+    }
+
+    // General health tips
+    tips.push(
+      "• Maintain a balanced diet rich in fruits and vegetables.",
+      "• Engage in regular physical activity (30 minutes daily).",
+      "• Stay hydrated by drinking at least 8 glasses of water daily.",
+      "• Get 7-9 hours of quality sleep each night.",
+      "• Manage stress through relaxation techniques or meditation."
+    );
+
+    return tips.join('\n');
+  };
+
+  const handleGenerateTips = () => {
+    const generatedTips = generateHealthTips();
+    setHealthTips(generatedTips);
+    setOriginalTips(generatedTips);
+    setIsEditing(true);
+  };
+
+  const handleSave = () => {
+    // Here you would typically save to your backend
+    console.log("Saving health tips:", healthTips);
+    setOriginalTips(healthTips);
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setHealthTips(originalTips);
+    setIsEditing(false);
+  };
+
+  const handleClear = () => {
+    setHealthTips("");
+    setOriginalTips("");
+    setIsEditing(false);
+  };
+
+  return (
+    <div className="card rounded-xl border p-6 shadow-sm">
+      <div className="flex items-center justify-between border-b pb-4">
+        <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+          <FaLightbulb className="h-6 w-6 text-yellow-600" />
+          Health Tips
+        </h2>
+        <Button
+          onClick={handleGenerateTips}
+          className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+        >
+          <FaLightbulb className="h-4 w-4" />
+          Generate Health Tips
+        </Button>
+      </div>
+
+      <div className="mt-6">
+        {isEditing ? (
+          <div className="space-y-4">
+            <textarea
+              value={healthTips}
+              onChange={(e) => setHealthTips(e.target.value)}
+              rows={8}
+              className="w-full rounded-lg border border-gray-300 p-4 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              placeholder="Health tips will be generated here. You can edit them as needed."
+            />
+            <div className="flex justify-end space-x-3">
+              <Button
+                onClick={handleCancel}
+                variant="outline"
+                className="border-gray-300 text-gray-700 hover:bg-gray-50"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleClear}
+                variant="outline"
+                className="border-red-300 text-red-700 hover:bg-red-50"
+              >
+                Clear
+              </Button>
+              <Button
+                onClick={handleSave}
+                className="bg-blue-600 text-white hover:bg-blue-700"
+                disabled={!healthTips.trim()}
+              >
+                Save Tips
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="min-h-[200px] rounded-lg border-2 border-dashed border-gray-300 p-4">
+            {healthTips ? (
+              <div className="whitespace-pre-wrap text-base leading-relaxed">
+                {healthTips}
+                <div className="mt-4 flex justify-end">
+                  <Button
+                    onClick={() => setIsEditing(true)}
+                    variant="outline"
+                    className="flex items-center gap-2"
+                  >
+                    <FaPenToSquare className="h-4 w-4" />
+                    Edit Tips
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex h-full items-center justify-center text-center">
+                <div>
+                  <FaLightbulb className="mx-auto h-12 w-12 text-gray-400" />
+                  <p className="mt-2 text-lg font-medium text-gray-600">
+                    Click the button to generate health tips
+                  </p>
+                  <p className="text-sm text-gray-500 mt-1">
+                    Personalized recommendations based on patient data
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -908,6 +1054,9 @@ export default function Page() {
                 </table>
               </div>
             </div>
+
+            {/* Health Tips Card - MOVED TO LEFT COLUMN UNDER PRESCRIPTIONS */}
+            <HealthTips patientData={data} />
           </div>
 
           {/* Right Column */}
@@ -950,56 +1099,54 @@ export default function Page() {
             </div>
 
             {/* Lab Results Card */}
-{/* Lab Results Card */}
-<div className="card rounded-xl border p-6 shadow-sm">
-  <div className="flex items-center justify-between border-b pb-4">
-    <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-      <FaFile className="h-6 w-6 text-red-600" />
-      Lab Results
-    </h2>
-    <button
-      onClick={() => openViewAllModal('labs', 'Laboratory Results')}
-      className="border-b border-transparent text-sm font-medium text-blue-600"
-    >
-      View All
-    </button>
-  </div>
+            <div className="card rounded-xl border p-6 shadow-sm">
+              <div className="flex items-center justify-between border-b pb-4">
+                <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+                  <FaFile className="h-6 w-6 text-red-600" />
+                  Lab Results
+                </h2>
+                <button
+                  onClick={() => openViewAllModal('labs', 'Laboratory Results')}
+                  className="border-b border-transparent text-sm font-medium text-blue-600"
+                >
+                  View All
+                </button>
+              </div>
 
-  <div className="mt-6 space-y-3">
-    {laboratories ? (
-      <div className="flex items-center justify-between rounded-lg border-2 p-3 transition-colors">
-        <div className="flex items-center gap-3">
-          <FaFile className="h-5 w-5" />
-          <div>
-            <span className="text-base font-medium">
-              Lab Result {laboratories.id ?? ''}
-            </span>
-            <p className="text-sm text-gray-500">
-              Uploaded: {formatDateOnly(laboratories.uploaded_at)}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" asChild>
-            <a href={laboratories.image_url} target="_blank" rel="noopener noreferrer">
-              View
-            </a>
-          </Button>
-          <Button size="sm" asChild>
-            <a href={laboratories.image_url} download>
-              Download
-            </a>
-          </Button>
-        </div>
-      </div>
-    ) : (
-      <div className="rounded-lg border-2 p-4 text-center text-gray-600">
-        No laboratory results available.
-      </div>
-    )}
-  </div>
-</div>
-
+              <div className="mt-6 space-y-3">
+                {laboratories ? (
+                  <div className="flex items-center justify-between rounded-lg border-2 p-3 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <FaFile className="h-5 w-5" />
+                      <div>
+                        <span className="text-base font-medium">
+                          Lab Result {laboratories.id ?? ''}
+                        </span>
+                        <p className="text-sm text-gray-500">
+                          Uploaded: {formatDateOnly(laboratories.uploaded_at)}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={laboratories.image_url} target="_blank" rel="noopener noreferrer">
+                          View
+                        </a>
+                      </Button>
+                      <Button size="sm" asChild>
+                        <a href={laboratories.image_url} download>
+                          Download
+                        </a>
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="rounded-lg border-2 p-4 text-center text-gray-600">
+                    No laboratory results available.
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Clinical Notes Card */}
             <div className="card rounded-xl border p-6 shadow-sm">
@@ -1120,55 +1267,54 @@ export default function Page() {
           </div>
         )}
 
-{viewAllModal.type === 'labs' && (
-  <div className="space-y-4">
-    {laboratories ? (
-      <div className="rounded-lg border-2 p-4">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h3 className="text-lg font-semibold">Lab Result {laboratories.id}</h3>
-            <p className="text-sm text-gray-500">
-              Request: {laboratories.lab_request}
-            </p>
-            <p className="text-sm text-gray-500">
-              Uploaded: {(() => {
-                const { date, time } = formatDateTime(laboratories.uploaded_at);
-                return `${date} at ${time}`;
-              })()}
-            </p>
-            <p className="text-sm text-gray-500">
-              Submitted by: {laboratories.submitted_by?.first_name ?? ''} {laboratories.submitted_by?.last_name ?? ''} ({laboratories.submitted_by?.role ?? ''})
-            </p>
+        {viewAllModal.type === 'labs' && (
+          <div className="space-y-4">
+            {laboratories ? (
+              <div className="rounded-lg border-2 p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">Lab Result {laboratories.id}</h3>
+                    <p className="text-sm text-gray-500">
+                      Request: {laboratories.lab_request}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Uploaded: {(() => {
+                        const { date, time } = formatDateTime(laboratories.uploaded_at);
+                        return `${date} at ${time}`;
+                      })()}
+                    </p>
+                    <p className="text-sm text-gray-500">
+                      Submitted by: {laboratories.submitted_by?.first_name ?? ''} {laboratories.submitted_by?.last_name ?? ''} ({laboratories.submitted_by?.role ?? ''})
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" asChild>
+                      <a href={laboratories.image_url} target="_blank" rel="noopener noreferrer">
+                        View
+                      </a>
+                    </Button>
+                    <Button size="sm" asChild>
+                      <a href={laboratories.image_url} download>
+                        Download
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <img 
+                    src={laboratories.image_url} 
+                    alt="Lab result" 
+                    className="max-w-full h-auto rounded-lg border"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-lg border-2 p-6 text-center text-gray-600">
+                No laboratory results available.
+              </div>
+            )}
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <a href={laboratories.image_url} target="_blank" rel="noopener noreferrer">
-                View
-              </a>
-            </Button>
-            <Button size="sm" asChild>
-              <a href={laboratories.image_url} download>
-                Download
-              </a>
-            </Button>
-          </div>
-        </div>
-        <div className="mt-4">
-          <img 
-            src={laboratories.image_url} 
-            alt="Lab result" 
-            className="max-w-full h-auto rounded-lg border"
-          />
-        </div>
-      </div>
-    ) : (
-      <div className="rounded-lg border-2 p-6 text-center text-gray-600">
-        No laboratory results available.
-      </div>
-    )}
-  </div>
-)}
-
+        )}
       </ViewAllModal>
     </main>
   );
