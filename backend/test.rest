@@ -46,19 +46,19 @@ POST  http://localhost:8000/auth/jwt/create/
 Content-Type: application/json
 
 {
-  "email": "generaldoctor@hospital.com",
-  "password": "securepassword123"
+  "email": "stinson@gmail.com",
+  "password": "stinson-020001019861206"
 }
 
 ### doctor
-GET   http://localhost:8000/patient/patient-info/zuma-020009/
+GET   http://localhost:8000/patient/lab-results/stinson-0200010
 Content-Type: application/json  
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwNTI4NTQyLCJpYXQiOjE3NjI3NTI1NDIsImp0aSI6ImM4YTlmMTVmMTVhODQyYWZhZjlkNDJhOThkYzU1Nzg3IiwidXNlcl9pZCI6ImNvb3Blci0wMjAwMDYiLCJpc19zdGFmZiI6ZmFsc2UsImlzX3N1cGVydXNlciI6ZmFsc2UsImVtYWlsIjoiZ2VuZXJhbGRvY3RvckBob3NwaXRhbC5jb20iLCJyb2xlIjoiZG9jdG9yIiwiZmlyc3RfbmFtZSI6IlNoZWxkb24ifQ.m28y3MCaldjpuLBTVgjmD5MF4xPVWJq4C5KT29-ItT8
 ### secretary request
 GET    http://localhost:8000/queueing/registration_queueing/
 Content-Type: application/json  
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwMzk4MzM0LCJpYXQiOjE3NjI2MjIzMzQsImp0aSI6IjllZjE5MjZjNDMzOTRhOTY5YzZiYTNiYTFlYzVmYjRhIiwidXNlcl9pZCI6ImNvb3Blci0wMjAwMDYiLCJpc19zdGFmZiI6ZmFsc2UsImlzX3N1cGVydXNlciI6ZmFsc2UsImVtYWlsIjoiZ2VuZXJhbGRvY3RvckBob3NwaXRhbC5jb20iLCJyb2xlIjoiZG9jdG9yIiwiZmlyc3RfbmFtZSI6IlNoZWxkb24ifQ.bL4ThGTGX8WZ6kBoHmm5d-XZz0e-2tPA3MvI23oRKkQ
-
+tinson-0200010
 ### oncalldoctor request
 GET http://localhost:8000/patient/patient-info/zuma-020009
 Content-Type: application/json  
@@ -66,9 +66,9 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiY
 
 ### patient
 
-GET    http://localhost:8000/patient/active-queue/
+GET    http://localhost:8000/patient/show/lab-results/
 Content-Type: application/json  
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY4OTI0NjAwLCJpYXQiOjE3NjExNDg2MDAsImp0aSI6IjE4OWEzZDJiOTQ5YjRiZDc5MGZmYWJiZjk0ZjVhN2FkIiwidXNlcl9pZCI6Inp1bWEtMDIwMDA5IiwiaXNfc3RhZmYiOmZhbHNlLCJpc19zdXBlcnVzZXIiOmZhbHNlLCJlbWFpbCI6Inp1bWFAZ21haWwuY29tIiwicm9sZSI6InBhdGllbnQiLCJmaXJzdF9uYW1lIjoiRGVtYmUifQ.hbXY5d75DwK1vbO3cnBBb9B0XA84nV97JhXCYIzdO5g
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwNzI5NzA2LCJpYXQiOjE3NjI5NTM3MDYsImp0aSI6IjNiMjU4MjFkNjdlNTQ4YjdiYTUxMWI1YzEzYTdiNzkwIiwidXNlcl9pZCI6InN0aW5zb24tMDIwMDAxMCIsImlzX3N0YWZmIjpmYWxzZSwiaXNfc3VwZXJ1c2VyIjpmYWxzZSwiZW1haWwiOiJzdGluc29uQGdtYWlsLmNvbSIsInJvbGUiOiJwYXRpZW50IiwiZmlyc3RfbmFtZSI6IkJhcm5leSJ9.ri1OtSzDb44qQVlDdY3izhH0MrR6hb0NzwcJdSMin80
  
 # {
 #   "doctor_id": 20,

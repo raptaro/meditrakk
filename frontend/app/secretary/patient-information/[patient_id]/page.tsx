@@ -12,7 +12,6 @@ import {
 } from "react-icons/fa6";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { format } from 'date-fns';
 
 interface PatientInfo {
   patient_id: string;
@@ -22,23 +21,63 @@ interface PatientInfo {
   email: string;
   phone_number: string;
   date_of_birth: string;
+  street_address: string;
+  barangay: string;
+  municipal_city: string;
   gender: string;
   age?: number;
   queue_data: QueueData;
-  appointments: Appointments[];
-  treatment: TreatmentRecord;
 }
+
 interface QueueData {
-  complaint: string;
+  id: number;
+  priority_level: string;
   created_at: string;
-}
-interface Appointments {
-  appointment_date: string;
+  queue_number: number;
+  complaint: string;
   status: string;
-  doctor_id: number;
-  doctor_name: string;
-  reason: string;
 }
+
+interface PreliminaryAssessment {
+  blood_pressure: string;
+  temperature: string;
+  heart_rate: string;
+  respiratory_rate: string;
+  pulse_rate: string;
+  allergies: string;
+  medical_history: string;
+  symptoms: string;
+  current_medications: string;
+  pain_scale: string;
+  pain_location: string;
+  smoking_status: string;
+  alcohol_use: string;
+  assessment: string;
+}
+
+interface Diagnosis {
+  id: number;
+  patient_id: string;
+  diagnosis_code: string;
+  diagnosis_date: string;
+  diagnosis_description: string;
+}
+
+interface Prescription {
+  id: number;
+  dosage: string;
+  frequency: string;
+  quantity: number;
+  start_date: string;
+  end_date: string;
+  patient_id: string;
+  medication_id: number;
+  medicine_medicine: {
+    id: number;
+    name: string;
+  };
+}
+
 interface TreatmentRecord {
   id: number;
   treatment_notes: string;
@@ -47,59 +86,531 @@ interface TreatmentRecord {
   diagnoses: Diagnosis[];
   prescriptions: Prescription[];
 }
-interface Diagnosis {
-  diagnosis_description: string;
+
+interface Appointment {
+  appointment_date: string;
+  status: string;
+  doctor_id: number;
+  doctor_name: string;
+  reason: string;
 }
-// ─── Prescription Interface ─────────────────────────────────────────────────
-interface Prescription {
-  id: number;
-  dosage: string;           // e.g. "954 mg"
-  frequency: string;        // e.g. "Twice a day"
-  quantity: number;         // e.g. 40
-  start_date: string;       // ISO date, e.g. "2025-04-19"
-  end_date: string;         // ISO date, e.g. "2025-04-30"
-  patient_id: string;
-  medication_id: number;
-  medicine_medicine: {      // nested medicine record
-    id: number;
-    name: string;           // e.g. "Cefcillin"
+
+interface Laboratory {
+  id: string;
+  lab_request: string;
+  image: string;
+  image_url: string;
+  uploaded_at: string;
+  submitted_by: {
+    id: string;
+    email: string;
+    first_name: string;
+    last_name: string;
+    role: string;
   };
 }
 
-// ─── TreatmentRecord Interface ────────────────────────────────────────────────
-interface TreatmentRecord {
-  id: number;
-  treatment_notes: string;
-  created_at: string;
-  updated_at: string;
-  diagnoses: Diagnosis[];             // unchanged
-  prescriptions: Prescription[];      // now uses the updated Prescription
+interface PatientData {
+  patient: PatientInfo;
+  preliminary_assessment: PreliminaryAssessment;
+  latest_treatment: TreatmentRecord;
+  latest_treatment_id: number;
+  appointments: Appointment[];
+  laboratories: Laboratory | null;
 }
 
-// ─── PatientInfo Interface ───────────────────────────────────────────────────
-interface PatientInfo {
-  patient_id: string;
-  /* …other fields… */
-  treatment: TreatmentRecord;
-  // remove any previous “prescriptions” array here; the nested TreatmentRecord now holds them
+// Date formatting utility - FIXED for UTC times
+const formatDateTime = (datetime: string | undefined) => {
+  if (!datetime) {
+    return { date: '-', time: '-' };
+  }
+
+  try {
+    // Parse the datetime string - this will handle UTC times correctly
+    const parsed = new Date(datetime);
+    if (Number.isNaN(parsed.getTime())) {
+      return { date: datetime, time: '' };
+    }
+
+    // Format date in UTC to preserve the original time
+    const date = new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Use UTC to preserve backend time
+    }).format(parsed);
+
+    // Format time in UTC to preserve the original time
+    const time = new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'UTC' // Use UTC to preserve backend time
+    }).format(parsed);
+
+    return { date, time };
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return { date: datetime, time: '' };
+  }
+};
+
+const formatDateOnly = (dateString: string | undefined) => {
+  if (!dateString) return '-';
+  
+  try {
+    const parsed = new Date(dateString);
+    if (Number.isNaN(parsed.getTime())) {
+      return dateString;
+    }
+    
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+      timeZone: 'UTC' // Use UTC for consistency
+    }).format(parsed);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString || '-';
+  }
+};
+
+// Alternative function that extracts UTC components directly
+const formatDateTimeUTC = (datetime: string | undefined) => {
+  if (!datetime) {
+    return { date: '-', time: '-' };
+  }
+
+  try {
+    const parsed = new Date(datetime);
+    if (Number.isNaN(parsed.getTime())) {
+      return { date: datetime, time: '' };
+    }
+
+    // Get UTC components directly
+    const year = parsed.getUTCFullYear();
+    const month = parsed.getUTCMonth();
+    const day = parsed.getUTCDate();
+    const hours = parsed.getUTCHours();
+    const minutes = parsed.getUTCMinutes();
+
+    // Format date
+    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const date = `${monthNames[month]} ${day}, ${year}`;
+
+    // Format time
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    const time = `${displayHours}:${displayMinutes} ${ampm}`;
+
+    return { date, time };
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return { date: datetime, time: '' };
+  }
+};
+
+// Skeleton Loading Components
+const SkeletonLoader = () => (
+  <main className="min-h-screen p-8">
+    <div className="mx-auto max-w-7xl space-y-8">
+      {/* Header Skeleton */}
+      <div className="flex items-center justify-between border-b pb-8">
+        <div className="space-y-2">
+          <div className="h-8 w-64 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-4 w-96 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+        <div className="flex gap-4">
+          <div className="h-10 w-24 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-10 w-32 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      </div>
+
+      {/* Main Grid Skeleton */}
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+        {/* Left Column */}
+        <div className="space-y-8 lg:col-span-2">
+          {/* Personal Info Skeleton */}
+          <div className="rounded-xl border p-6 shadow-sm">
+            <div className="flex items-center gap-4 border-b pb-4">
+              <div className="h-12 w-12 bg-gray-200 rounded-full animate-pulse"></div>
+              <div className="space-y-2">
+                <div className="h-6 w-48 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+              <div className="space-y-4">
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                <div className="space-y-2">
+                  <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 w-40 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+              <div className="space-y-4">
+                <div className="h-4 w-32 bg-gray-200 rounded animate-pulse"></div>
+                <div className="space-y-2">
+                  <div className="h-4 w-40 bg-gray-200 rounded animate-pulse"></div>
+                  <div className="h-4 w-36 bg-gray-200 rounded animate-pulse"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Appointments Skeleton */}
+          <div className="rounded-xl border p-6 shadow-sm">
+            <div className="flex items-center justify-between border-b pb-4">
+              <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="mt-6 space-y-3">
+              {[1, 2].map((item) => (
+                <div key={item} className="h-20 bg-gray-100 rounded-lg animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+
+          {/* Prescriptions Skeleton */}
+          <div className="rounded-xl border p-6 shadow-sm">
+            <div className="flex items-center justify-between border-b pb-4">
+              <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="mt-6 space-y-3">
+              {[1, 2, 3].map((item) => (
+                <div key={item} className="h-12 bg-gray-100 rounded animate-pulse"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column */}
+        <div className="space-y-8">
+          {/* Health Overview Skeleton */}
+          <div className="rounded-xl border p-6 shadow-sm">
+            <div className="h-6 w-40 bg-gray-200 rounded animate-pulse mb-4"></div>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-3 w-32 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+              <div className="space-y-2">
+                <div className="h-4 w-28 bg-gray-200 rounded animate-pulse"></div>
+                <div className="h-3 w-40 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+
+          {/* Lab Results Skeleton */}
+          <div className="rounded-xl border p-6 shadow-sm">
+            <div className="flex items-center justify-between border-b pb-4">
+              <div className="h-6 w-24 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+            <div className="mt-6 space-y-3">
+              <div className="h-16 bg-gray-100 rounded-lg animate-pulse"></div>
+            </div>
+          </div>
+
+          {/* Clinical Notes Skeleton */}
+          <div className="rounded-xl border p-6 shadow-sm">
+            <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-4"></div>
+            <div className="space-y-2">
+              <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+);
+
+// Edit Profile Modal Component
+interface EditProfileModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  patient: PatientInfo | null;
+  onSave: (patientData: any) => void;
 }
 
+function EditProfileModal({ isOpen, onClose, patient, onSave }: EditProfileModalProps) {
+  const [formData, setFormData] = useState({
+    first_name: "",
+    middle_name: "",
+    last_name: "",
+    email: "",
+    phone_number: "",
+    date_of_birth: "",
+    street_address: "",
+    barangay: "",
+    municipal_city: "",
+    gender: "",
+  });
+
+  useEffect(() => {
+    if (patient) {
+      setFormData({
+        first_name: patient.first_name || "",
+        middle_name: patient.middle_name || "",
+        last_name: patient.last_name || "",
+        email: patient.email || "",
+        phone_number: patient.phone_number || "",
+        date_of_birth: patient.date_of_birth || "",
+        street_address: patient.street_address || "",
+        barangay: patient.barangay || "",
+        municipal_city: patient.municipal_city || "",
+        gender: patient.gender || "",
+      });
+    }
+  }, [patient]);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  if (!isOpen || !patient) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Edit Patient Profile</h2>
+            <p className="text-sm text-gray-600 mt-1">
+              Patient ID: <span className="font-semibold">{patient.patient_id}</span>
+            </p>
+          </div>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                First Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.first_name}
+                onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              />
+            </div>
+            
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Middle Name
+              </label>
+              <input
+                type="text"
+                value={formData.middle_name}
+                onChange={(e) => setFormData({ ...formData, middle_name: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Last Name *
+              </label>
+              <input
+                type="text"
+                required
+                value={formData.last_name}
+                onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Email *
+              </label>
+              <input
+                type="email"
+                required
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Phone Number *
+              </label>
+              <input
+                type="tel"
+                required
+                value={formData.phone_number}
+                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Date of Birth *
+              </label>
+              <input
+                type="date"
+                required
+                value={formData.date_of_birth}
+                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Gender *
+              </label>
+              <select
+                required
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              >
+                <option value="">Select Gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="mb-2 block text-sm font-medium text-gray-700">
+              Street Address
+            </label>
+            <input
+              type="text"
+              value={formData.street_address}
+              onChange={(e) => setFormData({ ...formData, street_address: e.target.value })}
+              className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Barangay
+              </label>
+              <input
+                type="text"
+                value={formData.barangay}
+                onChange={(e) => setFormData({ ...formData, barangay: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              />
+            </div>
+
+            <div>
+              <label className="mb-2 block text-sm font-medium text-gray-700">
+                Municipal/City
+              </label>
+              <input
+                type="text"
+                value={formData.municipal_city}
+                onChange={(e) => setFormData({ ...formData, municipal_city: e.target.value })}
+                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Save Changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// View All Modals
+interface ViewAllModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}
+
+function ViewAllModal({ isOpen, onClose, title, children }: ViewAllModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="w-full max-w-6xl max-h-[90vh] overflow-y-auto rounded-2xl bg-white p-6 shadow-xl">
+        <div className="mb-6 flex items-center justify-between">
+          <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+          <button
+            onClick={onClose}
+            className="rounded-lg p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
 
 export default function Page() {
-  const [patient, setPatient] = useState<PatientInfo | null>(null);
-  const [appointments, setAppointments] = useState<Appointments[]>([]);
+  const [data, setData] = useState<PatientData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [viewAllModal, setViewAllModal] = useState({
+    isOpen: false,
+    type: '',
+    title: ''
+  });
+
   const { patient_id } = useParams();
 
   useEffect(() => {
     const fetchPatient = async () => {
       try {
+        setLoading(true);
         const accessToken = localStorage.getItem("access");
         if (!accessToken) {
           console.error("No access token found");
+          setLoading(false);
           return;
         }
         if (!patient_id) {
           console.error("No patient ID found");
+          setLoading(false);
           return;
         }
         const response = await fetch(
@@ -117,21 +628,76 @@ export default function Page() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const json = await response.json();
-        console.log("patient id:", patient_id);
-        console.log(json);
-        // Populate patient and appointments separately
-        setPatient({
-          ...json.patient,
-          treatment: json.latest_treatment,     // “treatment” now points at “latest_treatment”
-        });
-        setAppointments(json.appointments);
+        console.log("Patient data:", json);
+        setData(json);
       } catch (error) {
         console.error("Error fetching patient:", error);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPatient();
   }, [patient_id]);
+
+  const handleSaveProfile = async (patientData: any) => {
+    try {
+      const accessToken = localStorage.getItem("access");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/patient/update-patient/${patient_id}/`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify(patientData),
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const updatedPatient = await response.json();
+      setData(prev => prev ? { ...prev, patient: { ...prev.patient, ...updatedPatient } } : null);
+      setIsEditModalOpen(false);
+    } catch (error) {
+      console.error("Error updating patient:", error);
+    }
+  };
+
+  const openViewAllModal = (type: string, title: string) => {
+    setViewAllModal({ isOpen: true, type, title });
+  };
+
+  const closeViewAllModal = () => {
+    setViewAllModal({ isOpen: false, type: '', title: '' });
+  };
+
+  // Filter scheduled appointments for the main page
+  const scheduledAppointments = data?.appointments?.filter(appt => appt.status === 'Scheduled') || [];
+  
+  // All appointments for the modal (including completed)
+  const allAppointments = data?.appointments || [];
+
+  if (loading) {
+    return <SkeletonLoader />;
+  }
+
+  if (!data) {
+    return (
+      <main className="min-h-screen p-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-center justify-center h-64">
+            <p className="text-lg text-red-600">Failed to load patient data.</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  const { patient, preliminary_assessment, latest_treatment, laboratories } = data;
 
   return (
     <main className="min-h-screen p-8">
@@ -149,18 +715,19 @@ export default function Page() {
           </div>
 
           {/* Right: Action Buttons */}
-        <div className="flex items-center gap-4">
-          <Link href={`/secretary/patient-report/${patient_id}`} passHref>
-            <Button
-              className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
-            >
-              <FaFile className="h-4 w-4" />
-              Reports
-            </Button>
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href={`/doctor/patient-report/${patient_id}`} passHref>
+              <Button
+                className="flex items-center gap-2 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700"
+              >
+                <FaFile className="h-4 w-4" />
+                Reports
+              </Button>
+            </Link>
 
-            {/* Edit Profile: neutral outline */}
+            {/* Edit Profile Button */}
             <Button
+              onClick={() => setIsEditModalOpen(true)}
               className="flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <FaPenToSquare className="h-4 w-4" />
@@ -168,8 +735,6 @@ export default function Page() {
             </Button>
           </div>
         </div>
-
-
 
         {/* Main Grid */}
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
@@ -183,18 +748,11 @@ export default function Page() {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold tracking-normal">
-                    {patient
-                      ? `${patient.first_name} ${patient.middle_name} ${patient.last_name}`
-                      : "Loading..."}
+                    {`${patient.first_name} ${patient.middle_name} ${patient.last_name}`}
                   </h2>
                   <p className="font-medium">
-                    {patient?.gender} • {patient?.age} years •{" "}
-                    {patient?.date_of_birth &&
-                      new Intl.DateTimeFormat("en-US", {
-                        month: "long",
-                        day: "numeric",
-                        year: "numeric",
-                      }).format(new Date(patient.date_of_birth))}
+                    {patient.gender} • {patient.age} years •{" "}
+                    {formatDateOnly(patient.date_of_birth)}
                   </p>
                 </div>
               </div>
@@ -207,11 +765,19 @@ export default function Page() {
                   <div className="space-y-2">
                     <p className="flex items-center gap-2 text-base font-medium">
                       <span>📞</span>
-                      {patient ? patient.phone_number : "Loading..."}
+                      {patient.phone_number}
                     </p>
                     <p className="flex items-center gap-2 text-base font-medium">
                       <span>✉️</span>
-                      {patient ? patient.email : "Loading..."}
+                      {patient.email}
+                    </p>
+                  </div>
+                  <div className="mt-4">
+                    <h3 className="text-sm font-semibold uppercase tracking-wider">
+                      ADDRESS
+                    </h3>
+                    <p className="mt-2 text-base">
+                      {patient.street_address}, {patient.barangay}, {patient.municipal_city}
                     </p>
                   </div>
                 </div>
@@ -223,49 +789,40 @@ export default function Page() {
                   <div className="space-y-2">
                     <p className="text-base">
                       <span className="font-semibold">Last Visit:</span>{" "}
-                      {patient?.queue_data.created_at
-                        ? format(
-                            new Date(patient.queue_data.created_at),
-                            "MMMM d, yyyy, h:mm a"
-                          )
-                        : "N/A"}
+                      {(() => {
+                        const { date, time } = formatDateTime(patient.queue_data.created_at);
+                        return `${date} at ${time}`;
+                      })()}
                     </p>
                     <p className="text-base">
                       <span className="font-semibold">Complaint:</span>{" "}
-                      {patient?.queue_data.complaint || "N/A"}
-                    </p>
-                    <p className="text-base">
-                      <span className="font-semibold">Diagnosis:</span>{" "}
-                      Diabetes
-                    </p>
-                    <p className="text-base">
-                      <span className="font-semibold">Allergies:</span>{" "}
-                      Penicillin, Pollen
+                      {patient.queue_data.complaint}
                     </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Appointments Card */}
+            {/* Appointments Card - Only Scheduled */}
             <div className="card rounded-xl border p-6 shadow-sm">
               <div className="flex items-center justify-between border-b pb-4">
                 <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
                   <FaRegCalendarCheck className="h-6 w-6 text-green-600" />
-                  Appointments
+                  Scheduled Appointments
                 </h2>
-                <Link
-                  href="/patient/appointments"
+                <button
+                  onClick={() => openViewAllModal('appointments', 'All Appointments')}
                   className="flex items-center gap-2 text-sm font-medium text-blue-600"
                 >
                   View All
                   <FaPenToSquare className="h-4 w-4" />
-                </Link>
+                </button>
               </div>
 
               <div className="mt-6 space-y-3">
-                  {(appointments ?? []).length > 0 ? (
-                    (appointments ?? []).map((appt, idx) => (
+                {scheduledAppointments.slice(0, 3).map((appt, idx) => {
+                  const { date, time } = formatDateTime(appt.appointment_date);
+                  return (
                     <div
                       key={idx}
                       className="flex items-center justify-between rounded-lg border-2 p-4 transition-colors"
@@ -277,99 +834,85 @@ export default function Page() {
                         <p className="text-sm font-medium">
                           Dr. {appt.doctor_name}
                         </p>
-                        <p className="text-xs text-gray-500 uppercase">
+                        <p className="text-xs text-blue-600 uppercase">
                           Status: {appt.status}
                         </p>
                       </div>
                       <div className="text-right">
                         <p className="text-base font-semibold">
-                          {format(
-                            new Date(appt.appointment_date),
-                            "MMMM d, yyyy"
-                          )}
+                          {date}
                         </p>
                         <p className="text-sm font-medium">
-                          {format(
-                            new Date(appt.appointment_date),
-                            "h:mm a"
-                          )}
+                          {time}
                         </p>
                       </div>
                     </div>
-                  ))
-                ) : (
+                  );
+                })}
+                {scheduledAppointments.length === 0 && (
                   <p className="text-center text-gray-500">
-                    No appointments found.
+                    No scheduled appointments found.
                   </p>
                 )}
               </div>
             </div>
 
-{/* Prescriptions Card */}
-<div className="card rounded-xl border p-6 shadow-sm">
-  <div className="flex items-center justify-between border-b pb-4">
-    <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-      <FaPrescription className="h-6 w-6 text-purple-600" />
-      Prescriptions
-    </h2>
-    <Link
-      href="/patient/prescriptions"
-      className="flex items-center gap-2 text-sm font-medium text-blue-600"
-    >
-      View All
-      <FaPenToSquare className="h-4 w-4" />
-    </Link>
-  </div>
+            {/* Prescriptions Card */}
+            <div className="card rounded-xl border p-6 shadow-sm">
+              <div className="flex items-center justify-between border-b pb-4">
+                <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+                  <FaPrescription className="h-6 w-6 text-purple-600" />
+                  Prescriptions
+                </h2>
+                <button
+                  onClick={() => openViewAllModal('prescriptions', 'All Prescriptions')}
+                  className="flex items-center gap-2 text-sm font-medium text-blue-600"
+                >
+                  View All
+                  <FaPenToSquare className="h-4 w-4" />
+                </button>
+              </div>
 
-  <div className="mt-6 overflow-x-auto">
-    <table className="w-full">
-      <thead className="border-b">
-        <tr className="text-left text-sm font-semibold tracking-wide">
-          <th className="pb-3">Medication</th>
-          <th className="pb-3">Dosage</th>
-          <th className="pb-3">Frequency</th>
-          <th className="pb-3">Duration</th>
-        </tr>
-      </thead>
-      <tbody className="divide-y divide-gray-100">
-        {/*
-          Use optional chaining on treatment and prescriptions,
-          then default to an empty array to safely map.
-        */}
-        {(patient?.treatment?.prescriptions ?? []).map((pres, idx) => (
-          <tr key={idx} className="hover:bg-gray-50">
-            <td className="py-3 text-base font-medium">
-              {pres.medicine_medicine?.name}
-            </td>
-            <td className="py-3 text-base">{pres.dosage}</td>
-            <td className="py-3 text-base">{pres.frequency}</td>
-            <td className="py-3 text-base">
-              {format(new Date(pres.start_date), 'MMM d, yyyy')} –{' '}
-              {format(new Date(pres.end_date),   'MMM d, yyyy')}
-            </td>
-          </tr>
-        ))}
-        {((patient?.treatment?.prescriptions ?? []).length === 0) && (
-          <tr>
-            <td
-              colSpan={4}
-              className="py-3 text-center text-gray-500"
-            >
-              No prescriptions found.
-            </td>
-          </tr>
-        )}
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
+              <div className="mt-6 overflow-x-auto">
+                <table className="w-full">
+                  <thead className="border-b">
+                    <tr className="text-left text-sm font-semibold tracking-wide">
+                      <th className="pb-3">Medication</th>
+                      <th className="pb-3">Dosage</th>
+                      <th className="pb-3">Frequency</th>
+                      <th className="pb-3">Duration</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {latest_treatment.prescriptions.slice(0, 3).map((pres, idx) => (
+                      <tr key={idx} className="hover:bg-gray-50">
+                        <td className="py-3 text-base font-medium">
+                          {pres.medicine_medicine.name}
+                        </td>
+                        <td className="py-3 text-base">{pres.dosage}</td>
+                        <td className="py-3 text-base">{pres.frequency}</td>
+                        <td className="py-3 text-base">
+                          {formatDateOnly(pres.start_date)} –{' '}
+                          {formatDateOnly(pres.end_date)}
+                        </td>
+                      </tr>
+                    ))}
+                    {latest_treatment.prescriptions.length === 0 && (
+                      <tr>
+                        <td colSpan={4} className="py-3 text-center text-gray-500">
+                          No prescriptions found.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
 
           {/* Right Column */}
           <div className="space-y-8">
-            {/* Medical History Card */}
+            {/* Health Overview Card */}
             <div className="card rounded-xl border border-l-4 border-orange-500 p-6 shadow-sm">
               <h2 className="mb-4 flex items-center gap-2 border-b pb-4 text-xl font-semibold tracking-tight">
                 <FaNotesMedical className="h-6 w-6 text-orange-600" />
@@ -378,81 +921,255 @@ export default function Page() {
               <div className="space-y-4">
                 <div>
                   <h3 className="text-sm font-semibold uppercase tracking-wider">
+                    VITAL SIGNS
+                  </h3>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-sm">
+                    <p><span className="font-semibold">BP:</span> {preliminary_assessment.blood_pressure}</p>
+                    <p><span className="font-semibold">Temp:</span> {preliminary_assessment.temperature}°C</p>
+                    <p><span className="font-semibold">Heart Rate:</span> {preliminary_assessment.heart_rate}</p>
+                    <p><span className="font-semibold">Resp Rate:</span> {preliminary_assessment.respiratory_rate}</p>
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold uppercase tracking-wider">
                     MEDICAL HISTORY
                   </h3>
                   <p className="mt-2 text-base leading-relaxed">
-                    Hypertension (1998), Hyperlipidemia (2000), Appendectomy
-                    (1985)
+                    {preliminary_assessment.medical_history || "No medical history recorded"}
                   </p>
                 </div>
                 <div>
                   <h3 className="text-sm font-semibold uppercase tracking-wider">
-                    FAMILY HISTORY
+                    ALLERGIES
                   </h3>
                   <p className="mt-2 text-base leading-relaxed">
-                    Father: Heart disease, Mother: Type 2 Diabetes
+                    {preliminary_assessment.allergies || "No known allergies"}
                   </p>
                 </div>
               </div>
             </div>
 
             {/* Lab Results Card */}
+{/* Lab Results Card */}
+<div className="card rounded-xl border p-6 shadow-sm">
+  <div className="flex items-center justify-between border-b pb-4">
+    <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
+      <FaFile className="h-6 w-6 text-red-600" />
+      Lab Results
+    </h2>
+    <button
+      onClick={() => openViewAllModal('labs', 'Laboratory Results')}
+      className="border-b border-transparent text-sm font-medium text-blue-600"
+    >
+      View All
+    </button>
+  </div>
+
+  <div className="mt-6 space-y-3">
+    {laboratories ? (
+      <div className="flex items-center justify-between rounded-lg border-2 p-3 transition-colors">
+        <div className="flex items-center gap-3">
+          <FaFile className="h-5 w-5" />
+          <div>
+            <span className="text-base font-medium">
+              Lab Result {laboratories.id ?? ''}
+            </span>
+            <p className="text-sm text-gray-500">
+              Uploaded: {formatDateOnly(laboratories.uploaded_at)}
+            </p>
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <a href={laboratories.image_url} target="_blank" rel="noopener noreferrer">
+              View
+            </a>
+          </Button>
+          <Button size="sm" asChild>
+            <a href={laboratories.image_url} download>
+              Download
+            </a>
+          </Button>
+        </div>
+      </div>
+    ) : (
+      <div className="rounded-lg border-2 p-4 text-center text-gray-600">
+        No laboratory results available.
+      </div>
+    )}
+  </div>
+</div>
+
+
+            {/* Clinical Notes Card */}
             <div className="card rounded-xl border p-6 shadow-sm">
-              <div className="flex items-center justify-between border-b pb-4">
-                <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-                  <FaFile className="h-6 w-6 text-red-600" />
-                  Lab Results
-                </h2>
-                <Link
-                  href="#"
-                  className="border-b border-transparent text-sm font-medium text-blue-600"
-                >
-                  View All
-                </Link>
-              </div>
-
-              <div className="mt-6 space-y-3">
-                {[1, 2, 3].map((item) => (
-                  <div
-                    key={item}
-                    className="flex items-center justify-between rounded-lg border-2 p-3 transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <FaFile className="h-5 w-5" />
-                      <span className="text-base font-medium">
-                        Lab Result #{item}
-                      </span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        View
-                      </Button>
-                      <Button size="sm">Download</Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Notes Card */}
-            <div className="card">
               <h2 className="mb-4 text-xl font-semibold tracking-tight">
                 Clinical Notes
               </h2>
               <div className="space-y-3">
                 <p className="text-base font-medium">
-                  Diagnosis: Type 2 Diabetes
+                  Assessment: {preliminary_assessment.assessment}
                 </p>
-                <ul className="list-disc space-y-2 pl-5 text-base leading-relaxed">
-                  <li>Diet and exercise counseling recommended</li>
-                  <li>Follow up in 2 weeks for blood glucose monitoring</li>
-                  <li>Consider medication adjustment if needed</li>
-                </ul>
+                <p className="text-base leading-relaxed">
+                  {latest_treatment.treatment_notes || "No treatment notes available."}
+                </p>
+                {latest_treatment.diagnoses.length > 0 && (
+                  <div>
+                    <h3 className="text-sm font-semibold uppercase tracking-wider mt-4">
+                      DIAGNOSES
+                    </h3>
+                    <ul className="list-disc space-y-1 pl-5 text-base leading-relaxed mt-2">
+                      {latest_treatment.diagnoses.map((diagnosis, idx) => (
+                        <li key={idx}>
+                          {diagnosis.diagnosis_description} ({diagnosis.diagnosis_code})
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Edit Profile Modal */}
+      <EditProfileModal
+        isOpen={isEditModalOpen}
+        onClose={() => setIsEditModalOpen(false)}
+        patient={patient}
+        onSave={handleSaveProfile}
+      />
+
+      {/* View All Modals */}
+      <ViewAllModal
+        isOpen={viewAllModal.isOpen}
+        onClose={closeViewAllModal}
+        title={viewAllModal.title}
+      >
+        {viewAllModal.type === 'appointments' && (
+          <div className="space-y-4">
+            {allAppointments.map((appt, idx) => {
+              const { date, time } = formatDateTime(appt.appointment_date);
+              return (
+                <div key={idx} className="flex items-center justify-between rounded-lg border-2 p-4">
+                  <div>
+                    <h3 className="text-lg font-semibold">{appt.reason}</h3>
+                    <p className="text-base">Dr. {appt.doctor_name}</p>
+                    <p className={`text-sm ${
+                      appt.status === 'Scheduled' ? 'text-blue-600' :
+                      appt.status === 'Completed' ? 'text-green-600' :
+                      'text-gray-500'
+                    }`}>
+                      Status: {appt.status}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold">
+                      {date}
+                    </p>
+                    <p className="text-base">
+                      {time}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+            {allAppointments.length === 0 && (
+              <p className="text-center text-gray-500">No appointments found.</p>
+            )}
+          </div>
+        )}
+
+        {viewAllModal.type === 'prescriptions' && (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="border-b">
+                <tr className="text-left text-sm font-semibold tracking-wide">
+                  <th className="pb-3">Medication</th>
+                  <th className="pb-3">Dosage</th>
+                  <th className="pb-3">Frequency</th>
+                  <th className="pb-3">Quantity</th>
+                  <th className="pb-3">Duration</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-100">
+                {latest_treatment.prescriptions.map((pres, idx) => (
+                  <tr key={idx} className="hover:bg-gray-50">
+                    <td className="py-3 text-base font-medium">
+                      {pres.medicine_medicine.name}
+                    </td>
+                    <td className="py-3 text-base">{pres.dosage}</td>
+                    <td className="py-3 text-base">{pres.frequency}</td>
+                    <td className="py-3 text-base">{pres.quantity}</td>
+                    <td className="py-3 text-base">
+                      {formatDateOnly(pres.start_date)} –{' '}
+                      {formatDateOnly(pres.end_date)}
+                    </td>
+                  </tr>
+                ))}
+                {latest_treatment.prescriptions.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="py-3 text-center text-gray-500">
+                      No prescriptions found.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+{viewAllModal.type === 'labs' && (
+  <div className="space-y-4">
+    {laboratories ? (
+      <div className="rounded-lg border-2 p-4">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h3 className="text-lg font-semibold">Lab Result {laboratories.id}</h3>
+            <p className="text-sm text-gray-500">
+              Request: {laboratories.lab_request}
+            </p>
+            <p className="text-sm text-gray-500">
+              Uploaded: {(() => {
+                const { date, time } = formatDateTime(laboratories.uploaded_at);
+                return `${date} at ${time}`;
+              })()}
+            </p>
+            <p className="text-sm text-gray-500">
+              Submitted by: {laboratories.submitted_by?.first_name ?? ''} {laboratories.submitted_by?.last_name ?? ''} ({laboratories.submitted_by?.role ?? ''})
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" asChild>
+              <a href={laboratories.image_url} target="_blank" rel="noopener noreferrer">
+                View
+              </a>
+            </Button>
+            <Button size="sm" asChild>
+              <a href={laboratories.image_url} download>
+                Download
+              </a>
+            </Button>
+          </div>
+        </div>
+        <div className="mt-4">
+          <img 
+            src={laboratories.image_url} 
+            alt="Lab result" 
+            className="max-w-full h-auto rounded-lg border"
+          />
+        </div>
+      </div>
+    ) : (
+      <div className="rounded-lg border-2 p-6 text-center text-gray-600">
+        No laboratory results available.
+      </div>
+    )}
+  </div>
+)}
+
+      </ViewAllModal>
     </main>
   );
 }

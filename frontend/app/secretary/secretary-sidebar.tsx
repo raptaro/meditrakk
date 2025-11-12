@@ -48,9 +48,9 @@ const menu_items = [
     icon: BriefcaseMedical,
   },
   {
-    title: "Patient Portal",
+    title: "Patient Portal", // now represents patient requests from the portal
     url: "/secretary/patient-portal",
-    icon: LayoutDashboard,
+    icon: ClipboardPlus, // changed from LayoutDashboard to ClipboardPlus
   },
   {
     title: "Medicine",

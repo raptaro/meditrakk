@@ -41,6 +41,107 @@ interface LabRequest {
   result?: LabResult;
 }
 
+// Skeleton Loading Component
+const LabRequestsSkeleton = () => (
+  <div className="min-h-screen">
+    {/* Header Skeleton */}
+    <div className="">
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="py-6">
+          <div className="flex items-center">
+            <div className="h-8 w-8 bg-slate-200 rounded-full animate-pulse mr-3"></div>
+            <div className="h-8 w-64 bg-slate-200 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* Main Content Skeleton */}
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {/* Filters Skeleton */}
+      <div className="mb-6 flex flex-wrap items-center gap-4">
+        <div className="mr-4">
+          <div className="h-4 w-24 bg-slate-200 rounded animate-pulse"></div>
+        </div>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="h-10 w-32 bg-slate-200 rounded-full animate-pulse"></div>
+        ))}
+      </div>
+
+      {/* Lab Request Cards Skeleton */}
+      <div className="space-y-4">
+        {[...Array(3)].map((_, index) => (
+          <div key={index} className="card overflow-hidden rounded-lg border shadow-sm">
+            <div className="p-6">
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div className="flex-grow">
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-full bg-slate-200 p-3 animate-pulse">
+                      <div className="h-6 w-6"></div>
+                    </div>
+                    <div className="flex-1">
+                      {/* Patient Name Skeleton */}
+                      <div className="h-6 w-48 bg-slate-200 rounded animate-pulse mb-2"></div>
+                      {/* Test Name Skeleton */}
+                      <div className="flex items-center mb-1">
+                        <div className="h-4 w-4 bg-slate-200 rounded mr-1 animate-pulse"></div>
+                        <div className="h-4 w-32 bg-slate-200 rounded animate-pulse"></div>
+                      </div>
+                      {/* Status and Details Skeleton */}
+                      <div className="mt-3 flex flex-wrap items-center gap-3">
+                        <div className="h-6 w-20 bg-slate-200 rounded-full animate-pulse"></div>
+                        <div className="flex items-center">
+                          <div className="h-4 w-4 bg-slate-200 rounded mr-1 animate-pulse"></div>
+                          <div className="h-4 w-24 bg-slate-200 rounded animate-pulse"></div>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="h-4 w-4 bg-slate-200 rounded mr-1 animate-pulse"></div>
+                          <div className="h-4 w-32 bg-slate-200 rounded animate-pulse"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                {/* View Details Button Skeleton */}
+                <div className="h-10 w-32 bg-slate-200 rounded-md animate-pulse"></div>
+              </div>
+
+              {/* Expanded Details Skeleton */}
+              <div className="mt-6 border-t pt-6">
+                <div className="space-y-6">
+                  {/* Request Details Skeleton */}
+                  <div className="rounded-lg bg-slate-100 p-4">
+                    <div className="h-5 w-32 bg-slate-200 rounded animate-pulse mb-3"></div>
+                    <div className="grid grid-cols-1 gap-x-6 gap-y-4 md:grid-cols-2">
+                      {[...Array(4)].map((_, i) => (
+                        <div key={i}>
+                          <div className="h-4 w-20 bg-slate-200 rounded animate-pulse mb-1"></div>
+                          <div className="h-4 w-32 bg-slate-200 rounded animate-pulse"></div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Upload Section Skeleton */}
+                  <div className="rounded-lg border bg-slate-100 p-4">
+                    <div className="h-5 w-40 bg-slate-200 rounded animate-pulse mb-3"></div>
+                    <div className="space-y-4">
+                      <div className="rounded-lg border-2 border-dashed border-slate-300 p-6 text-center">
+                        <div className="h-16 bg-slate-200 rounded animate-pulse"></div>
+                      </div>
+                      <div className="h-10 w-full bg-slate-200 rounded-lg animate-pulse"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+);
+
 const LabRequestsPage = () => {
   const [labRequests, setLabRequests] = useState<LabRequest[]>([]);
   const [selectedRequestId, setSelectedRequestId] = useState<string | null>(
@@ -159,6 +260,10 @@ const LabRequestsPage = () => {
     );
   };
 
+  if (isLoading) {
+    return <LabRequestsSkeleton />;
+  }
+
   return (
     <div className="min-h-screen">
       {/* Header */}
@@ -213,13 +318,6 @@ const LabRequestsPage = () => {
             Completed
           </button>
         </div>
-
-        {isLoading && (
-          <div className="py-12 text-center">
-            <div className="mx-auto h-12 w-12 animate-spin rounded-full border-b-2 border-t-2"></div>
-            <p className="mt-4">Loading laboratory requests...</p>
-          </div>
-        )}
 
         {error && (
           <div className="my-6 rounded-md border border-red-200 bg-red-50 p-4">

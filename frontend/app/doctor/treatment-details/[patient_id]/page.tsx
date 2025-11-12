@@ -64,7 +64,7 @@ interface User {
 interface LabResult {
   id: string;
   image_url: string;
-  uploaded_at: string;
+  date: string;
   submitted_by?: User;
 }
 
@@ -1145,15 +1145,15 @@ export default function TreatmentDetailsPage() {
                           </div>
 
                           <div className="w-32 text-right text-sm text-gray-500">
-                            {new Date(result.uploaded_at).toLocaleDateString(
-                              "en-US",
-                              {
-                                month: "short",
-                                day: "2-digit",
-                                year: "numeric",
-                              }
-                            )}
+                            {result.date
+                              ? new Date(result.date).toLocaleDateString("en-US", {
+                                  month: "short",
+                                  day: "2-digit",
+                                  year: "numeric",
+                                })
+                              : ""}
                           </div>
+
 
                           <div className="flex w-24 justify-end space-x-2">
                             <button

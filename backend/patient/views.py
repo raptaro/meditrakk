@@ -23,6 +23,7 @@ from rest_framework.response import Response
 from rest_framework import status
 from backend.supabase_client import supabase
 from uuid import uuid4
+from django.conf import settings
 import os
 from rest_framework.exceptions import APIException
 from rest_framework.views import APIView
@@ -191,13 +192,20 @@ class PatientInfoView(APIView):
             patient_age = Patient(**patient_data)
             patient_data['age'] = patient_age.get_age()
             
-            # Fetch latest queue data
+            # fetch latest queue data using supa
             queue_response = supabase.table("queueing_temporarystoragequeue").select(
                 "id, priority_level, created_at, queue_number, complaint, status"
             ).eq("patient_id", patient_id).order("created_at", desc=True).execute()
             queue_data = queue_response.data[0] if queue_response.data else None
+            
+            # fetch latest assessment
+            assessment_response = PreliminaryAssessment.objects.filter(
+                patient__patient_id = patient_id
+            ).order_by("-assessment_date").first()
+            assessment_data = PreliminaryAssessmentBasicSerializer(assessment_response).data if assessment_response else None
 
-            # Fetch latest treatment with related diagnoses and prescriptions
+            print(assessment_data)
+            # fetch latest treatment with related diagnoses and prescriptions
             treatment_response = supabase.table("queueing_treatment").select(
                 "id, treatment_notes, created_at, updated_at, patient_id, "
                 "queueing_treatment_diagnoses(id, diagnosis_id, patient_diagnosis(*)), "
@@ -208,6 +216,14 @@ class PatientInfoView(APIView):
                 "appointment_date, status, doctor_id, "
                 "appointment_appointmentreferral(id, reason)"
             ).eq('patient_id', patient_id).order('appointment_date', desc=True).execute()
+            
+            lab_result_obj = LabResult.objects.filter(lab_request__patient__patient_id=patient_id).order_by('-uploaded_at').first()
+
+            if lab_result_obj is None:
+                lab_results_serialized = []   # or None, depending on what the front-end expects
+            else:
+                # serialize a single instance (many=False)
+                lab_results_serialized = LabResultSerializer(lab_result_obj, many=False, context={'request': request}).data
             appointment_data = appointment_response.data or []
             # build doctor id list safely (only truthy doctor ids)
             doctor_ids = list({a.get("doctor_id") for a in appointment_data if a.get("doctor_id")})
@@ -273,9 +289,11 @@ class PatientInfoView(APIView):
                     **patient_data,
                     "queue_data": queue_data
                 },
+                "preliminary_assessment": assessment_data,
                 "latest_treatment": treatment_summary,
                 "latest_treatment_id": treatment_summary["id"],
                 "appointments": annotated_appts, 
+                "laboratories": lab_results_serialized,
             }
 
             return Response(response_data, status=status.HTTP_200_OK)
@@ -1003,17 +1021,49 @@ class LabRequestCreateView(generics.CreateAPIView):
         serializer.save()
         
 
+def _sanitize_object_path(raw_path: str, bucket_name: str) -> str:
+    """
+    Make a safe object path for storage that does NOT include the bucket name.
+    Removes leading slashes and any repeated patterns like 'lab_results/' or 'lab/'.
+    """
+    if not raw_path:
+        return ""
+
+    p = raw_path.strip()
+    # remove leading slashes
+    while p.startswith("/"):
+        p = p[1:]
+
+    # Remove ANY occurrence of bucket-like names, not just at start
+    patterns_to_remove = [f"{bucket_name}/", "lab_results/", "lab/"]
+    for pattern in patterns_to_remove:
+        if p.startswith(pattern):
+            p = p[len(pattern):]
+
+    # Also split and filter to be thorough
+    segments = p.split("/")
+    filtered_segments = []
+    for segment in segments:
+        if segment and segment.lower() not in {bucket_name.lower(), "lab_results", "lab"}:
+            filtered_segments.append(segment)
+    
+    sanitized = "/".join(filtered_segments)
+    # final guard: no double slashes
+    sanitized = sanitized.replace("//", "/")
+    return sanitized
+
+
 class LabResultCreateView(generics.CreateAPIView):
+    """
+    Create a LabResult and upload the provided image to Supabase storage.
+    Stores the storage object path in the model and attaches an accessible URL if possible.
+    """
     queryset = LabResult.objects.all()
     serializer_class = LabResultSerializer
     permission_classes = [isSecretary]
     parser_classes = [MultiPartParser, FormParser]
 
     def perform_create(self, serializer):
-        """
-        Upload the provided image file to Supabase Storage using the SERVICE ROLE client,
-        save the LabResult instance, attach an accessible URL, and mark related lab_request completed.
-        """
         file_obj = self.request.FILES.get("image")
         if not file_obj:
             raise APIException("No image file provided")
@@ -1022,21 +1072,32 @@ class LabResultCreateView(generics.CreateAPIView):
             logger.error("Supabase service client is not configured.")
             raise APIException("Server storage misconfiguration")
 
-        # Build a unique path to avoid collisions
         ext = os.path.splitext(file_obj.name)[1] or ""
         unique_name = f"{uuid4().hex}{ext}"
-        bucket = os.getenv("SUPABASE_STORAGE_BUCKET", "lab-results")
-        patient_segment = str(self.request.data.get("patient_id", "unknown"))
-        file_path = f"lab_results/{patient_segment}/{unique_name}"
+        bucket = os.getenv("SUPABASE_STORAGE_BUCKET", "lab_results")
+        patient_segment = str(self.request.data.get("patient_id", "lab_result")).strip() or "lab_result"
 
-        # Read bytes once for upload (some SDKs expect bytes)
-        file_bytes = file_obj.read()
+        # Build a raw candidate path then sanitize it (ensures no duplicate bucket segments)
+        candidate = f"{patient_segment}/{unique_name}"
+        object_path = _sanitize_object_path(candidate, bucket)
+
+        # Read bytes if possible (some SDKs want bytes, some file-like)
+        file_bytes = None
+        try:
+            file_bytes = file_obj.read()
+        except Exception:
+            file_bytes = None
+
+        # reset pointer to start for file-like uploads
+        try:
+            file_obj.seek(0)
+        except Exception:
+            pass
 
         try:
-            # Handle storage being either callable or an object on the client
             storage_attr = getattr(supabase, "storage", None)
             if storage_attr is None:
-                logger.error("supabase_service.storage attribute not found.")
+                logger.error("supabase.storage attribute not found.")
                 raise APIException("Storage client unavailable")
 
             storage = storage_attr() if callable(storage_attr) else storage_attr
@@ -1049,43 +1110,46 @@ class LabResultCreateView(generics.CreateAPIView):
                 bucket_client = storage.from_(bucket)
                 if hasattr(bucket_client, "upload"):
                     try:
-                        upload_result = bucket_client.upload(file_path, file_bytes, {"content-type": file_obj.content_type})
+                        # When file_bytes is None, pass file_obj (some SDKs accept file-like)
+                        data_to_send = file_bytes if file_bytes is not None else file_obj
+                        upload_result = bucket_client.upload(object_path, data_to_send, {"content-type": getattr(file_obj, "content_type", None)})
                     except TypeError:
-                        upload_result = bucket_client.upload(file_path, file_bytes)
+                        # fallback without metadata dict
+                        data_to_send = file_bytes if file_bytes is not None else file_obj
+                        upload_result = bucket_client.upload(object_path, data_to_send)
                 elif hasattr(bucket_client, "put_object"):
-                    upload_result = bucket_client.put_object(file_path, file_bytes)
-            # Alternate shapes: storage.upload(bucket, path, data) or storage.put_object(...)
+                    data_to_send = file_bytes if file_bytes is not None else file_obj
+                    upload_result = bucket_client.put_object(object_path, data_to_send)
             elif hasattr(storage, "upload"):
                 try:
-                    upload_result = storage.upload(bucket, file_path, file_bytes, {"content-type": file_obj.content_type})
+                    upload_result = storage.upload(bucket, object_path, file_bytes, {"content-type": getattr(file_obj, "content_type", None)})
                 except TypeError:
-                    upload_result = storage.upload(bucket, file_path, file_bytes)
+                    upload_result = storage.upload(bucket, object_path, file_bytes)
             elif hasattr(storage, "put_object"):
-                upload_result = storage.put_object(bucket, file_path, file_bytes)
+                upload_result = storage.put_object(bucket, object_path, file_bytes)
             elif hasattr(storage, "upload_fileobj"):
-                # Some SDKs accept file-like objects
                 try:
-                    upload_result = storage.upload_fileobj(bucket, file_path, file_obj)
+                    upload_result = storage.upload_fileobj(bucket, object_path, file_obj)
                 except TypeError:
-                    upload_result = storage.upload_fileobj(file_obj, bucket, file_path)
+                    upload_result = storage.upload_fileobj(file_obj, bucket, object_path)
             else:
                 logger.error("No known upload method found on storage client. Methods: %s", dir(storage))
                 raise APIException("Unsupported storage client")
 
-            # Check for common error shapes
+            # Handle common error shapes
             if upload_result is None:
-                logger.debug("upload_result is None; continuing (some SDKs return None on success).")
+                logger.debug("upload_result is None (many SDKs return None on success).")
             elif isinstance(upload_result, dict) and upload_result.get("error"):
                 raise APIException(f"Storage upload failed: {upload_result.get('error')}")
             elif hasattr(upload_result, "error") and getattr(upload_result, "error"):
                 raise APIException(f"Storage upload failed: {getattr(upload_result, 'error')}")
 
-            # Try to obtain a signed URL first (preferred for private buckets)
+            # Attempt to get a signed URL (preferred for private buckets)
             signed_url = None
             try:
                 signer = bucket_client if bucket_client is not None else storage
                 if hasattr(signer, "create_signed_url"):
-                    signed = signer.create_signed_url(file_path, 60 * 60)
+                    signed = signer.create_signed_url(object_path, 60 * 60)
                     if isinstance(signed, dict):
                         signed_url = signed.get("signedURL") or signed.get("signed_url") or signed.get("signedUrl")
                     elif isinstance(signed, str):
@@ -1093,54 +1157,61 @@ class LabResultCreateView(generics.CreateAPIView):
             except Exception as exc:
                 logger.warning("create_signed_url failed: %s", exc)
 
-            # Fallback to public URL when no signed URL available
+            # Fallback to public URL
             public_url = None
             if not signed_url:
                 try:
                     pub_target = bucket_client if bucket_client is not None else storage
                     if hasattr(pub_target, "get_public_url"):
-                        pub = pub_target.get_public_url(file_path)
+                        pub = pub_target.get_public_url(object_path)
                         if isinstance(pub, dict):
                             public_url = pub.get("publicURL") or pub.get("public_url") or pub.get("publicUrl")
                         elif isinstance(pub, str):
                             public_url = pub
                     elif hasattr(storage, "get_public_url"):
-                        pub = storage.get_public_url(bucket, file_path)
+                        pub = storage.get_public_url(bucket, object_path)
                         if isinstance(pub, dict):
                             public_url = pub.get("publicURL") or pub.get("public_url") or pub.get("publicUrl")
                         elif isinstance(pub, str):
                             public_url = pub
+                    else:
+                        supabase_url = os.getenv("SUPABASE_URL") or getattr(settings, "SUPABASE_URL", None)
+                        if supabase_url:
+                            # Clean the object_path before building the URL
+                            clean_object_path = _sanitize_object_path(object_path, bucket)
+                            public_url = f"{supabase_url.rstrip('/')}/storage/v1/object/public/{bucket}/{clean_object_path}"
                 except Exception as exc:
                     logger.warning("get_public_url failed: %s", exc)
 
             final_url = signed_url or public_url or ""
 
-            # Save LabResult via serializer (keep original behavior)
-            lab_result = serializer.save(
-                submitted_by=self.request.user,
-                image=file_obj.name  # This saves the actual upload path
-            )
+            # Persist model using object_path (so stored path matches URL construction)
+            save_kwargs = {"submitted_by": self.request.user, "image": object_path}
+            # if your model has an original filename field, save it
+            if hasattr(LabResult, "original_filename"):
+                save_kwargs["original_filename"] = file_obj.name
 
-            # Attach storage metadata to model if fields exist
+            lab_result = serializer.save(**save_kwargs)
+
+            # Attach URL / metadata fields if present on model
             try:
                 if hasattr(lab_result, "image_url"):
                     lab_result.image_url = final_url
                 if hasattr(lab_result, "file_path"):
-                    lab_result.file_path = file_path
+                    lab_result.file_path = object_path
                 if hasattr(lab_result, "storage_bucket"):
                     lab_result.storage_bucket = bucket
                 lab_result.save()
             except Exception as db_exc:
-                logger.exception("Failed to save LabResult after upload; attempting to remove uploaded file: %s", db_exc)
-                # attempt cleanup of uploaded object
+                logger.exception("Failed to save LabResult after upload; attempting cleanup: %s", db_exc)
+                # attempt to remove uploaded object
                 try:
                     if bucket_client is not None and hasattr(bucket_client, "remove"):
-                        bucket_client.remove([file_path])
+                        bucket_client.remove([object_path])
                     elif hasattr(storage, "remove"):
-                        storage.remove([file_path])
+                        storage.remove([object_path])
                     elif hasattr(storage, "delete"):
-                        # some SDK shapes use delete(bucket, path)
-                        storage.delete(bucket, file_path)
+                        storage.delete(bucket, object_path)
                 except Exception as cleanup_exc:
                     logger.exception("Failed to remove uploaded object during cleanup: %s", cleanup_exc)
                 raise APIException("Failed to persist lab result after upload")
@@ -1157,11 +1228,88 @@ class LabResultCreateView(generics.CreateAPIView):
             return lab_result
 
         except APIException:
-            # Let DRF handle APIException directly
             raise
         except Exception as exc:
             logger.exception("Unhandled exception in LabResult upload: %s", exc)
             raise APIException("Upload failed — see server logs")
+
+
+class LabResultListView(generics.ListAPIView):
+    """
+    List LabResults for a patient (by patient_id URL kwarg).
+    Produces consistent image_url values.
+    """
+    serializer_class = LabResultSerializer
+    permission_classes = [IsParticipant]
+
+    def get_queryset(self):
+        patient_id = self.kwargs.get('patient_id')
+        queryset = LabResult.objects.filter(
+            lab_request__patient__patient_id=patient_id
+        ).select_related('lab_request').order_by('-uploaded_at')
+
+        if not queryset.exists():
+            raise Http404("No Lab Results found for the given patient.")
+        return queryset
+    def _construct_public_url(self, bucket: str, object_path: str) -> str:
+        supabase_url = os.getenv("SUPABASE_URL") or getattr(settings, "SUPABASE_URL", None)
+        if supabase_url:
+            print(f"DEBUG: bucket={bucket}, object_path={object_path}")  # Add this line to see what's happening
+            
+            # More aggressive cleaning
+            segments = object_path.split("/")
+            filtered_segments = []
+            for segment in segments:
+                if segment and segment.lower() not in {bucket.lower(), "lab_results", "lab"}:
+                    filtered_segments.append(segment)
+            
+            clean_object_path = "/".join(filtered_segments)
+            print(f"DEBUG: clean_object_path={clean_object_path}")  # Add this line
+            
+            result = f"{supabase_url.rstrip('/')}/storage/v1/object/public/{bucket}/{clean_object_path}"
+            print(f"DEBUG: final_url={result}")  # Add this line
+            return result
+        return ""
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+
+        formatted_results = []
+        bucket = os.getenv("SUPABASE_STORAGE_BUCKET", "lab_results")
+        supabase_url = os.getenv("SUPABASE_URL") or getattr(settings, "SUPABASE_URL", None)
+
+        for item in serializer.data:
+            # Get the actual image path from the model instance, not the serialized data
+            lab_result_id = item.get("id")
+            try:
+                lab_result = LabResult.objects.get(id=lab_result_id)
+                image_path = lab_result.image.name  # This gets "unknown/filename.png"
+            except LabResult.DoesNotExist:
+                image_path = item.get("image", "").split("/media/")[-1]  # Fallback
+            
+            # derive filename from either original filename field, file_name, or object_path
+            file_name = item.get("original_filename") or item.get("file_name") or (image_path or "").split("/")[-1]
+
+            # Always build the Supabase URL
+            final_url = ""
+            if image_path and supabase_url:
+                final_url = f"{supabase_url.rstrip('/')}/storage/v1/object/public/{bucket}/{image_path}"
+
+            formatted_results.append({
+                "id": item.get("id"),
+                "date": item.get("uploaded_at"),
+                "status": "Completed",
+                "image_url": final_url,
+                "file_name": file_name,
+                "notes": item.get("notes", "") if isinstance(item.get("notes", ""), str) else "",
+                "request_date": item.get("uploaded_at"),
+                "lab_request_id": item.get("lab_request")
+            })
+
+        return Response({
+            "lab_results": formatted_results,
+            "total_count": len(formatted_results)
+        }, status=status.HTTP_200_OK)
         
 class LabRequestListView(generics.ListAPIView):
     queryset = LabRequest.objects.all()
@@ -1180,42 +1328,7 @@ class LabRequestDetailView(generics.RetrieveAPIView):
     serializer_class = LabRequestSerializer
     permission_classes = [IsMedicalStaff]
 
-class LabResultListView(generics.ListAPIView):
-    serializer_class = LabResultSerializer
-    permission_classes = [IsParticipant]
 
-    def get_queryset(self):
-        patient_id = self.kwargs.get('patient_id')
-        queryset = LabResult.objects.filter(
-            lab_request__patient__patient_id=patient_id
-        ).select_related('lab_request').order_by('-uploaded_at')
-        
-        if not queryset.exists():
-            raise Http404("No Lab Results found for the given patient.")
-        return queryset
-
-    def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        
-        # Format the response for your table
-        formatted_results = []
-        for result in serializer.data:
-            formatted_results.append({
-                "id": result["id"],
-                "date": result["uploaded_at"],
-                "status": "Completed",  # You might want to get this from lab_request
-                "image_url": result["image_url"],
-                "file_name": result["image"] if result["image"] else f"lab_result_{result['id']}",
-                "notes": "",
-                "request_date": result["uploaded_at"],  # You might want to get this from lab_request
-                "lab_request_id": result["lab_request"]
-            })
-        
-        return Response({
-            "lab_results": formatted_results,
-            "total_count": len(formatted_results)
-        })
 
 
 ## download
@@ -1789,15 +1902,16 @@ class PatientLabResultsView(APIView):
     def get_supabase_public_url(self, file_path):
         """Generate direct Supabase public URL"""
         try:
-            project_ref = "wczowfydbgmwbotbxaxa"
-            bucket = "lab_results"
+            bucket = os.getenv("SUPABASE_STORAGE_BUCKET", "lab_results")
+            supabase_url = os.getenv("SUPABASE_URL") or getattr(settings, "SUPABASE_URL", None)
             
-            # Since your create view uses paths like "lab_results/{patient_segment}/{unique_name}"
-            # but saves only the original filename, we need to guess the actual path
-            # You might need to adjust this logic based on your actual file structure
-            actual_file_path = f"lab_results/lab/{file_path}"  # Adjust this pattern as needed
+            if not supabase_url:
+                return None
             
-            public_url = f"https://{project_ref}.supabase.co/storage/v1/object/public/{bucket}/{actual_file_path}"
+            # Use the file_path exactly as stored in the database
+            # For newer records: "unknown/filename.png"
+            # For older records: "unknown/Screenshot 2025-09-17 024609.png"
+            public_url = f"{supabase_url.rstrip('/')}/storage/v1/object/public/{bucket}/{file_path}"
             return public_url
         except Exception as e:
             print(f"Error generating Supabase URL: {e}")
@@ -1815,14 +1929,17 @@ class PatientLabResultsView(APIView):
             processed_results = []
             
             for lab_result in lab_results_qs:
-                # Get the filename from the image field
-                file_name = lab_result.image.name if lab_result.image else ""
+                # Get the file path from the image field - this is what we updated in the database
+                file_path = lab_result.image.name if lab_result.image else ""
                 
-                # Generate URL - you'll need to adjust the path construction
-                image_url = self.get_supabase_public_url(file_name) if file_name else ""
+                # Generate URL using the actual file path from database
+                image_url = self.get_supabase_public_url(file_path) if file_path else ""
                 
                 lab_request = lab_result.lab_request
                 test_type = lab_request.test_name or lab_request.custom_test or 'Laboratory Test'
+                
+                # Extract just the filename for display (without the "unknown/" prefix)
+                file_name = file_path.split("/")[-1] if "/" in file_path else file_path
                 
                 result = {
                     "id": lab_result.id,
@@ -1846,4 +1963,3 @@ class PatientLabResultsView(APIView):
         except Exception as e:
             print(f"Error: {e}")
             return Response({"error": str(e)})
-
