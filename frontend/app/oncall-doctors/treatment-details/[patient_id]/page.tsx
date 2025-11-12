@@ -64,7 +64,7 @@ interface User {
 interface LabResult {
   id: string;
   image_url: string;
-  uploaded_at: string;
+  date: string;
   submitted_by?: User;
 }
 
@@ -552,7 +552,7 @@ export default function TreatmentDetailsPage() {
                       treatmentDetails?.patient_info?.queue_data?.queue_number;
                     if (q) {
                       router.push(
-                        `/doctor/treatment-form/${patient_id}/${q}`
+                        `/oncall-doctors/treatment-form/${patient_id}/${q}`
                       );
                     } else {
                       alert("Queue number not found for this patient");
@@ -1145,7 +1145,7 @@ export default function TreatmentDetailsPage() {
                           </div>
 
                           <div className="w-32 text-right text-sm text-gray-500">
-                            {new Date(result.uploaded_at).toLocaleDateString(
+                            {new Date(result.date).toLocaleDateString(
                               "en-US",
                               {
                                 month: "short",
@@ -1290,7 +1290,7 @@ export default function TreatmentDetailsPage() {
           <button
             onClick={() => {
               setIsReferTypeModalOpen(false);
-              router.push(`/doctor/patient-report/${patient_id}`);
+              router.push(`/oncall-doctors/patient-report/${patient_id}`);
             }}
             className="flex items-center gap-4 rounded-lg border border-border bg-background p-4 text-left transition-all hover:bg-muted/50 hover:shadow-md"
           >

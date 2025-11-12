@@ -1045,50 +1045,61 @@ export default function TreatmentForm() {
         )}
 
         {/* Success Modal */}
-        {showModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-            <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl">
-              <div className="bg-green-50 px-6 py-4 text-center">
-                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-                  <svg
-                    className="h-8 w-8 text-green-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M5 13l4 4L19 7"
-                    ></path>
-                  </svg>
-                </div>
-                <h3 className="text-xl font-bold text-gray-900">Success!</h3>
-              </div>
-              <div className="p-6">
-                <p className="mb-6 text-center text-gray-600">
-                  Laboratory request has been successfully submitted.
-                </p>
-                <div className="grid grid-cols-2 gap-4">
-                  <button
-                    className="rounded-lg border border-blue-600 bg-white px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    onClick={() => router.push("/doctor")}
-                  >
-                    Go To Dashboard
-                  </button>
-                  <button
-                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-                    onClick={() => router.push("/doctor/treatment-queue")}
-                  >
-                    Treatment Queue
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+{showModal && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+    <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl relative">
+      {/* Close button (top-right) */}
+      <button
+        type="button"
+        onClick={() => setShowModal(false)}
+        aria-label="Close"
+        title="Close"
+        className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-md bg-white text-gray-600 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+
+      <div className="bg-green-50 px-6 py-4 text-center">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+          <svg
+            className="h-8 w-8 text-green-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <h3 className="text-xl font-bold text-gray-900">Success!</h3>
+      </div>
+
+      <div className="p-6">
+        <p className="mb-6 text-center text-gray-600">
+          Laboratory request has been successfully submitted.
+        </p>
+        <div className="grid grid-cols-2 gap-4">
+          <button
+            className="rounded-lg border border-blue-600 bg-white px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            onClick={() => router.push("/doctor")}
+          >
+            Go To Dashboard
+          </button>
+          <button
+            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            onClick={() => router.push("/doctor/treatment-queue")}
+          >
+            Treatment Queue
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
+
       </div>
     </div>
   );
