@@ -1,8 +1,4 @@
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/app/oncall-doctors/oncall-doctors-sidebar";
 import Header from "@/components/organisms/header";
 
@@ -18,7 +14,6 @@ export default function Page({
         <SidebarInset className="flex-1">
           <main className="flex-1">
             <Header />
-            <SidebarTrigger className="fixed top-0 md:hidden" />
             {children}
           </main>
         </SidebarInset>
