@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Circle } from "lucide-react";
 
 import {
@@ -35,19 +35,25 @@ interface Record {
   type: "diagnosis" | "prescription";
   date: string;
   doctor: DoctorInfo;
-  title: string;  // Will be "Prescription: ACICLOVIR" or "Diagnosis: FVR Fever"
+  title: string;
   description: string;
   status: string;
   treatment_id: number;
   medication?: Medication;
   prescription_details?: {
+    id: number;
     dosage: string;
     frequency: string;
     quantity: number;
     start_date: string;
     end_date: string | null;
   };
-  diagnosis_details?: any;
+  diagnosis_details?: {
+    id: number;
+    diagnosis_code: string;
+    diagnosis_description: string;
+  };
+  diagnosis_code?: string;
 }
 
 interface BackendResponse {
@@ -77,6 +83,45 @@ const getRecordIcon = (type: string) => {
   }
 };
 
+// Function to handle null values and "null" strings
+const formatValue = (value: any): string => {
+  if (value === null || value === undefined || value === "null" || value === " undefined") {
+    return "N/A";
+  }
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed === "" || trimmed === "null" ? "N/A" : trimmed;
+  }
+  return String(value);
+};
+
+// Function to remove duplicate records by actual ID
+const removeDuplicateRecords = (records: Record[]): Record[] => {
+  const seenDiagnosisIds = new Set<number>();
+  const seenPrescriptionIds = new Set<number>();
+  
+  return records.filter(record => {
+    if (record.type === 'diagnosis' && record.diagnosis_details) {
+      const diagnosisId = record.diagnosis_details.id;
+      if (seenDiagnosisIds.has(diagnosisId)) {
+        return false; // Skip duplicate diagnosis
+      }
+      seenDiagnosisIds.add(diagnosisId);
+      return true;
+    } else if (record.type === 'prescription' && record.prescription_details) {
+      const prescriptionId = record.prescription_details.id;
+      if (seenPrescriptionIds.has(prescriptionId)) {
+        return false; // Skip duplicate prescription
+      }
+      seenPrescriptionIds.add(prescriptionId);
+      return true;
+    }
+    
+    // If we can't determine the ID, keep the record
+    return true;
+  });
+};
+
 //////////////////////
 // Records Page Component
 //////////////////////
@@ -85,6 +130,11 @@ export default function RecordsPage() {
   const [records, setRecords] = useState<Record[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Use useMemo to compute unique records only when records change
+  const uniqueRecords = useMemo(() => {
+    return removeDuplicateRecords(records);
+  }, [records]);
 
   useEffect(() => {
     async function fetchRecords() {
@@ -199,7 +249,7 @@ export default function RecordsPage() {
 
           {/* Timeline Items */}
           <div className="space-y-8">
-            {records.length === 0 ? (
+            {uniqueRecords.length === 0 ? (
               <div className="text-center py-8">
                 <div className="text-gray-500 text-lg mb-2">No Records Found</div>
                 <div className="text-gray-400 text-sm">
@@ -207,7 +257,7 @@ export default function RecordsPage() {
                 </div>
               </div>
             ) : (
-              records.map((record) => {
+              uniqueRecords.map((record) => {
                 const { date: formattedDate, time: formattedTime } = formatDateTime(record.date);
                 
                 return (
@@ -225,22 +275,28 @@ export default function RecordsPage() {
                     <div className="col-span-2 flex flex-col space-y-2 rounded-xl bg-muted p-4 border border-gray-200 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 relative before:content-[''] before:absolute before:left-[-8px] before:top-5 before:border-t-[8px] before:border-t-transparent before:border-b-[8px] before:border-b-transparent before:border-r-[8px] before:border-r-gray-200 after:content-[''] after:absolute after:left-[-7px] after:top-5 after:border-t-[8px] after:border-t-transparent after:border-b-[8px] after:border-b-transparent after:border-r-[8px] after:border-r-muted">
                       <span className="text-sm font-bold flex items-center gap-2">
                         <span className="text-lg">{getRecordIcon(record.type)}</span>
-                        {record.title} {/* This will show "Prescription: ACICLOVIR" or "Diagnosis: FVR Fever" */}
+                        {record.title}
                       </span>
                       
                       {/* Description for both types */}
                       {record.description && (
                         <p className="text-sm text-muted-foreground">
-                          {record.description}
+                          {formatValue(record.description)}
                         </p>
                       )}
                       
                       {/* Additional prescription details */}
                       {record.type === 'prescription' && record.prescription_details && (
                         <div className="text-xs text-muted-foreground mt-2 space-y-1">
-                          <div><strong>Dosage:</strong> {record.prescription_details.dosage}</div>
-                          <div><strong>Frequency:</strong> {record.prescription_details.frequency}</div>
-                          <div><strong>Quantity:</strong> {record.prescription_details.quantity}</div>
+                          <div>
+                            <strong>Dosage:</strong> {formatValue(record.prescription_details.dosage)}
+                          </div>
+                          <div>
+                            <strong>Frequency:</strong> {formatValue(record.prescription_details.frequency)}
+                          </div>
+                          <div>
+                            <strong>Quantity:</strong> {formatValue(record.prescription_details.quantity)}
+                          </div>
                           {record.prescription_details.start_date && (
                             <div><strong>Start:</strong> {format(parseISO(record.prescription_details.start_date), "MMM d, yyyy")}</div>
                           )}
@@ -262,25 +318,6 @@ export default function RecordsPage() {
           </div>
         </div>
 
-        {/* Pagination */}
-        {records.length > 0 && (
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious href="#" />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationLink href="#">1</PaginationLink>
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationEllipsis />
-              </PaginationItem>
-              <PaginationItem>
-                <PaginationNext href="#" />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        )}
       </div>
     </div>
   );

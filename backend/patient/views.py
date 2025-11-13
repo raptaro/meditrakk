@@ -1820,6 +1820,7 @@ class PatientRecordsView(APIView):
             print(f"Found {len(treatments)} treatments for patient {patient_id}")
 
             records = []
+            seen_ids = set()  # Track seen IDs to prevent duplicates
             
             for treatment in treatments:
                 # Safe doctor info extraction
@@ -1834,11 +1835,24 @@ class PatientRecordsView(APIView):
 
                 treatment_date = treatment.get("created_at")
                 treatment_notes = treatment.get("treatment_notes", "")
+                treatment_id_val = treatment.get("id")
                 
                 # Process diagnoses for this treatment
                 for diagnosis_relation in treatment.get("queueing_treatment_diagnoses", []):
                     diagnosis_data = diagnosis_relation.get("patient_diagnosis")
                     if diagnosis_data:
+                        # Create unique ID using both diagnosis ID and treatment ID
+                        diagnosis_id = diagnosis_data.get('id')
+                        relation_id = diagnosis_relation.get('id')
+                        
+                        # Use multiple components to ensure uniqueness
+                        record_id = f"diagnosis_{diagnosis_id}_{treatment_id_val}_{relation_id}"
+                        
+                        # Skip if we've already seen this exact record
+                        if record_id in seen_ids:
+                            continue
+                        seen_ids.add(record_id)
+                        
                         # Extract diagnosis code and description
                         diagnosis_code = diagnosis_data.get("diagnosis_code") or diagnosis_data.get("code") or "UNKNOWN"
                         diagnosis_description = diagnosis_data.get("diagnosis_description") or diagnosis_data.get("description") or diagnosis_data.get("diagnosis_notes") or treatment_notes
@@ -1847,14 +1861,14 @@ class PatientRecordsView(APIView):
                         diagnosis_title = f"Diagnosis: {diagnosis_code} - {diagnosis_description}"
                         
                         record = {
-                            "id": f"diagnosis_{diagnosis_data['id']}",
+                            "id": record_id,
                             "type": "diagnosis",
                             "date": treatment_date,
                             "doctor": doctor_info,
                             "title": diagnosis_title,
                             "description": diagnosis_description,
                             "status": "completed",
-                            "treatment_id": treatment.get("id"),
+                            "treatment_id": treatment_id_val,
                             "diagnosis_details": diagnosis_data,
                             "diagnosis_code": diagnosis_code
                         }
@@ -1867,15 +1881,26 @@ class PatientRecordsView(APIView):
                         medication_data = prescription_data.pop("medicine_medicine", {})
                         medication_name = medication_data.get('name', 'Unknown Medication')
                         
+                        # Create unique ID using prescription ID, treatment ID, and relation ID
+                        prescription_id = prescription_data.get('id')
+                        relation_id = prescription_relation.get('id')
+                        
+                        record_id = f"prescription_{prescription_id}_{treatment_id_val}_{relation_id}"
+                        
+                        # Skip if we've already seen this exact record
+                        if record_id in seen_ids:
+                            continue
+                        seen_ids.add(record_id)
+                        
                         record = {
-                            "id": f"prescription_{prescription_data['id']}",
+                            "id": record_id,
                             "type": "prescription",
                             "date": treatment_date,
                             "doctor": doctor_info,
                             "title": f"Prescription: {medication_name}",
                             "description": f"{prescription_data.get('dosage', '')} - {prescription_data.get('frequency', '')}",
                             "status": "completed",
-                            "treatment_id": treatment.get("id"),
+                            "treatment_id": treatment_id_val,
                             "medication": medication_data,
                             "prescription_details": prescription_data
                         }
