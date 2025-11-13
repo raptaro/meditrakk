@@ -174,7 +174,6 @@ class PatientInfoView(APIView):
     
     def get(self, request, patient_id):
         try: 
-            # Fetch patient details
             response = supabase.table("patient_patient").select("*").eq("patient_id", patient_id).execute()
             if hasattr(response, 'error') and response.error:
                 return Response({"error": response.error.message}, status=status.HTTP_400_BAD_REQUEST)
@@ -1279,11 +1278,10 @@ class LabResultListView(generics.ListAPIView):
         supabase_url = os.getenv("SUPABASE_URL") or getattr(settings, "SUPABASE_URL", None)
 
         for item in serializer.data:
-            # Get the actual image path from the model instance, not the serialized data
             lab_result_id = item.get("id")
             try:
                 lab_result = LabResult.objects.get(id=lab_result_id)
-                image_path = lab_result.image.name  # This gets "unknown/filename.png"
+                image_path = lab_result.image.name
             except LabResult.DoesNotExist:
                 image_path = item.get("image", "").split("/media/")[-1]  # Fallback
             
@@ -1963,3 +1961,4 @@ class PatientLabResultsView(APIView):
         except Exception as e:
             print(f"Error: {e}")
             return Response({"error": str(e)})
+

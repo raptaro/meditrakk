@@ -1,8 +1,9 @@
 
 from datetime import datetime, date
 import os
+from django.conf import settings
 from rest_framework import serializers
-from .models import Patient, Diagnosis, Prescription, LabRequest, LabResult
+from .models import HealthTips, Patient, Diagnosis, Prescription, LabRequest, LabResult
 
 from datetime import datetime, date
 from rest_framework import serializers
@@ -235,33 +236,12 @@ class LabResultSerializer(serializers.ModelSerializer):
     submitted_by = UserAccountReadSerializer(read_only=True)
 
     def get_image_url(self, obj):
-        try:
-            project_ref = "wczowfydbgmwbotbxaxa"
-            bucket = "lab_results"
-            
-            # Get the filename from the image field
-            filename = obj.image.name if obj.image else ""
-            
-            if not filename:
-                return None
-            
-            # Based on your create view and working URL example, construct the path
-            # Your create view uses: f"lab_results/{patient_segment}/{unique_name}"
-            # Your working URL shows: "lab_results/lab/8abc1d15d48447b8bab1181ac2dd2f58.png"
-            
-            # If the filename already contains the full path, use it directly
-            if filename.startswith("lab_results/"):
-                actual_file_path = filename
-            else:
-                # Otherwise, construct the path based on your storage structure
-                # Adjust this pattern based on how your files are actually organized
-                actual_file_path = f"lab_results/lab/{filename}"
-            
-            public_url = f"https://{project_ref}.supabase.co/storage/v1/object/public/{bucket}/{actual_file_path}"
-            return public_url
-        except Exception as e:
-            print(f"Error generating Supabase URL for {obj.id}: {e}")
-            return None
+        if obj.image:
+            bucket = os.getenv("SUPABASE_STORAGE_BUCKET", "lab_results")
+            supabase_url = os.getenv("SUPABASE_URL") or getattr(settings, "SUPABASE_URL", None)
+            if supabase_url:
+                return f"{supabase_url.rstrip('/')}/storage/v1/object/public/{bucket}/{obj.image.name}"
+        return None
     class Meta:
         model = LabResult
         fields = ['id', 'lab_request', 'image', 'image_url', 'uploaded_at', 'submitted_by']
@@ -393,3 +373,18 @@ class PatientMedicalRecordSerializer(serializers.ModelSerializer):
         ).order_by('-created_at').first()
 
         return queue.complaint if queue else None
+
+class HealthTipsSerializer(serializers.ModelSerializer):
+    patient_name = serializers.CharField(source='patient.full_name', read_only=True)
+    diagnosis_code = serializers.CharField(source='diagnosis.diagnosis_code', read_only=True)
+    diagnosis_description = serializers.CharField(source='diagnosis.diagnosis_description', read_only=True)
+    doctor_name = serializers.CharField(source='doctor.full_name', read_only=True)
+    
+    class Meta:
+        model = HealthTips
+        fields = [
+            'id', 'patient', 'patient_name', 'diagnosis', 'diagnosis_code', 
+            'diagnosis_description', 'doctor', 'doctor_name', 'tip_text',
+            'source', 'is_for_patient', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']

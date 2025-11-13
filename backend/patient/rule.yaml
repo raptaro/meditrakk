@@ -1,0 +1,106 @@
+# health_tips_rule_engine.yaml
+ruleset: "health_tips_generator"
+version: "1.0"
+description: "Generate health tips based on patient diagnoses"
+
+health_tip_rules:
+  diabetes:
+    conditions:
+      - "diagnosis.diagnosis_code in ['E11.9', 'E11', 'DM2', 'DIABETES']"
+      - "'diabetes' in diagnosis.diagnosis_description.lower()"
+      - "'diabetic' in diagnosis.diagnosis_description.lower()"
+    tips:
+      - "Monitor your blood sugar daily."
+      - "Limit intake of sugary foods and beverages."
+      - "Exercise regularly to maintain insulin sensitivity."
+      - "Take medications as prescribed by your doctor."
+      - "Schedule regular check-ups with your endocrinologist."
+
+  hypertension:
+    conditions:
+      - "diagnosis.diagnosis_code in ['I10', 'HTN', 'HYPERTENSION']"
+      - "'hypertension' in diagnosis.diagnosis_description.lower()"
+      - "'high blood pressure' in diagnosis.diagnosis_description.lower()"
+    tips:
+      - "Reduce salt in your meals."
+      - "Check your blood pressure regularly."
+      - "Engage in light physical activity like walking."
+      - "Limit alcohol consumption and avoid smoking."
+      - "Manage stress through relaxation techniques."
+
+  asthma:
+    conditions:
+      - "diagnosis.diagnosis_code in ['J45', 'ASTHMA', 'AST']"
+      - "'asthma' in diagnosis.diagnosis_description.lower()"
+      - "'reactive airway' in diagnosis.diagnosis_description.lower()"
+    tips:
+      - "Avoid exposure to dust and smoke."
+      - "Always carry your inhaler with you."
+      - "Follow your prescribed breathing exercises."
+      - "Identify and avoid your asthma triggers."
+      - "Keep your living environment clean and dust-free."
+
+  flu:
+    conditions:
+      - "diagnosis.diagnosis_code in ['J11', 'J10', 'FLU', 'INFLUENZA']"
+      - "'flu' in diagnosis.diagnosis_description.lower()"
+      - "'influenza' in diagnosis.diagnosis_description.lower()"
+      - "'fever' in diagnosis.diagnosis_description.lower() and 'cough' in diagnosis.diagnosis_description.lower()"
+    tips:
+      - "Rest and stay hydrated."
+      - "Avoid contact with others to prevent spread."
+      - "Take paracetamol for fever if needed."
+      - "Use a humidifier to ease breathing."
+      - "Wash hands frequently to avoid spreading germs."
+
+  anemia:
+    conditions:
+      - "diagnosis.diagnosis_code in ['D64.9', 'ANEMIA', 'ANEM']"
+      - "'anemia' in diagnosis.diagnosis_description.lower()"
+      - "'low hemoglobin' in diagnosis.diagnosis_description.lower()"
+    tips:
+      - "Include iron-rich foods like spinach and red meat in your diet."
+      - "Avoid drinking tea or coffee with meals."
+      - "Follow up with your doctor for iron supplementation."
+      - "Eat foods rich in Vitamin C to improve iron absorption."
+      - "Get adequate rest and avoid overexertion."
+
+  fever:
+    conditions:
+      - "diagnosis.diagnosis_code in ['R50.9', 'FEVER', 'FVR', 'PYREXIA']"
+      - "'fever' in diagnosis.diagnosis_description.lower()"
+      - "'elevated temperature' in diagnosis.diagnosis_description.lower()"
+    tips:
+      - "Drink plenty of fluids to stay hydrated."
+      - "Rest in a cool, comfortable environment."
+      - "Use damp cloths to cool the forehead and body."
+      - "Take fever-reducing medication as directed."
+      - "Monitor temperature every 4-6 hours."
+
+  lung_cancer:
+    conditions:
+      - "diagnosis.diagnosis_code in ['C34', 'LUNGCA', 'LNG CNCR']"
+      - "'lung cancer' in diagnosis.diagnosis_description.lower()"
+      - "'pulmonary neoplasm' in diagnosis.diagnosis_description.lower()"
+    tips:
+      - "Avoid all forms of tobacco and smoking."
+      - "Attend all scheduled treatment appointments."
+      - "Practice deep breathing exercises regularly."
+      - "Maintain a nutritious diet to support your immune system."
+      - "Report any new or worsening symptoms to your doctor immediately."
+
+rule_engine_config:
+  execution_mode: "per_diagnosis"
+  max_tips_per_diagnosis: 3
+  default_doctor_id: "system-auto"
+  tip_source: "AI Health Assistant"
+
+output_template:
+  model: "HealthTips"
+  fields:
+    patient: "{{diagnosis.patient}}"
+    diagnosis: "{{diagnosis.id}}"
+    doctor: "{{config.default_doctor_id}}"
+    tip_text: "{{selected_tip}}"
+    source: "{{config.tip_source}}"
+    is_for_patient: true

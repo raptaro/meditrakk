@@ -8,7 +8,7 @@ from django.conf import settings
 
 
 
-from user.models import BaseProfile
+from user.models import BaseProfile, Doctor
 from medicine.models import Medicine
 
 
@@ -65,7 +65,27 @@ class Diagnosis(models.Model):
     diagnosis_code = models.CharField(max_length=10, blank=True, null=True)  # ICD code, etc.
     diagnosis_description = models.TextField()
     diagnosis_date = models.DateField()
+    
+class HealthTips(models.Model):
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='health_tips')
+    diagnosis = models.ForeignKey(Diagnosis, on_delete=models.CASCADE, related_name='health_tips')
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='health_tips')
+    tip_text = models.TextField()  # longer, allows rich content
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    # optional: source, visibility, severity tags
+    source = models.CharField(max_length=100, blank=True, null=True)
+    is_for_patient = models.BooleanField(default=True)
 
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(fields=["patient"]),
+            models.Index(fields=["doctor"]),
+        ]
+
+    def __str__(self):
+        return f"Tip for {self.patient.patient_id} by {self.doctor_id or 'system'}"
 class Prescription(models.Model):
     patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='prescription')
     medication = models.ForeignKey(Medicine, on_delete=models.CASCADE)

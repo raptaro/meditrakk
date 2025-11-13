@@ -51,7 +51,7 @@ Content-Type: application/json
 }
 
 ### doctor
-GET   http://localhost:8000/patient/lab-results/stinson-0200010
+GET   http://localhost:8000/patients/stinson-0200010/generate-health-tips/
 Content-Type: application/json  
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwNTI4NTQyLCJpYXQiOjE3NjI3NTI1NDIsImp0aSI6ImM4YTlmMTVmMTVhODQyYWZhZjlkNDJhOThkYzU1Nzg3IiwidXNlcl9pZCI6ImNvb3Blci0wMjAwMDYiLCJpc19zdGFmZiI6ZmFsc2UsImlzX3N1cGVydXNlciI6ZmFsc2UsImVtYWlsIjoiZ2VuZXJhbGRvY3RvckBob3NwaXRhbC5jb20iLCJyb2xlIjoiZG9jdG9yIiwiZmlyc3RfbmFtZSI6IlNoZWxkb24ifQ.m28y3MCaldjpuLBTVgjmD5MF4xPVWJq4C5KT29-ItT8
 ### secretary request
