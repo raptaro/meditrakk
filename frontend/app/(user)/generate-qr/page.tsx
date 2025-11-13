@@ -10,7 +10,7 @@ export default function GenerateQRPage() {
   // Set the registration URL when component mounts
   useState(() => {
     // Use your actual registration page URL
-    const url = `meditrakk.up.railway.app/online-register`;
+    const url = `meditrakk.up.railway.app/online-registration`;
     setRegistrationUrl(url);
   });
 
@@ -18,9 +18,9 @@ export default function GenerateQRPage() {
     <div className="min-h-screen py-8">
       <div className="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold">Generate Registration QR Code</h1>
+          <h1 className="text-2xl font-bold">Online Patient Registration</h1>
           <p className="mt-2 text-gray-600">
-            Print this QR code for patients to scan and register
+            Please scan this QR Code to register to <span className="font-bold text-blue-900">Malibiran Medical Clinic</span>
           </p>
         </div>
 
@@ -53,7 +53,6 @@ export default function GenerateQRPage() {
                   Instructions for Use:
                 </h3>
                 <ul className="list-disc space-y-1 pl-5 text-sm text-blue-700">
-                  <li>Print this page or save the QR code image</li>
                   <li>Patients scan the QR code with their phone camera</li>
                   <li>They will be redirected to the registration form</li>
                   <li>Patients can fill out the form directly on their phone</li>
