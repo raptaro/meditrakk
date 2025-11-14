@@ -100,7 +100,7 @@ export default function Home() {
 
             <div className="relative md:w-1/2">
               <div className="overflow-hidden rounded-2xl bg-card shadow-xl">
-                <div className="relative w-full pb-[56.25%]">
+                <div className="relative w-full pb-[37%]">
                   <iframe
                     src={`https://www.google.com/maps/embed/v1/place?q=place_id:ChIJAQDU4fK2lzMRvNbihjhyA1g&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
                     className="absolute left-0 top-0 h-full w-full border-0"
