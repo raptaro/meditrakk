@@ -39,7 +39,7 @@ export default function Page() {
     <div className="m-6 space-y-6">
       <section className="card">
         <div className="grid grid-cols-3">
-          <div className="col-span-2 content-center">
+          <div className="col-span-3 content-center xl:col-span-2">
             <div className="mb-4 flex flex-col space-y-4 text-sm font-semibold text-muted-foreground">
               <span>Welcome back</span>
               <span className="text-xl font-bold text-blue-500">
@@ -47,7 +47,7 @@ export default function Page() {
               </span>
               <span>Gynecologist, MBBS,MD</span>
             </div>
-            <div className="flex space-x-6 text-slate-800">
+            <div className="grid grid-cols-1 gap-4 text-slate-800 lg:grid-cols-3">
               {cards.map((item, index) => (
                 <div
                   key={index}
@@ -61,7 +61,7 @@ export default function Page() {
               ))}
             </div>
           </div>
-          <div className="w-96 place-content-center place-self-center">
+          <div className="hidden w-96 place-content-center place-self-center xl:block">
             <AspectRatio ratio={1 / 1}>
               <Image
                 src="/doctor.png"
@@ -73,13 +73,15 @@ export default function Page() {
           </div>
         </div>
       </section>
-      <div className="grid grid-cols-3 space-x-6">
-        <OncallDoctorsRecentAppointment />
+      <div className="grid grid-cols-1 gap-y-6 xl:grid-cols-3 xl:gap-x-6">
+        <span className="col-span-2">
+          <OncallDoctorsRecentAppointment />
+        </span>
+
         <PatientGroup />
       </div>
-      <div className="grid grid-cols-3 space-x-6">
-        <TodoList />
-      </div>
+
+      <TodoList />
     </div>
   );
 }

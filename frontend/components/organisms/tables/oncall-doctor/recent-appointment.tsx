@@ -39,7 +39,7 @@ export default function OncallDoctorsRecentAppointment() {
   ];
 
   return (
-    <div className="card col-span-2">
+    <div className="card">
       <div className="flex justify-between">
         <span className="mb-6 font-bold">Recent Appointments</span>
         <Link
