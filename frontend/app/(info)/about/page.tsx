@@ -136,7 +136,7 @@ export default function AboutUs() {
             Ready to Experience Exceptional Care?
           </motion.h2>
           <motion.a
-            href="/contact"
+            href="tel:09998205684"
             className="inline-block rounded-full bg-foreground px-6 py-3 font-semibold transition-colors"
             variants={fadeIn}
             initial="initial"
