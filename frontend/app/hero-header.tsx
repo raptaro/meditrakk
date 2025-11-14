@@ -20,7 +20,9 @@ const HeroHeader = () => {
     <nav className="z-50 bg-card px-6 py-4 shadow-sm">
       <div className="container mx-auto flex items-center justify-between">
         <div className="flex items-center">
-          <span className="text-xl font-bold">Malibiran Clinic</span>
+          <Link href="/">
+            <span className="text-2xl font-bold">Malibiran Clinic</span>
+          </Link>
         </div>
         <div className="hidden items-center space-x-6 md:flex">
           {navLinks.map((link) => (
