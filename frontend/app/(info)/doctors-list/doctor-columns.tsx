@@ -17,6 +17,18 @@ export const DoctorColumns: ColumnDef<Doctor>[] = [
     header: "Doctor",
   },
   {
+    accessorKey: "specialization",
+    header: "Specialization",
+  },
+  {
+    accessorKey: "days_available",
+    header: "Days Available",
+  },
+  {
+    accessorKey: "working_hours",
+    header: "Working Hours",
+  },
+  {
     accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
@@ -24,18 +36,15 @@ export const DoctorColumns: ColumnDef<Doctor>[] = [
 
       const statusColor =
         status.toLowerCase() === "active"
-          ? "text-green-500 border-green-500"
+          ? "bg-green-100 border-green-500"
           : status.toLowerCase() === "inactive"
-          ? "text-red-500 border-red-500"
+          ? "bg-red-100 border-red-500"
           : status.toLowerCase() === "on leave"
-          ? "text-yellow-500 border-yellow-500"
-          : "text-gray-500 border-gray-500";
+          ? "bg-yellow-100 border-yellow-500"
+          : "bg-gray-100 border-gray-500";
 
       return (
-        <Badge
-          variant="outline"
-          className={`${statusColor} rounded-full bg-muted`}
-        >
+        <Badge variant="outline" className={`${statusColor} rounded-full`}>
           {status}
         </Badge>
       );
