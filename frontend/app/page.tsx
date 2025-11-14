@@ -9,9 +9,9 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import HeroHeader from "@/app/hero-header";
 import { Button } from "@/components/ui/button";
+import MapComponent from "@/components/atoms/google-map";
 
 export default function Home() {
   const services = [
@@ -101,13 +101,7 @@ export default function Home() {
 
             <div className="relative md:w-1/2">
               <div className="overflow-hidden rounded-2xl bg-card shadow-xl">
-                <Image
-                  src="/location.png"
-                  width={1327}
-                  height={717}
-                  alt="location"
-                  className="h-64 w-full object-cover"
-                />
+                <MapComponent />
                 <div className="p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <div>
