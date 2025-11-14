@@ -11,7 +11,6 @@ import {
 import Link from "next/link";
 import HeroHeader from "@/app/hero-header";
 import { Button } from "@/components/ui/button";
-import MapComponent from "@/components/atoms/google-map";
 
 export default function Home() {
   const services = [
@@ -101,7 +100,14 @@ export default function Home() {
 
             <div className="relative md:w-1/2">
               <div className="overflow-hidden rounded-2xl bg-card shadow-xl">
-                <MapComponent />
+                <div className="relative w-full pb-[56.25%]">
+                  <iframe
+                    src={`https://www.google.com/maps/embed/v1/place?q=place_id:ChIJAQDU4fK2lzMRvNbihjhyA1g&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
+                    className="absolute left-0 top-0 h-full w-full border-0"
+                    allowFullScreen
+                    loading="lazy"
+                  ></iframe>
+                </div>
                 <div className="p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <div>
