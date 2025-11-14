@@ -1,7 +1,7 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
-import { Edit, EllipsisVertical, Eye } from "lucide-react";
+import { Eye } from "lucide-react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 
@@ -31,8 +31,6 @@ function ActionsCell({ patientId }: { patientId: string }) {
       <Link href={`${basePath}/patient-information/${patientId}`}>
         <Eye className="cursor-pointer text-green-500 hover:fill-current" />
       </Link>
-      <Edit className="cursor-pointer text-blue-500 hover:fill-current" />
-      <EllipsisVertical className="cursor-pointer" />
     </div>
   );
 }
