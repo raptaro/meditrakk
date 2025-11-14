@@ -1,9 +1,8 @@
 "use client";
-
 import { ColumnDef } from "@tanstack/react-table";
 import { Treatment } from "@/app/types";
-import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { Eye, SquarePen } from "lucide-react";
 
 export const TreatmentColumns: ColumnDef<Treatment>[] = [
   {
@@ -30,32 +29,32 @@ export const TreatmentColumns: ColumnDef<Treatment>[] = [
     header: "Actions",
     cell: ({ row }) => {
       const router = useRouter();
-      const t = row.original; // treatment object
+      const t = row.original;
       const patient = t.patient;
 
       return (
         <div className="flex space-x-2">
-          {/* UPDATE */}
-          <Button
-            className="rounded bg-yellow-500 px-3 py-1 text-white hover:bg-yellow-600"
+          {/* View Button - Eye icon */}
+          <button
+            onClick={() =>
+              router.push(`/doctor/treatment-details/${patient.patient_id}`)
+            }
+            className="rounded p-1" // optional hover background for feedback
+          >
+            <Eye className="h-5 w-5 text-green-500 hover:fill-green-500" />
+          </button>
+
+          {/* Update Button - SquarePen icon */}
+          <button
             onClick={() =>
               router.push(
                 `/doctor/treatment-form/${patient.patient_id}/${patient.queue_data?.queue_number}`
               )
             }
+            className="rounded p-1"
           >
-            Update
-          </Button>
-
-          {/* VIEW DETAILS */}
-          <Button
-            className="rounded bg-blue-500 px-3 py-1 text-white hover:bg-blue-600"
-            onClick={() =>
-              router.push(`/doctor/treatment-details/${patient.patient_id}`)
-            }
-          >
-            View
-          </Button>
+            <SquarePen className="h-5 w-5 text-blue-500 hover:fill-blue-500" />
+          </button>
         </div>
       );
     },
