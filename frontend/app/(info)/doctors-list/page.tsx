@@ -1,17 +1,19 @@
 "use client";
 import { DoctorColumns } from "./doctor-columns";
-import { DataTable } from "@/components/ui/data-table";
+import { PageTable } from "@/components/ui/page-table";
 import { SkeletonDataTable } from "@/components/atoms/custom-skeleton";
-import { doctors } from "@/lib/placeholder-data";
+import useDoctors from "@/hooks/use-doctors";
 
 export default function DocList() {
+  const doctors = useDoctors();
+
   if (doctors === undefined) {
     return <SkeletonDataTable />;
   }
 
   return (
     <div className="xl:mx-48">
-      <DataTable title="Doctors" data={doctors} columns={DoctorColumns} />
+      <PageTable title="Doctors" data={doctors} columns={DoctorColumns} />
     </div>
   );
 }

@@ -1,55 +1,59 @@
 "use client";
-
-import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 
-export type Doctor = {
-  name: string;
-  specialization: string | null;
-  days_available: string | null;
-  working_hours: string | null;
-  status: string;
-};
+interface Schedule {
+  day_of_week: string;
+  start_time: string;
+  end_time: string;
+}
+
+interface DoctorProfile {
+  specialization: string;
+  schedules: Schedule[];
+}
+
+interface Doctor {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  is_active: boolean;
+  date_joined: string;
+  doctor_profile?: DoctorProfile; // make optional in case it's missing
+}
 
 export const DoctorColumns: ColumnDef<Doctor>[] = [
   {
-    accessorKey: "name",
-    header: "Doctor",
+    accessorFn: (row) => `${row.first_name} ${row.last_name}`,
+    header: "Name",
+    cell: ({ getValue }) => getValue(),
   },
   {
-    accessorKey: "specialization",
+    accessorKey: "email",
+    header: "Email",
+  },
+  {
     header: "Specialization",
+    accessorFn: (row) =>
+      row.doctor_profile?.specialization ?? "No specialization",
+    cell: ({ getValue }) => getValue(),
   },
   {
-    accessorKey: "days_available",
-    header: "Days Available",
-  },
-  {
-    accessorKey: "working_hours",
-    header: "Working Hours",
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.getValue("status") as string;
-
-      const statusColor =
-        status.toLowerCase() === "active"
-          ? "bg-green-100 border-green-500"
-          : status.toLowerCase() === "inactive"
-          ? "bg-red-100 border-red-500"
-          : status.toLowerCase() === "on leave"
-          ? "bg-yellow-100 border-yellow-500"
-          : "bg-gray-100 border-gray-500";
-
+    header: "Schedules",
+    accessorFn: (row) => row.doctor_profile?.schedules ?? [],
+    cell: ({ getValue }) => {
+      const schedules = getValue() as Schedule[];
+      if (!schedules.length) return "No schedule";
       return (
-        <Badge
-          variant="outline"
-          className={`${statusColor} rounded-full dark:text-muted`}
-        >
-          {status}
-        </Badge>
+        <ul className="list-disc pl-5">
+          {schedules.map((s, i) => (
+            <li key={i}>
+              {s.day_of_week}: {s.start_time.substring(0, 5)} -{" "}
+              {s.end_time.substring(0, 5)}
+            </li>
+          ))}
+        </ul>
       );
     },
   },
