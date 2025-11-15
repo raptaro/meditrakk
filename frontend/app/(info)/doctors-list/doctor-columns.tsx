@@ -44,7 +44,10 @@ export const DoctorColumns: ColumnDef<Doctor>[] = [
           : "bg-gray-100 border-gray-500";
 
       return (
-        <Badge variant="outline" className={`${statusColor} rounded-full`}>
+        <Badge
+          variant="outline"
+          className={`${statusColor} rounded-full dark:text-muted`}
+        >
           {status}
         </Badge>
       );
