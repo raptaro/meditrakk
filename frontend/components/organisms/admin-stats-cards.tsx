@@ -1,17 +1,17 @@
 "use client";
 
 import {
-  FaUser,
-  FaUserClock,
-  FaCodePullRequest,
-  FaClockRotateLeft,
-  type Fa6,
-} from "react-icons/fa6";
-import { FaEllipsis } from "react-icons/fa6";
-import { FiChevronsDown } from "react-icons/fi";
+  User,
+  Clock,
+  GitPullRequest,
+  Clock2,
+  ChevronDown,
+  LucideIcon,
+  PinIcon,
+} from "lucide-react";
 
 interface StatsCardProps {
-  icon: typeof Fa6;
+  icon: LucideIcon;
   title: string;
   value: string | number;
   footer: {
@@ -26,11 +26,11 @@ interface StatsCardProps {
 
 const statsData = [
   {
-    icon: FaUser,
-    title: "Total Patient",
+    icon: User,
+    title: "Monthly Visit",
     value: 84,
     footer: {
-      text: "Since last week",
+      text: "Since last month",
       trend: {
         value: "-17.65%",
         isPositive: false,
@@ -38,7 +38,7 @@ const statsData = [
     },
   },
   {
-    icon: FaUserClock,
+    icon: Clock,
     title: "Todays Appointment",
     value: 84,
     footer: {
@@ -47,7 +47,7 @@ const statsData = [
     },
   },
   {
-    icon: FaCodePullRequest,
+    icon: GitPullRequest,
     title: "Patient Request",
     value: 10,
     footer: {
@@ -56,7 +56,7 @@ const statsData = [
     },
   },
   {
-    icon: FaClockRotateLeft,
+    icon: Clock2,
     title: "Inventory Updates",
     value: 84,
     footer: {
@@ -74,10 +74,10 @@ function StatsCard({ icon: Icon, title, value, footer }: StatsCardProps) {
     <div className="card block w-full max-w-sm space-y-2 rounded-xl">
       <div className="flex items-center justify-between">
         <div className="flex items-center">
-          <Icon className="me-2 text-primary" />
+          <Icon className="me-2 h-5 w-5 text-primary" />
           <p className="tracking-tight">{title}</p>
         </div>
-        <FaEllipsis className="me-2 opacity-0 lg:opacity-100" />
+        <PinIcon className="me-2 h-5 w-5 text-red-400 opacity-90" />
       </div>
       <p className="text-2xl font-bold">{value}</p>
       <p className="flex items-center justify-center text-sm md:justify-normal">
@@ -88,8 +88,10 @@ function StatsCard({ icon: Icon, title, value, footer }: StatsCardProps) {
                 footer.trend.isPositive ? "text-green-500" : "text-red-500"
               }
             >
-              <FiChevronsDown
-                className={footer.trend.isPositive ? "rotate-180" : ""}
+              <ChevronDown
+                className={
+                  footer.trend.isPositive ? "h-5 w-5 rotate-180" : "h-5 w-5"
+                }
               />
             </span>
             <span
