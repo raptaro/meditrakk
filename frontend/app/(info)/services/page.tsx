@@ -43,23 +43,14 @@ export default function Page() {
   return (
     <Tabs defaultValue="lab" className="mx-4 my-8 xl:mx-48">
       {/* Tab List */}
-      <TabsList className="flex justify-center gap-4 rounded-2xl bg-muted p-2 shadow-md">
-        <TabsTrigger
-          value="lab"
-          className="rounded-xl px-4 py-2 font-medium transition-all hover:bg-accent hover:shadow"
-        >
+      <TabsList>
+        <TabsTrigger value="lab" className="hover:bg-accent hover:shadow">
           Laboratory Services
         </TabsTrigger>
-        <TabsTrigger
-          value="xray"
-          className="rounded-xl px-4 py-2 font-medium transition-all hover:bg-accent hover:shadow"
-        >
+        <TabsTrigger value="xray" className="hover:bg-accent hover:shadow">
           X-Ray Services
         </TabsTrigger>
-        <TabsTrigger
-          value="other"
-          className="rounded-xl px-4 py-2 font-medium transition-all hover:bg-accent hover:shadow"
-        >
+        <TabsTrigger value="other" className="hover:bg-accent hover:shadow">
           Other Services
         </TabsTrigger>
       </TabsList>

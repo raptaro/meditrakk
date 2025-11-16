@@ -9,7 +9,6 @@ import {
   Clock,
 } from "lucide-react";
 import Link from "next/link";
-import Image from "next/image";
 import HeroHeader from "@/app/hero-header";
 import { Button } from "@/components/ui/button";
 
@@ -101,13 +100,14 @@ export default function Home() {
 
             <div className="relative md:w-1/2">
               <div className="overflow-hidden rounded-2xl bg-card shadow-xl">
-                <Image
-                  src="/location.png"
-                  width={1327}
-                  height={717}
-                  alt="location"
-                  className="h-64 w-full object-cover"
-                />
+                <div className="relative w-full pb-[37%]">
+                  <iframe
+                    src={`https://www.google.com/maps/embed/v1/place?q=place_id:ChIJAQDU4fK2lzMRvNbihjhyA1g&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
+                    className="absolute left-0 top-0 h-full w-full border-0"
+                    allowFullScreen
+                    loading="lazy"
+                  ></iframe>
+                </div>
                 <div className="p-6">
                   <div className="mb-4 flex items-center justify-between">
                     <div>
@@ -150,15 +150,18 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="absolute -bottom-4 -left-4 flex items-center rounded-lg bg-card p-4 shadow-lg md:hidden lg:flex">
-                <div className="mr-3 rounded-full border-2 border-solid border-primary bg-secondary p-2">
+              <a
+                href="tel:09998205684"
+                className="absolute -bottom-4 -left-4 flex items-center rounded-lg bg-card p-4 shadow-lg transition-transform duration-200 ease-in-out hover:scale-105 hover:shadow-xl md:hidden lg:flex"
+              >
+                <div className="mr-3 rounded-full border-2 border-solid border-primary bg-secondary p-2 transition-colors duration-200 ease-in-out">
                   <Phone className="h-5 w-5 text-primary" />
                 </div>
                 <div>
                   <p className="text-xs">Call us now</p>
                   <p className="font-bold">0999 820 5684</p>
                 </div>
-              </div>
+              </a>
 
               <div className="absolute -right-4 -top-4 flex items-center rounded-lg bg-card p-4 shadow-lg md:hidden lg:flex">
                 <div className="mr-3 rounded-full border-2 border-solid border-primary bg-secondary p-2">

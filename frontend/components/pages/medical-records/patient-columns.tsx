@@ -93,8 +93,6 @@ function ActionsCell({ patientId }: { patientId: string }) {
       <Link href={`${basePath}/patient-information/${patientId}`}>
         <Eye className="cursor-pointer text-green-500 hover:fill-current" />
       </Link>
-      <Edit className="cursor-pointer text-blue-500 hover:fill-current" />
-      <EllipsisVertical className="cursor-pointer" />
     </div>
   );
 }

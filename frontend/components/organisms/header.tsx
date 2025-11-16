@@ -1,21 +1,34 @@
 import DarkModeToggle from "@/components/molecules/header/dark-mode-toggle";
 import Notification from "@/components/molecules/header/notification";
 import ProfileDropdown from "@/components/molecules/header/profile-dropdown";
+import { Menu } from "lucide-react";
+import { SidebarTrigger } from "../ui/sidebar";
 
 const Header = () => {
   return (
-    <div className="sticky top-0 bg-card p-3 shadow-md">
-      <div className="flex justify-between">
-        <span className="ms-4 whitespace-nowrap text-3xl font-bold tracking-tight">
-          Malibiran Medical Clinic
-        </span>
-        <div className="flex items-center space-x-1">
+    <header className="sticky top-0 z-50 bg-card p-3 shadow-md">
+      <div className="flex items-center justify-between">
+        {/* Left section (menu + title) */}
+        <div className="ms-2 flex items-center gap-3">
+          <span className="md:hidden">
+            <SidebarTrigger>
+              <Menu />
+            </SidebarTrigger>
+          </span>
+
+          <h1 className="whitespace-nowrap text-xl font-bold tracking-tight sm:text-2xl md:text-3xl">
+            Malibiran Medical Clinic
+          </h1>
+        </div>
+
+        {/* Right section (icons) */}
+        <div className="flex items-center gap-2 sm:gap-3">
           <DarkModeToggle />
           <Notification />
           <ProfileDropdown />
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 

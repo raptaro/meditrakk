@@ -45,17 +45,17 @@ export const columns: ColumnDef<Appointment>[] = [
       // Map status to color
       const statusColor =
         status === "Scheduled" || status === "Completed"
-          ? "text-green-500 border-green-500"
+          ? "bg-green-100 border-green-500"
           : status === "Pending"
-          ? "text-yellow-500 border-yellow-500"
+          ? "bg-yellow-100 border-yellow-500"
           : status === "Cancelled"
-          ? "text-red-500 border-red-500"
-          : "text-gray-500 border-gray-500";
+          ? "bg-red-100 border-red-500"
+          : "bg-gray-100 border-gray-500";
 
       return (
         <Badge
           variant="outline"
-          className={`${statusColor} rounded-full bg-muted`}
+          className={`${statusColor} rounded-full dark:text-muted`}
         >
           {status}
         </Badge>

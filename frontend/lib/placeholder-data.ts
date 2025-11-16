@@ -1,7 +1,7 @@
 // This file contains placeholder data that you'll be replacing with real data in the Data Fetching chapter:
 // https://nextjs.org/learn/dashboard-app/fetching-data
 
-import { Doctor } from "@/components/molecules/tables/doctor-columns";
+import { Doctor } from "@/app/(info)/doctors-list/doctor-columns";
 import { Operation } from "@/app/admin/components/operation-columns";
 import { User } from "@/app/designer/columns";
 import { Registration } from "@/app/secretary/registration-queue/columns";
@@ -210,42 +210,42 @@ export const doctors: Doctor[] = [
     specialization: "Cardiology",
     days_available: "Mon, Wed, Fri",
     working_hours: "09:00 - 17:00",
-    status: "active",
+    status: "Active",
   },
   {
     name: "Dr. Johnson",
     specialization: "Dermatology",
     days_available: "Tue, Thu",
     working_hours: "10:00 - 16:00",
-    status: "active",
+    status: "Active",
   },
   {
     name: "Dr. Williams",
     specialization: "Pediatrics",
     days_available: "Mon - Fri",
     working_hours: "08:00 - 15:00",
-    status: "on leave",
+    status: "On Leave",
   },
   {
     name: "Dr. Brown",
     specialization: "Orthopedics",
     days_available: "Wed, Thu, Sat",
     working_hours: "11:00 - 18:00",
-    status: "active",
+    status: "Active",
   },
   {
     name: "Dr. Davis",
     specialization: "Neurology",
     days_available: "Mon, Tue, Fri",
     working_hours: "09:30 - 17:30",
-    status: "inactive",
+    status: "Inactive",
   },
   {
     name: "Dr. Miller",
     specialization: "General Medicine",
     days_available: "Mon - Sat",
     working_hours: "07:00 - 14:00",
-    status: "active",
+    status: "Active",
   },
 ];
 

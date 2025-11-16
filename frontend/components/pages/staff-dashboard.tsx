@@ -2,7 +2,6 @@
 import { useName } from "@/hooks/use-name";
 import { Skeleton } from "../ui/skeleton";
 
-import StatsCard from "@/components/organisms/admin-stats-cards";
 import { VisitorsChart } from "@/components/organisms/charts/visitors-chart";
 import { CommonDiseasesChart } from "@/components/organisms/charts/common-diseases-chart";
 import { CommonMedicinesChart } from "@/components/organisms/charts/common-medicine-chart";
@@ -10,10 +9,52 @@ import { PatientColumns } from "./medical-records/patient-columns";
 import { DashboardTable } from "../ui/dashboard-table";
 import TitleCard from "../molecules/title-card";
 import usePatients from "@/hooks/use-patients";
+import { JSX } from "react";
+import { Clock, Cylinder, GitPullRequest, User } from "lucide-react";
+import SummaryCard from "../summary-cards";
+
+type ColorKey = "blue" | "green" | "yellow" | "red";
 
 export default function StaffDashboard() {
   const name = useName();
   const patients = usePatients();
+
+  const data: {
+    id: number;
+    title: string;
+    value: number;
+    icon: JSX.Element;
+    color: ColorKey;
+  }[] = [
+    {
+      id: 1,
+      title: "Monthly Patients",
+      value: 0,
+      icon: <User />,
+      color: "blue",
+    },
+    {
+      id: 2,
+      title: "Todays Appointment",
+      value: 0,
+      icon: <Clock />,
+      color: "green",
+    },
+    {
+      id: 3,
+      title: "Patient Request",
+      value: 0,
+      icon: <GitPullRequest />,
+      color: "yellow",
+    },
+    {
+      id: 4,
+      title: "Inventory Updates",
+      value: 0,
+      icon: <Cylinder />,
+      color: "red",
+    },
+  ];
 
   return (
     <div className="m-6 space-y-4">
@@ -30,7 +71,17 @@ export default function StaffDashboard() {
         </p>
       </div>
 
-      <StatsCard />
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {data.map((item, index) => (
+          <SummaryCard
+            key={index}
+            title={item.title}
+            value={item.value}
+            icon={item.icon}
+            color={item.color}
+          />
+        ))}
+      </div>
 
       <div className="grid grid-cols-1 items-center gap-4 lg:grid-cols-3 lg:gap-6">
         {/* Visitors chart spans 2 columns */}
