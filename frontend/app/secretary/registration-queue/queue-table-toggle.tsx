@@ -46,15 +46,21 @@ const QueueTableToggle: React.FC<QueueTableToggleProps> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Helper: Check if date is today
+  // Helper: Check if date is today by comparing date parts
   const isToday = (dateString: string) => {
-    const today = new Date();
-    const date = new Date(dateString);
-    return (
-      date.getFullYear() === today.getFullYear() &&
-      date.getMonth() === today.getMonth() &&
-      date.getDate() === today.getDate()
-    );
+    try {
+      const today = new Date();
+      const appointmentDate = new Date(dateString);
+      
+      return (
+        today.getFullYear() === appointmentDate.getFullYear() &&
+        today.getMonth() === appointmentDate.getMonth() &&
+        today.getDate() === appointmentDate.getDate()
+      );
+    } catch (err) {
+      console.error('Error checking date:', err);
+      return false;
+    }
   };
 
   // Fetch appointments from API
@@ -79,6 +85,8 @@ const QueueTableToggle: React.FC<QueueTableToggleProps> = ({
       if (!response.ok) throw new Error("Failed to fetch appointments");
 
       const appointmentsData = await response.json();
+      console.log("Fetched appointments:", appointmentsData); // Debug log
+      
       if (Array.isArray(appointmentsData)) {
         setAppointments(appointmentsData);
       } else if (
@@ -136,20 +144,36 @@ const QueueTableToggle: React.FC<QueueTableToggleProps> = ({
     }
   };
 
-  // Helpers
-  const formatDate = (dateString: string | number | Date) =>
-    new Date(dateString).toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
+  // Helpers - Handle both ISO format (2025-11-17T10:30:00Z) and old format
+  const formatDate = (dateString: string) => {
+    try {
+      // Handle ISO format: "2025-11-17T10:30:00Z"
+      if (dateString.includes('T')) {
+        return dateString.split('T')[0]; // Returns "2025-11-17"
+      }
+      // Handle old format: "2025-11-17 10:30:00+00"
+      return dateString.split(' ')[0];
+    } catch (err) {
+      console.error('Error formatting date:', err);
+      return 'Invalid Date';
+    }
+  };
 
-  const formatTime = (dateString: string | number | Date) =>
-    new Date(dateString).toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: true,
-    });
+  const formatTime = (dateString: string) => {
+    try {
+      // Handle ISO format: "2025-11-17T10:30:00Z"
+      if (dateString.includes('T')) {
+        const timePart = dateString.split('T')[1]; // "10:30:00Z"
+        return timePart ? timePart.substring(0, 5) : '00:00'; // Get "10:30"
+      }
+      // Handle old format: "2025-11-17 10:30:00+00"
+      const timePart = dateString.split(' ')[1];
+      return timePart ? timePart.substring(0, 5) : '00:00';
+    } catch (err) {
+      console.error('Error formatting time:', err);
+      return 'Invalid Time';
+    }
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status.toLowerCase()) {
@@ -211,12 +235,16 @@ const QueueTableToggle: React.FC<QueueTableToggleProps> = ({
     }
   };
 
-  // Filter appointments for today
-  const todayAppointments: Appointment[] = (data ?? appointments ?? []).filter(
-    (app) => app && isToday(app.appointment_date)
-  );
-  const displayData: Appointment[] =
-    todayAppointments.length > 0 ? todayAppointments : [];
+  // Get appointments to display
+  const displayData: Appointment[] = data || appointments || [];
+  
+  // Filter for today's appointments
+  const todayAppointments = displayData.filter(app => app && isToday(app.appointment_date));
+  
+  // Debug logs
+  console.log("All appointments:", displayData);
+  console.log("Today's appointments:", todayAppointments);
+  console.log("Today's date:", new Date().toDateString());
 
   return (
     <div className={`relative ${className}`}>
@@ -227,9 +255,9 @@ const QueueTableToggle: React.FC<QueueTableToggleProps> = ({
       >
         <div className="flex items-center gap-3">
           <Calendar className="h-5 w-5 text-gray-600" />
-          <span className="font-medium text-gray-900">Todays Appointments</span>
+          <span className="font-medium text-gray-900">Today's Appointments</span>
           <span className="rounded-full bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
-            {displayData.length}
+            {todayAppointments.length}
           </span>
         </div>
         <ChevronDown
@@ -244,9 +272,9 @@ const QueueTableToggle: React.FC<QueueTableToggleProps> = ({
           className={`absolute top-full left-0 w-96 mt-2 bg-white border border-gray-200 rounded-md shadow-xl z-50 overflow-hidden ${dropdownClassName}`}
         >
           <div className="border-b border-gray-200 bg-gray-50 p-4">
-            <h3 className="font-semibold text-gray-900">Todays Appointments</h3>
+            <h3 className="font-semibold text-gray-900">Today's Appointments</h3>
             <p className="mt-1 text-sm text-gray-600">
-              {displayData.length} appointments scheduled
+              {todayAppointments.length} appointments scheduled for today
             </p>
           </div>
 
@@ -273,8 +301,8 @@ const QueueTableToggle: React.FC<QueueTableToggleProps> = ({
                   Try Again
                 </button>
               </div>
-            ) : displayData.length > 0 ? (
-              displayData.map((appointment) => (
+            ) : todayAppointments.length > 0 ? (
+              todayAppointments.map((appointment) => (
                 <div
                   key={appointment.id}
                   className="cursor-pointer border-b border-gray-100 p-4 transition-colors duration-150 hover:bg-gray-50"
@@ -351,11 +379,16 @@ const QueueTableToggle: React.FC<QueueTableToggleProps> = ({
               <div className="p-8 text-center">
                 <Calendar className="mx-auto mb-3 h-12 w-12 text-gray-300" />
                 <p className="font-medium text-gray-500">
-                  No appointments scheduled
+                  No appointments scheduled for today
                 </p>
                 <p className="mt-1 text-sm text-gray-400">
                   Check back later for updates
                 </p>
+                {displayData.length > 0 && (
+                  <p className="mt-2 text-xs text-gray-500">
+                    Found {displayData.length} total appointments, but none for today.
+                  </p>
+                )}
               </div>
             )}
           </div>
@@ -367,7 +400,7 @@ const QueueTableToggle: React.FC<QueueTableToggleProps> = ({
                 onClick={() => onViewAllClick?.()}
                 className="w-full rounded py-1 text-sm font-medium text-blue-600 transition-colors duration-150 hover:bg-blue-50 hover:text-blue-800"
               >
-                View All Appointments
+                View All Appointments ({displayData.length})
               </button>
             </div>
           )}

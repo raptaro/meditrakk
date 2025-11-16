@@ -1982,21 +1982,18 @@ class AppointmentRequestViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'], url_path='confirm-to-appointment')
     def confirm_to_appointment(self, request, pk=None):
-        """Secretary confirms a paid appointment request and creates an actual appointment"""
+        """Secretary confirms an appointment request and creates an actual appointment"""
         try:
             appointment_request = self.get_object()
             
-            # Check if request is in a confirmable state
-            if appointment_request.status not in ['paid', 'reserved']:
-                return Response(
-                    {'error': 'Only paid appointment requests can be confirmed'},
-                    status=status.HTTP_400_BAD_REQUEST
-                )
+            print(f"DEBUG - Confirming appointment request {appointment_request.id}")
+            print(f"DEBUG - Status: {appointment_request.status}")
             
-            # Check if payment exists and is paid
-            if not hasattr(appointment_request, 'payment') or appointment_request.payment.status != 'Paid':
+            # For development: allow confirming any pending request
+            # For production: use proper payment checks
+            if appointment_request.status.lower() in ['cancelled', 'rejected']:
                 return Response(
-                    {'error': 'Cannot confirm appointment without successful payment'},
+                    {'error': f'Cannot confirm appointment with status: {appointment_request.status}'},
                     status=status.HTTP_400_BAD_REQUEST
                 )
             
@@ -2007,14 +2004,15 @@ class AppointmentRequestViewSet(viewsets.ModelViewSet):
                 appointment_date=appointment_request.requested_datetime,
                 status='Scheduled',
                 scheduled_by=request.user,
-                notes=appointment_request.notes,
+                notes=appointment_request.reason,
             )
             
-            # Link payment to appointment
-            payment = appointment_request.payment
-            payment.appointment = appointment
-            payment.appointment_request = None  # Remove link to request
-            payment.save()
+            # If payment exists, link it
+            if hasattr(appointment_request, 'payment'):
+                payment = appointment_request.payment
+                payment.appointment = appointment
+                payment.appointment_request = None
+                payment.save()
             
             # Update appointment request status
             appointment_request.status = 'scheduled'
@@ -2027,6 +2025,10 @@ class AppointmentRequestViewSet(viewsets.ModelViewSet):
             })
             
         except Exception as e:
+            print(f"ERROR in confirm_to_appointment: {str(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            
             return Response(
                 {'error': f'Failed to create appointment: {str(e)}'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR

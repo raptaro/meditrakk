@@ -130,7 +130,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               </h3>
               <p className="text-sm text-blue-700 mt-1">
                 After your visit and upon approval by our medical staff, a patient account will be created for you. 
-                You'll receive login credentials via email to access your medical records and future appointments.
+                You'll receive login credentials within the clinic to access your medical records and future appointments.
               </p>
             </div>
           </div>
