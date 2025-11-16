@@ -3,7 +3,6 @@ import { LayoutDashboard, Calendar, Users, Heart } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -13,7 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import SidebarHeaderProfile from "@/components/atoms/sidebar-header-profile";
-import { NavUser } from "@/components/nav-user";
+import SidebarFooterProfile from "@/components/atoms/sidebar-footer-profile";
 
 const menu_items = [
   {
@@ -37,13 +36,6 @@ const menu_items = [
     icon: Users,
   },
 ];
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-  },
-};
 
 export function OncallDoctorSidebar() {
   return (
@@ -71,9 +63,7 @@ export function OncallDoctorSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
+      <SidebarFooterProfile />
     </Sidebar>
   );
 }

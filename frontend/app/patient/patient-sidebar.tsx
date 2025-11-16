@@ -10,7 +10,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -27,7 +26,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import SidebarHeaderProfile from "@/components/atoms/sidebar-header-profile";
-import { NavUser } from "@/components/nav-user";
+import SidebarFooterProfile from "@/components/atoms/sidebar-footer-profile";
 
 const menu_items = [
   {
@@ -61,13 +60,6 @@ const appointment_items = [
     url: "/patient/past-appointment",
   },
 ];
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-  },
-};
 
 export function PatientSidebar() {
   return (
@@ -139,9 +131,7 @@ export function PatientSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
+      <SidebarFooterProfile />
     </Sidebar>
   );
 }

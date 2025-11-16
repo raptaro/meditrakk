@@ -13,7 +13,6 @@ import {
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -29,7 +28,7 @@ import {
 } from "@/components/ui/collapsible";
 import Link from "next/link";
 import SidebarHeaderProfile from "@/components/atoms/sidebar-header-profile";
-import { NavUser } from "@/components/nav-user";
+import SidebarFooterProfile from "@/components/atoms/sidebar-footer-profile";
 
 const menu_items = [
   {
@@ -76,13 +75,6 @@ const patient_items = [
     icon: Clock,
   },
 ];
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-  },
-};
 
 export function DoctorSidebar() {
   return (
@@ -140,9 +132,7 @@ export function DoctorSidebar() {
           </SidebarGroup>
         </Collapsible>
       </SidebarContent>
-      <SidebarFooter>
-        <NavUser user={data.user} />
-      </SidebarFooter>
+      <SidebarFooterProfile />
     </Sidebar>
   );
 }
