@@ -204,50 +204,7 @@ export const documents: DocumentFile[] = [
   },
 ];
 
-export const doctors: Doctor[] = [
-  {
-    name: "Dr. Smith",
-    specialization: "Cardiology",
-    days_available: "Mon, Wed, Fri",
-    working_hours: "09:00 - 17:00",
-    status: "Active",
-  },
-  {
-    name: "Dr. Johnson",
-    specialization: "Dermatology",
-    days_available: "Tue, Thu",
-    working_hours: "10:00 - 16:00",
-    status: "Active",
-  },
-  {
-    name: "Dr. Williams",
-    specialization: "Pediatrics",
-    days_available: "Mon - Fri",
-    working_hours: "08:00 - 15:00",
-    status: "On Leave",
-  },
-  {
-    name: "Dr. Brown",
-    specialization: "Orthopedics",
-    days_available: "Wed, Thu, Sat",
-    working_hours: "11:00 - 18:00",
-    status: "Active",
-  },
-  {
-    name: "Dr. Davis",
-    specialization: "Neurology",
-    days_available: "Mon, Tue, Fri",
-    working_hours: "09:30 - 17:30",
-    status: "Inactive",
-  },
-  {
-    name: "Dr. Miller",
-    specialization: "General Medicine",
-    days_available: "Mon - Sat",
-    working_hours: "07:00 - 14:00",
-    status: "Active",
-  },
-];
+
 
 
 export const users = [
