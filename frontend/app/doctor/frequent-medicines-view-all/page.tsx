@@ -278,12 +278,6 @@ export default function FrequentMedicinesViewAll() {
                       Medicine
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                      MSE
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
-                      R²
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium uppercase text-gray-500">
                       Forecast (Next 3 Months)
                     </th>
                   </tr>
@@ -319,16 +313,6 @@ export default function FrequentMedicinesViewAll() {
                           <span className="font-medium text-gray-900">
                             {item.name}
                           </span>
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
-                          {typeof item.mse === "number"
-                            ? item.mse.toFixed(2)
-                            : "N/A"}
-                        </td>
-                        <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">
-                          {typeof item.r2 === "number"
-                            ? item.r2.toFixed(3)
-                            : "N/A"}
                         </td>
 
                         <td className="whitespace-nowrap px-6 py-4 text-sm text-gray-700">

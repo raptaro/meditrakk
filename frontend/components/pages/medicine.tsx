@@ -248,10 +248,6 @@ export default function MedicineList() {
                   Prescribed Medicines
                 </Link>
               </Button>
-              <Button variant="outline">
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </Button>
               <Button>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Medicine

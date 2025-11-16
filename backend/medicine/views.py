@@ -109,161 +109,230 @@ from rest_framework.response import Response
 from statsforecast import StatsForecast
 from statsforecast.models import CrostonClassic
 
+
+
 class Predict(APIView):
     permission_classes = [IsMedicalStaff]
     
-    
     def get(self, request):
-        medicines = supabase.table('medicine_medicine').select().execute()
-        prescriptions = supabase.table('patient_prescription').select().execute()
-    
-        med_df = pd.DataFrame(medicines.data)
-        pres_df = pd.DataFrame(prescriptions.data)
+        try:
+            medicines = supabase.table('medicine_medicine').select().execute()
+            prescriptions = supabase.table('patient_prescription').select().execute()
         
-        pres_df['start_date'] = pd.to_datetime(pres_df['start_date']) 
-        pres_df['month'] = pres_df['start_date'].dt.to_period('M').dt.to_timestamp()
-        pres_df = pres_df.merge(med_df, left_on='medication_id', right_on='id', how='left')
+            med_df = pd.DataFrame(medicines.data)
+            pres_df = pd.DataFrame(prescriptions.data)
 
-        monthly = (
-            pres_df
-            .groupby(['medication_id', 'name', 'month'])
-            .agg({'quantity': 'sum'})
-            .reset_index()
-        )
-        
-        results = []
-        
-        for medicine_id, group in monthly.groupby('medication_id'):
-            if len(group) < 6:  # Minimum 6 months of data
-                continue
+            pres_df['start_date'] = pd.to_datetime(pres_df['start_date']) 
+            pres_df['month'] = pres_df['start_date'].dt.to_period('M').dt.to_timestamp()
+            
+            pres_df = pres_df.merge(med_df, left_on='medication_id', right_on='id', how='left')
+
+            monthly = (
+                pres_df
+                .groupby(['medication_id', 'name', 'month'])
+                .agg({'quantity': 'sum'})
+                .reset_index()
+            )
+            prescription_counts = pres_df['medication_id'].value_counts().reset_index()
+            prescription_counts.columns = ['medication_id', 'total_prescriptions']
+            
+            results = []
+            
+            for medicine_id, group in monthly.groupby('medication_id'):
+                medicine_name = group['name'].iloc[0] if 'name' in group.columns else f"Medicine_{medicine_id}"
+                months_count = len(group)
                 
-            group = group.sort_values('month')
-            group = group.set_index('month')
-            
-            full_range = pd.date_range(start=group.index.min(), end=group.index.max(), freq='MS')
-            group = group.reindex(full_range)
-            
-            # Fill NaN values
-            group['quantity'] = group['quantity'].fillna(0)
-            group['name'] = group['name'].ffill()
-            group['medication_id'] = group['medication_id'].ffill()
-
-            
-            sparsity = (group['quantity'] == 0).mean()
-            # if lots of zeroes, use crostons via StatsForcast
-            # lgbm if regular demand
-            if sparsity > 0.7:  # More than 70% zeros
-                # for intermittent demand
-                non_zero = group[group['quantity'] > 0]
-                if len(non_zero) > 1:
+                print(f"Processing {medicine_id} - {medicine_name}: {months_count} months")
+                
+                # Get total prescriptions for this medicine
+                total_prescriptions = prescription_counts[
+                    prescription_counts['medication_id'] == medicine_id
+                ]['total_prescriptions'].iloc[0] if medicine_id in prescription_counts['medication_id'].values else 0
+                
+                # Handle different scenarios based on available data
+                if months_count == 0:
+                    # No monthly data, use simple frequency-based approach
+                    forecast = self._simple_frequency_forecast(total_prescriptions)
+                    method = "frequency_based"
                     
-                    sf_df = group.reset_index(names='month')[['month', 'quantity']].rename(
-                        columns={'month':'ds', 'quantity':'y'}
-                    )
-                    sf_df['unique_id'] = medicine_id
-                    sf = StatsForecast(
-                        models=[CrostonClassic()], 
-                        freq='M',
-                        n_jobs=-1 # use all cpu
-                    )                    
-                    forecast = sf.forecast(df=sf_df,h=3)
-                    forecast = forecast['CrostonClassic'].tolist()
-                
-                    mse, r2, accuracy = None, None, None
+                elif months_count == 1:
+                    # Only 1 month of data, use that month's quantity
+                    monthly_avg = group['quantity'].mean()
+                    forecast = self._simple_average_forecast(monthly_avg)
+                    method = "single_month"
+                    
+                elif months_count == 2:
+                    # 2 months of data, use simple average
+                    monthly_avg = group['quantity'].mean()
+                    forecast = self._simple_average_forecast(monthly_avg)
+                    method = "two_month_average"
+                    
                 else:
-                    forecast = [0] * 3
-                    mse, r2, accuracy = None, None, None
-            else:
-                group = group.reset_index()  
-                group['month_index'] = range(len(group))
-                group['lag_1'] = group['quantity'].shift(1)
-                group['lag_2'] = group['quantity'].shift(2)
-                group = group.dropna()  # Remove rows with missing lags
+                    # 3+ months of data, use time series methods
+                    forecast, method = self._time_series_forecast(group, medicine_id)
                 
-                if len(group) < 3:
-                    continue
-                    
-                # Features and target
-                features = ['month_index', 'lag_1', 'lag_2']
-                X = group[features].values
-                y = group['quantity'].values
+                result_item = {
+                    'medicine_id': int(medicine_id),
+                    'name': str(medicine_name),
+                    'forecast_next_3_months': forecast,
+                    'method': method,
+                    'months_of_data': months_count,
+                    'total_prescriptions': int(total_prescriptions)
+                }
                 
-                split_idx = int(0.8 * len(group))
-                X_train, X_test = X[:split_idx], X[split_idx:]
-                y_train, y_test = y[:split_idx], y[split_idx:]
-                
-                if len(X_train) < 2 or len(X_test) < 1:
-                    continue
-                    
-                # Model training
-                model = LGBMRegressor(
-                    random_state=42,
-                    n_estimators=100,
-                    learning_rate=0.05,
-                    max_depth=3,
-                    num_leaves=15,
-                    min_child_samples=5
+                results.append(result_item)
+            
+            # Sort by total prescriptions (descending)
+            results.sort(key=lambda x: x['total_prescriptions'], reverse=True)
+            
+            print(f"Final results: {len(results)} medicines")
+            return Response({'results': results})
+            
+        except Exception as e:
+            print(f"Error in prediction: {str(e)}")
+            return Response(
+                {'error': 'Failed to generate predictions'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def _simple_frequency_forecast(self, total_prescriptions):
+        """Forecast based on prescription frequency when no monthly data is available"""
+        if total_prescriptions == 0:
+            return [1, 1, 1]  # Minimum forecast
+        
+        # Estimate monthly average (assuming 12 months of data)
+        monthly_avg = max(1, round(total_prescriptions / 12))
+        return [monthly_avg] * 3
+    
+    def _simple_average_forecast(self, monthly_avg):
+        """Forecast using simple average of available months"""
+        forecast_val = max(1, round(monthly_avg))
+        return [forecast_val] * 3
+    
+    def _time_series_forecast(self, group, medicine_id):
+        """Advanced forecasting for medicines with sufficient historical data"""
+        group = group.sort_values('month')
+        group = group.set_index('month')
+        
+        # Create full date range and fill missing months
+        full_range = pd.date_range(start=group.index.min(), end=group.index.max(), freq='MS')
+        group = group.reindex(full_range)
+        
+        group['quantity'] = group['quantity'].fillna(0)
+        group['name'] = group['name'].ffill()
+        group['medication_id'] = group['medication_id'].ffill()
+        
+        # Calculate sparsity
+        sparsity = (group['quantity'] == 0).mean()
+        
+        if sparsity > 0.7:  # Intermittent demand
+            print(f"  Using Croston for intermittent demand (sparsity: {sparsity:.2f})")
+            return self._croston_forecast(group, medicine_id)
+        else:  # Regular demand
+            print(f"  Using LGBM for regular demand (sparsity: {sparsity:.2f})")
+            return self._lgbm_forecast(group)
+    
+    def _croston_forecast(self, group, medicine_id):
+        """Croston method for intermittent demand"""
+        try:
+            non_zero = group[group['quantity'] > 0]
+            if len(non_zero) > 1:
+                sf_df = group.reset_index(names='month')[['month', 'quantity']].rename(
+                    columns={'month': 'ds', 'quantity': 'y'}
                 )
-                model.fit(X_train, y_train)
+                sf_df['unique_id'] = medicine_id
                 
-                # Evaluation
-                preds = model.predict(X_test)
+                sf = StatsForecast(
+                    models=[CrostonClassic()], 
+                    freq='M',
+                    n_jobs=-1
+                )
                 
-                # Ensure no NaN values in predictions
-                preds = np.nan_to_num(preds, nan=0.0, posinf=0.0, neginf=0.0)
+                forecast_result = sf.forecast(df=sf_df, h=3)
+                forecast = forecast_result['CrostonClassic'].tolist()
+                forecast = [max(0, round(x)) for x in forecast]  # Ensure non-negative
                 
-                mse = float(mean_squared_error(y_test, preds)) if len(y_test) > 0 else None
-                r2 = float(r2_score(y_test, preds)) if len(y_test) > 1 else None
+                return forecast, "croston"
+            else:
+                # Fallback to average if not enough non-zero data
+                avg_quantity = group['quantity'].mean()
+                forecast = [max(1, round(avg_quantity))] * 3
+                return forecast, "croston_fallback"
                 
-                # Calculate accuracy safely
-                accuracy = None
-                if len(y_test) > 0 and (y_test > 0).all():
-                    try:
-                        mape = mean_absolute_error(y_test, preds) / np.mean(y_test)
-                        accuracy = float(1 - mape) if not np.isnan(mape) else None
-                    except: 
-                        accuracy = None
-                
-                # Iterative forecasting
-                last_row = group.iloc[-1]
-                forecasts = []
-                lag1 = last_row['quantity']
-                lag2 = group.iloc[-2]['quantity'] if len(group) > 1 else 0
-                
-                for i in range(1, 4):  # Forecast next 3 months
-                    next_idx = last_row['month_index'] + i
-                    X_next = [[next_idx, lag1, lag2]]
-                    pred = model.predict(X_next)[0]
-                    
-                    # Ensure prediction is valid
-                    pred = max(0, pred)  # No negative predictions
-                    if np.isnan(pred) or np.isinf(pred):
-                        pred = 0.0
-                    
-                    forecasts.append(float(pred))  # Convert to Python float
-                    
-                    # Update lags
-                    lag2 = lag1
-                    lag1 = pred
-                    
-                forecast = forecasts
+        except Exception as e:
+            print(f"Croston forecast error: {e}")
+            avg_quantity = group['quantity'].mean()
+            forecast = [max(1, round(avg_quantity))] * 3
+            return forecast, "croston_error_fallback"
+    
+    def _lgbm_forecast(self, group):
+        """LGBM forecasting for regular demand patterns"""
+        try:
+            group = group.reset_index()  
+            group['month_index'] = range(len(group))
+            group['lag_1'] = group['quantity'].shift(1)
+            group['lag_2'] = group['quantity'].shift(2)
+            group = group.dropna()
             
-            # Ensure all values are JSON serializable
-            result_item = {
-                'medicine_id': int(medicine_id),
-                'name': str(group['name'].iloc[0]),
-                'mse': mse,
-                'r2': r2,
-                'accuracy': accuracy,
-                'forecast_next_3_months': [int(x) for x in forecast]  # Ensure all floats
-            }
+            if len(group) < 3:
+                avg_quantity = group['quantity'].mean()
+                forecast = [max(1, round(avg_quantity))] * 3
+                return forecast, "lgbm_insufficient_data"
             
-            # Remove any None values that might cause issues
-            result_item = {k: v for k, v in result_item.items() if v is not None}
+            # Features and target
+            features = ['month_index', 'lag_1', 'lag_2']
+            X = group[features].values
+            y = group['quantity'].values
             
-            results.append(result_item)
+            # Train-test split
+            split_idx = max(1, int(0.8 * len(group)))  # Ensure at least 1 training sample
+            X_train, X_test = X[:split_idx], X[split_idx:]
+            y_train, y_test = y[:split_idx], y[split_idx:]
             
-        return Response({'results': results})
+            if len(X_train) < 2 or len(X_test) < 1:
+                avg_quantity = group['quantity'].mean()
+                forecast = [max(1, round(avg_quantity))] * 3
+                return forecast, "lgbm_insufficient_split"
+            
+            # Model training
+            model = LGBMRegressor(
+                random_state=42,
+                n_estimators=100,
+                learning_rate=0.05,
+                max_depth=3,
+                num_leaves=15,
+                min_child_samples=5
+            )
+            model.fit(X_train, y_train)
+            
+            # Iterative forecasting
+            last_row = group.iloc[-1]
+            forecasts = []
+            lag1 = last_row['quantity']
+            lag2 = group.iloc[-2]['quantity'] if len(group) > 1 else 0
+            
+            for i in range(1, 4):
+                next_idx = last_row['month_index'] + i
+                X_next = [[next_idx, lag1, lag2]]
+                pred = model.predict(X_next)[0]
+                pred = max(0, pred)  # No negative predictions
+                if np.isnan(pred) or np.isinf(pred):
+                    pred = 0.0
+                
+                forecasts.append(int(pred))  # Convert to int
+                
+                # Update lags
+                lag2 = lag1
+                lag1 = pred
+            
+            return forecasts, "lgbm"
+            
+        except Exception as e:
+            print(f"LGBM forecast error: {e}")
+            avg_quantity = group['quantity'].mean()
+            forecast = [max(1, round(avg_quantity))] * 3
+            return forecast, "lgbm_error_fallback"
+        
 class MedicineCSVUploadView(APIView):
     permission_classes = [IsMedicalStaff]   
         

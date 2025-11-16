@@ -6,7 +6,7 @@ from rest_framework.response import Response
 
 from .models import UserAccount
 from .serializers import UserAccountSerializer
-from .permissions import IsAdminOrGeneralDoctor, IsMe
+from .permissions import IsAdminOrGeneralDoctor, IsMe, IsMedicalStaff
 
 
 class UserAccountViewSet(viewsets.ModelViewSet):
@@ -21,6 +21,8 @@ class UserAccountViewSet(viewsets.ModelViewSet):
         # create/restore => admin-level
         if self.action in ['create', 'restore']:
             return [IsAdminOrGeneralDoctor()]
+        if self.action == 'doctors':
+            return []
         return super().get_permissions()
 
     def get_queryset(self):

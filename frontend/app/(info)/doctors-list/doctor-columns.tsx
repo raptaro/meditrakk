@@ -4,51 +4,97 @@ import { Badge } from "@/components/ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 
 export type Doctor = {
-  name: string;
-  specialization: string | null;
-  days_available: string | null;
-  working_hours: string | null;
-  status: string;
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  is_active: boolean;
+  date_joined: string;
+  doctor_profile: {
+    specialization: string;
+    schedules: Array<{
+      day_of_week: string;
+      start_time: string;
+      end_time: string;
+    }>;
+  };
+};
+
+// Helper function to format time (remove seconds if :00)
+const formatTime = (timeString: string): string => {
+  if (!timeString) return "";
+  if (timeString.endsWith(":00")) {
+    return timeString.slice(0, -3);
+  }
+  return timeString;
 };
 
 export const DoctorColumns: ColumnDef<Doctor>[] = [
   {
-    accessorKey: "name",
+    id: "name", // explicit id so any lookup for "name" succeeds
     header: "Doctor",
+    accessorFn: (row) => `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim(),
+    cell: ({ getValue }) => {
+      const name = getValue() as string;
+      return <div className="font-medium">{name}</div>;
+    },
   },
   {
-    accessorKey: "specialization",
+    id: "email",
+    header: "Email",
+    accessorKey: "email",
+    cell: ({ getValue }) => <div className="text-sm">{getValue() as string}</div>,
+  },
+  {
+    id: "specialization",
     header: "Specialization",
+    // use accessorFn to safely reach nested data
+    accessorFn: (row) => row.doctor_profile?.specialization ?? null,
+    cell: ({ getValue }) => {
+      const specialization = getValue() as string | null;
+      return <div className="capitalize">{specialization || "Not specified"}</div>;
+    },
   },
   {
-    accessorKey: "days_available",
+    id: "days_available",
     header: "Days Available",
+    accessorFn: (row) => row.doctor_profile?.schedules ?? [],
+    cell: ({ getValue }) => {
+      const schedules = getValue() as Doctor["doctor_profile"]["schedules"];
+      const days = (schedules || []).map((s) => s.day_of_week);
+      if (days.length === 0) {
+        return <span className="text-muted-foreground">Not available</span>;
+      }
+      return <div>{days.join(", ")}</div>;
+    },
   },
   {
-    accessorKey: "working_hours",
+    id: "working_hours",
     header: "Working Hours",
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => {
-      const status = row.getValue("status") as string;
+    accessorFn: (row) => row.doctor_profile?.schedules ?? [],
+    cell: ({ getValue }) => {
+      const schedules = getValue() as Doctor["doctor_profile"]["schedules"];
+      if (!schedules || schedules.length === 0) {
+        return <span className="text-muted-foreground">Not available</span>;
+      }
 
-      const statusColor =
-        status.toLowerCase() === "active"
-          ? "bg-green-100 border-green-500"
-          : status.toLowerCase() === "inactive"
-          ? "bg-red-100 border-red-500"
-          : status.toLowerCase() === "on leave"
-          ? "bg-yellow-100 border-yellow-500"
-          : "bg-gray-100 border-gray-500";
+      const uniqueHours = new Set(
+        schedules.map((s) => `${s.start_time}-${s.end_time}`)
+      );
+
+      if (uniqueHours.size === 1) {
+        const first = schedules[0];
+        return (
+          <div>
+            {formatTime(first.start_time)} - {formatTime(first.end_time)}
+          </div>
+        );
+      }
 
       return (
-        <Badge
-          variant="outline"
-          className={`${statusColor} rounded-full dark:text-muted`}
-        >
-          {status}
+        <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+          Varies by day
         </Badge>
       );
     },
