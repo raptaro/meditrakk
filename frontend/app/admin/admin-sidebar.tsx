@@ -45,7 +45,7 @@ const data = {
     email: "m@example.com",
   },
 };
-export function AppSidebar() {
+export function AdminSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>

@@ -96,7 +96,7 @@ const data = {
   },
 };
 
-export function AppSidebar() {
+export function SecretarySidebar() {
   return (
     <Sidebar>
       <SidebarHeader>

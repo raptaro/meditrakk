@@ -1,5 +1,5 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/app/oncall-doctors/oncall-doctors-sidebar";
+import { OncallDoctorSidebar } from "@/app/oncall-doctors/oncall-doctors-sidebar";
 import Header from "@/components/organisms/header";
 
 export default function Page({
@@ -10,7 +10,7 @@ export default function Page({
   return (
     <>
       <SidebarProvider>
-        <AppSidebar />
+        <OncallDoctorSidebar />
         <SidebarInset className="min-w-0 flex-1">
           <main className="min-w-0 flex-1">
             <Header />
