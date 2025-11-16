@@ -31,7 +31,7 @@ export default function ArchivedDoctors() {
   const fetchArchivedDoctors = async () => {
     try {
       const token = localStorage.getItem('access');
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/user/users/archived/?role=doctor`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/user/users/archived/?role=on-call-doctor`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },

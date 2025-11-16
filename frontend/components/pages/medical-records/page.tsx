@@ -12,7 +12,7 @@ import usePatients from "@/hooks/use-patients";
 import { StatusFilter } from "./status-filter";
 import { ColumnDef, Column } from "@tanstack/react-table";
 import { Patient } from "./patient-columns";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
 
 // Custom hook for patient flow data
 function usePatientFlow() {
@@ -45,7 +45,8 @@ function usePatientFlow() {
   return patientFlow;
 }
 
-export default function MedicalRecords() {
+// Main content that uses searchParams
+function MedicalRecordsContent() {
   const patients = usePatients();
   const patientFlow = usePatientFlow();
   const activeTab = usePatientTab();
@@ -97,5 +98,37 @@ export default function MedicalRecords() {
         <PatientFlowTable data={patientFlow} />
       )}
     </div>
+  );
+}
+
+// Loading fallback
+function MedicalRecordsLoading() {
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Patient Records</h1>
+      </div>
+      <div className="border-b border-gray-200 pl-6">
+        <div className="flex space-x-4">
+          <div className="pb-2 px-1 font-medium text-sm border-b-2 border-blue-500 text-blue-600">
+            Patient List
+          </div>
+          <div className="pb-2 px-1 font-medium text-sm text-gray-500">
+            Patient Flow
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500">Loading...</div>
+      </div>
+    </div>
+  );
+}
+
+export default function MedicalRecords() {
+  return (
+    <Suspense fallback={<MedicalRecordsLoading />}>
+      <MedicalRecordsContent />
+    </Suspense>
   );
 }
