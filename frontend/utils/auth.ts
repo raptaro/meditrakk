@@ -56,3 +56,36 @@ export async function getName(): Promise<string | null> {
     return null;
   }
 }
+
+export async function getEmail(): Promise<string | null> {
+  const token = getAccessToken();
+  if (!token) {
+    console.error("No access token found");
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE}/user/users/current-profile/`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      console.error("Failed to fetch user profile");
+      return null;
+    }
+
+    const data = await response.json();
+    return data.email;
+  } catch (error) {
+    console.error("Profile fetch error:", error);
+    return null;
+  }
+}
+

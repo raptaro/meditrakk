@@ -1,17 +1,16 @@
+"use client";
 import { NavUser } from "../nav-user";
 import { SidebarFooter } from "../ui/sidebar";
-
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-  },
-};
+import { useName } from "@/hooks/use-name";
+import { useEmail } from "@/hooks/use-email";
 
 export default function SidebarFooterProfile() {
+  const name = useName() ?? "";
+  const email = useEmail() ?? "";
+
   return (
     <SidebarFooter>
-      <NavUser user={data.user} />
+      <NavUser user={{ name, email }} />
     </SidebarFooter>
   );
 }
