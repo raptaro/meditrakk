@@ -4,12 +4,13 @@ import {
   FileText,
   LayoutDashboard,
   ChevronUp,
-  Hospital
+  Hospital,
 } from "lucide-react";
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -26,6 +27,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import SidebarHeaderProfile from "@/components/atoms/sidebar-header-profile";
+import { NavUser } from "@/components/nav-user";
 
 const menu_items = [
   {
@@ -60,6 +62,13 @@ const appointment_items = [
   },
 ];
 
+const data = {
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+  },
+};
+
 export function PatientSidebar() {
   return (
     <Sidebar>
@@ -82,7 +91,7 @@ export function PatientSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/patient/patient-register">
-                    <Hospital/>
+                    <Hospital />
                     <span>Register</span>
                   </Link>
                 </SidebarMenuButton>
@@ -130,6 +139,9 @@ export function PatientSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={data.user} />
+      </SidebarFooter>
     </Sidebar>
   );
 }

@@ -14,6 +14,7 @@ import {
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -30,6 +31,7 @@ import {
 } from "@/components/ui/collapsible";
 import Link from "next/link";
 import SidebarHeaderProfile from "@/components/atoms/sidebar-header-profile";
+import { NavUser } from "@/components/nav-user";
 
 const menu_items = [
   {
@@ -87,6 +89,13 @@ const patient_items = [
   },
 ];
 
+const data = {
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+  },
+};
+
 export function AppSidebar() {
   return (
     <Sidebar>
@@ -143,6 +152,9 @@ export function AppSidebar() {
           </SidebarGroup>
         </Collapsible>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={data.user} />
+      </SidebarFooter>
     </Sidebar>
   );
 }

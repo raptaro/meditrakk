@@ -3,6 +3,7 @@ import { LayoutDashboard, Calendar, ChevronUp, FileText } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarHeader,
@@ -20,6 +21,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import { NavUser } from "@/components/nav-user";
 
 const appointment_items = [
   {
@@ -48,6 +50,13 @@ const menu_items = [
     icon: Calendar,
   },
 ];
+
+const data = {
+  user: {
+    name: "shadcn",
+    email: "m@example.com",
+  },
+};
 
 export default function DesignerSidebar() {
   return (
@@ -112,6 +121,9 @@ export default function DesignerSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <NavUser user={data.user} />
+      </SidebarFooter>
     </Sidebar>
   );
 }
