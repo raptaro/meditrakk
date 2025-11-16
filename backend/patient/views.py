@@ -57,7 +57,6 @@ logger = logging.getLogger(__name__)
 class PatientListView(APIView):
     permission_classes = [IsMedicalStaff]
 
-
     def get(self, request):
         try:
             role = getattr(request.user, "role", None)
@@ -142,7 +141,8 @@ class PatientListView(APIView):
             
             patients = list(unique_patients.values())
             
-            # Process queue data for each patient
+            # Process queue data for each patient and filter out "Waiting" status
+            filtered_patients = []
             for patient in patients:
                 patient_id = patient.get('patient_id', 'unknown')
                 queue_list = patient.get('queueing_temporarystoragequeue') or []
@@ -157,9 +157,117 @@ class PatientListView(APIView):
                     latest_queue = sorted_queue[0]
                     patient['latest_queue'] = latest_queue
                     print(f"Latest queue for patient {patient_id}: {latest_queue}")
+                    
+                    # Check if the latest status is "Waiting" - if so, skip this patient
+                    if latest_queue.get('status') == 'Waiting':
+                        print(f"Skipping patient {patient_id} because status is 'Waiting'")
+                        continue
                 else:
                     patient['latest_queue'] = None
                     print(f"No queue entries for patient {patient_id}.")
+                
+                # If we get here, the patient doesn't have "Waiting" status, so include them
+                filtered_patients.append(patient)
+
+            serializer = PatientSerializer(filtered_patients, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print("Exception occurred:", e)
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+# views.py - Add this new view
+class PatientFlowView(APIView):
+    permission_classes = [IsMedicalStaff]
+
+    def get(self, request):
+        try:
+            role = getattr(request.user, "role", None)
+            user_id = request.user.id
+            
+            if supabase is None:
+                return Response(
+                    {"error": "Supabase client not configured"},
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+            
+            if role == "on-call-doctor" and user_id != "cooper-020006":
+                # Get unique patient IDs first from treatments
+                treatment_response = supabase.table("queueing_treatment").select(
+                    "patient_id"
+                ).eq("doctor_id", user_id).execute()
+                
+                if hasattr(treatment_response, 'data'):
+                    treatment_data = treatment_response.data
+                elif isinstance(treatment_response, dict) and 'data' in treatment_response:
+                    treatment_data = treatment_response['data']
+                else:
+                    treatment_data = []
+                
+                patient_ids = list(set([t['patient_id'] for t in treatment_data if 'patient_id' in t]))
+                
+                if patient_ids:
+                    # Fetch ALL patients including those with waiting status
+                    response = (
+                        supabase.table("patient_patient")
+                        .select("*, queueing_temporarystoragequeue(id, status, created_at, priority_level, queue_number, complaint)")
+                        .in_("patient_id", patient_ids)
+                        .execute()
+                    )
+                    
+                    if hasattr(response, 'data'):
+                        patients = response.data
+                    elif isinstance(response, dict) and 'data' in response:
+                        patients = response['data']
+                    else:
+                        patients = []
+                else:
+                    patients = []
+                    
+            elif role in ["secretary", "admin"] or user_id == "cooper-020006":
+                # Get ALL patients including those with waiting status
+                response = (
+                    supabase.table("patient_patient")
+                    .select("*, queueing_temporarystoragequeue(id, status, created_at, priority_level, queue_number, complaint)")
+                    .execute()
+                )
+                
+                if hasattr(response, 'data'):
+                    patients = response.data
+                elif isinstance(response, dict) and 'data' in response:
+                    patients = response['data']
+                else:
+                    patients = []
+                
+            else: 
+                return Response(
+                    {"error": "Unauthorized role"}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Remove duplicates using patient_id (the primary key)
+            unique_patients = {}
+            for patient in patients:
+                patient_id = patient.get('patient_id')
+                if patient_id and patient_id not in unique_patients:
+                    unique_patients[patient_id] = patient
+            
+            patients = list(unique_patients.values())
+            
+            # Process queue data for each patient (NO FILTERING - include all statuses)
+            for patient in patients:
+                patient_id = patient.get('patient_id', 'unknown')
+                queue_list = patient.get('queueing_temporarystoragequeue') or []
+                
+                if queue_list:
+                    # Get the latest queue entry
+                    sorted_queue = sorted(
+                        queue_list,
+                        key=lambda q: q.get('created_at'),
+                        reverse=True
+                    )
+                    patient['latest_queue'] = sorted_queue[0]
+                else:
+                    patient['latest_queue'] = None
 
             serializer = PatientSerializer(patients, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -167,8 +275,6 @@ class PatientListView(APIView):
         except Exception as e:
             print("Exception occurred:", e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
 class PatientInfoView(APIView):
     permission_classes = [IsMedicalStaff]
     
