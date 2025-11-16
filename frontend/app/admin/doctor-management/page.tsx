@@ -435,9 +435,6 @@ function ActionsCell({
 
   return (
     <div className="flex flex-row space-x-2">
-      <Link href={`${basePath}/doctor-information/${doctorId}`}>
-        <Eye className="cursor-pointer text-green-500 hover:fill-current w-4 h-4" />
-      </Link>
       
       {isActive ? (
         <Dialog>
