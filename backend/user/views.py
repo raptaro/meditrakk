@@ -86,6 +86,7 @@ class UserAccountViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'], url_path='archived')
     def archived(self, request):
         role = request.query_params.get('role')
+        print(role)
         queryset = UserAccount.objects.filter(is_active=False)
         if role:
             # allow same normalization if you like; keeping simple here
@@ -200,5 +201,18 @@ class UserAccountViewSet(viewsets.ModelViewSet):
         Returns all active patients.
         """
         qs = UserAccount.objects.filter(role="patient", is_active=True)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'], url_path='doctors')
+    def doctors(self, request):
+        """
+        Public endpoint: GET /user/users/doctor/
+        Returns all active patients.
+        """
+        qs = UserAccount.objects.filter(
+            role__in=["doctor", "on-call-doctor", "on-call", "oncall"],
+            is_active=True
+        )
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
