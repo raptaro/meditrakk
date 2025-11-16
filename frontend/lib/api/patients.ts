@@ -4,7 +4,7 @@ export async function getPatients(): Promise<Patient[]> {
   const accessToken = localStorage.getItem("access");
 
   const response = await fetch(
-    `${process.env.NEXT_PUBLIC_API_BASE}/patients/`,
+    `${process.env.NEXT_PUBLIC_API_BASE}/patient/patient-flow/`,
     {
       method: "GET",
       headers: {
