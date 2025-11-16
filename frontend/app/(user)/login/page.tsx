@@ -24,7 +24,7 @@ export default function Home() {
           />
 
           <Image
-            src="/malibiran-medical-clinic.jpg"
+            src="/malibiran-medical-clinic.png"
             width={918}
             height={1632}
             alt="malibiran-medical-clinic"
