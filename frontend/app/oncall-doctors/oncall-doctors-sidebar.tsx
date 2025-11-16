@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar";
 import Link from "next/link";
 import SidebarHeaderProfile from "@/components/atoms/sidebar-header-profile";
+import SidebarFooterProfile from "@/components/atoms/sidebar-footer-profile";
 
 const menu_items = [
   {
@@ -36,7 +37,7 @@ const menu_items = [
   },
 ];
 
-export function AppSidebar() {
+export function OncallDoctorSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
@@ -62,6 +63,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooterProfile />
     </Sidebar>
   );
 }

@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/collapsible";
 import Link from "next/link";
 import SidebarHeaderProfile from "@/components/atoms/sidebar-header-profile";
+import SidebarFooterProfile from "@/components/atoms/sidebar-footer-profile";
 
 const menu_items = [
   {
@@ -75,7 +76,7 @@ const patient_items = [
   },
 ];
 
-export function AppSidebar() {
+export function DoctorSidebar() {
   return (
     <Sidebar>
       <SidebarHeader>
@@ -131,6 +132,7 @@ export function AppSidebar() {
           </SidebarGroup>
         </Collapsible>
       </SidebarContent>
+      <SidebarFooterProfile />
     </Sidebar>
   );
 }

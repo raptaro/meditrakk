@@ -11,8 +11,8 @@ export default function Page({
     <>
       <SidebarProvider>
         <PatientSidebar />
-        <SidebarInset className="flex-1">
-          <main className="flex-1">
+        <SidebarInset className="min-w-0 flex-1">
+          <main className="min-w-0 flex-1">
             <Header />
             {children}
           </main>

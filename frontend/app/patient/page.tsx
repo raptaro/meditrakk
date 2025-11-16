@@ -39,7 +39,7 @@ export default function Page() {
             <span className="text-sm font-semibold sm:text-base">
               Welcome back
             </span>
-            <span className="flex justify-center text-xl font-bold text-blue-500 sm:text-2xl">
+            <span className="flex justify-center text-xl font-bold text-blue-500 sm:text-2xl lg:justify-start">
               {name ?? <Skeleton className="mb-1 h-8 w-[120px]" />}
             </span>
             <p className="text-sm text-muted-foreground sm:text-base">

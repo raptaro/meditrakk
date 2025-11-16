@@ -39,7 +39,7 @@ export default function Home() {
       <HeroHeader />
 
       {/* Hero Section */}
-      <div className="flex-1 px-6 pb-24 pt-16 transition-opacity duration-1000">
+      <div className="flex-1 px-6 pb-16 pt-16 transition-opacity duration-1000">
         <div className="container mx-auto">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between">
             <div className="mb-12 md:mb-0 md:w-1/2">
@@ -100,7 +100,7 @@ export default function Home() {
 
             <div className="relative md:w-1/2">
               <div className="overflow-hidden rounded-2xl bg-card shadow-xl">
-                <div className="relative w-full pb-[37%]">
+                <div className="relative w-full pb-[39%]">
                   <iframe
                     src={`https://www.google.com/maps/embed/v1/place?q=place_id:ChIJAQDU4fK2lzMRvNbihjhyA1g&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}`}
                     className="absolute left-0 top-0 h-full w-full border-0"

@@ -20,6 +20,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import SidebarFooterProfile from "@/components/atoms/sidebar-footer-profile";
 
 const appointment_items = [
   {
@@ -112,6 +113,7 @@ export default function DesignerSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooterProfile />
     </Sidebar>
   );
 }

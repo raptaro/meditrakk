@@ -22,7 +22,7 @@ const Header = () => {
         </div>
 
         {/* Right section (icons) */}
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="hidden items-center gap-2 sm:gap-3 md:flex">
           <DarkModeToggle />
           <Notification />
           <ProfileDropdown />

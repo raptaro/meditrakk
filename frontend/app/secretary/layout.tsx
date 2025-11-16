@@ -1,5 +1,5 @@
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/app/secretary/secretary-sidebar";
+import { SecretarySidebar } from "@/app/secretary/secretary-sidebar";
 import Header from "@/components/organisms/header";
 
 export default function Page({
@@ -10,9 +10,9 @@ export default function Page({
   return (
     <>
       <SidebarProvider>
-        <AppSidebar />
-        <SidebarInset className="flex-1">
-          <main className="flex-1">
+        <SecretarySidebar />
+        <SidebarInset className="min-w-0 flex-1">
+          <main className="min-w-0 flex-1">
             <Header />
             {children}
           </main>

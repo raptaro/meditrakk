@@ -4,7 +4,7 @@ import {
   FileText,
   LayoutDashboard,
   ChevronUp,
-  Hospital
+  Hospital,
 } from "lucide-react";
 
 import {
@@ -26,6 +26,7 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import SidebarHeaderProfile from "@/components/atoms/sidebar-header-profile";
+import SidebarFooterProfile from "@/components/atoms/sidebar-footer-profile";
 
 const menu_items = [
   {
@@ -82,7 +83,7 @@ export function PatientSidebar() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <Link href="/patient/patient-register">
-                    <Hospital/>
+                    <Hospital />
                     <span>Register</span>
                   </Link>
                 </SidebarMenuButton>
@@ -130,6 +131,7 @@ export function PatientSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooterProfile />
     </Sidebar>
   );
 }
