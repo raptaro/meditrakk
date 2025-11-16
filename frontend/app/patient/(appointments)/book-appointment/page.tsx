@@ -65,7 +65,9 @@ interface Doctor {
   last_name: string;
   email: string;
   role: string;
-  specialty?: string;
+  doctor_profile: {
+    specialization?: string
+  };
   phone_number?: string;
 }
 
@@ -924,7 +926,7 @@ export default function PatientBookAppointment() {
                                     {doctors.find((doctor) => doctor.id === field.value)?.first_name} {doctors.find((doctor) => doctor.id === field.value)?.last_name}
                                   </span>
                                   <span className="text-xs text-slate-500">
-                                    {doctors.find((doctor) => doctor.id === field.value)?.specialty || "General Practice"}
+                                    {doctors.find((doctor) => doctor.id === field.value)?.doctor_profile.specialization || "General Practice"}
                                   </span>
                                 </div>
                               ) : (
@@ -961,12 +963,9 @@ export default function PatientBookAppointment() {
                                         Dr. {doctor.first_name} {doctor.last_name}
                                       </div>
                                       <div className="text-sm text-slate-600">
-                                        {doctor.specialty || "General Practice"}
+                                        {doctor.doctor_profile.specialization || "General Practice"}
                                       </div>
                                       <div className="flex justify-between items-center mt-1">
-                                        <div className="text-xs text-slate-500">
-                                          {doctor.schedule ? "Schedule loaded" : "Loading schedule..."}
-                                        </div>
                                         <div className="text-sm font-semibold text-blue-600">
                                           ₱500
                                         </div>
@@ -1187,7 +1186,6 @@ export default function PatientBookAppointment() {
                   >
                     <CreditCard className="w-5 h-5" />
                     <span>PayMaya</span>
-                    <span className="text-xs text-muted-foreground">Pay with card</span>
                   </Button>
 
                   <Button
@@ -1198,7 +1196,7 @@ export default function PatientBookAppointment() {
                   >
                     <CreditCard className="w-5 h-5" />
                     <span>GCash</span>
-                    <span className="text-xs text-muted-foreground">Upload proof</span>
+
                   </Button>
                 </div>
               </div>

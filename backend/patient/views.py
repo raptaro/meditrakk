@@ -175,7 +175,41 @@ class PatientListView(APIView):
         except Exception as e:
             print("Exception occurred:", e)
             return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-# views.py - Add this new view
+
+class PatientUpdate(APIView):
+    permission_classes = []
+    
+    def patch(self, request, patient_id):
+        try:
+            patient = Patient.objects.get(patient_id=patient_id)
+        except Patient.DoesNotExist:
+            return Response({"error": "Patient not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = PatientSerializer(
+            patient, 
+            data=request.data, 
+            partial=True
+        )
+        
+        if serializer.is_valid():
+            updated_patient = serializer.save()
+            
+            # Return only basic fields, not the computed ones
+            response_data = {
+                'patient_id': updated_patient.patient_id,
+                'first_name': updated_patient.first_name,
+                'middle_name': updated_patient.middle_name,
+                'last_name': updated_patient.last_name,
+                'phone_number': updated_patient.phone_number,
+                'date_of_birth': updated_patient.date_of_birth,
+                'street_address': updated_patient.street_address,
+                'barangay': updated_patient.barangay,
+                'municipal_city': updated_patient.municipal_city,
+            }
+            return Response(response_data)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
 class PatientFlowView(APIView):
     permission_classes = [IsMedicalStaff]
 
@@ -840,8 +874,6 @@ class PatientRegister(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
             
             validated_data = serializer.validated_data
-            print("🔄 Validated Data:", validated_data)
-
             if UserAccount.objects.filter(email=validated_data['email']).exists():
                 return Response({"error": "Email already registered."}, status=400)
 
@@ -858,8 +890,7 @@ class PatientRegister(APIView):
                 temp_street_address=validated_data.get('street_address', ''),
                 temp_barangay=validated_data.get('barangay', ''),
                 temp_municipal_city=validated_data.get('municipal_city', ''),
-                
-                # Queue-specific fields
+            
                 priority_level=priority_level,
                 queue_number=queue_number,
                 complaint=raw_complaint,

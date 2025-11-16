@@ -165,17 +165,10 @@ class Predict(APIView):
                         models=[CrostonClassic()], 
                         freq='M',
                         n_jobs=-1 # use all cpu
-                    )
-                    
+                    )                    
                     forecast = sf.forecast(df=sf_df,h=3)
                     forecast = forecast['CrostonClassic'].tolist()
-                    
-                    # fitted = sf.fitted_[0]
-                    # sf_df['yhat'] = fitted
-                    
-                    # mse = mean_squared_error(sf_df['y'], sf_df['yhat'])
-                    # accuracy = 100/len(y) * np.sum(2 * np.abs(sf_df['yhat'] - y) / (np.abs(y) + np.abs(sf_df['yhat'])))
-                    # r2 = r2_score(sf_df['y'], sf_df['yhat'])
+                
                     mse, r2, accuracy = None, None, None
                 else:
                     forecast = [0] * 3

@@ -319,9 +319,7 @@ export default function RegistrationQueue() {
         if (!resp.ok) throw new Error(`HTTP error! status: ${resp.status}`);
         const data = await resp.json();
 
-        console.log("Queue data received:", data);
 
-        // Process priority queue - KEEPING ORIGINAL FIELD NAMES
         const pr = [
           data.priority_current,
           data.priority_next1,
@@ -336,7 +334,6 @@ export default function RegistrationQueue() {
           is_new_patient: item.is_new_patient ?? true
         } : null);
 
-        // Process regular queue - KEEPING ORIGINAL FIELD NAMES
         const rg = [
           data.regular_current,
           data.regular_next1,

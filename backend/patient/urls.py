@@ -8,6 +8,7 @@ app_name = 'patient'
 urlpatterns = [
     path('patients/', views.PatientListView.as_view(), name='patient-list'),
     path('patient/patient-flow/', views.PatientFlowView.as_view(), name='patient-flow'),
+    path('patient/update-patient/<str:patient_id>/', views.PatientUpdate.as_view(), name='update-patient'),
 
     path('patient/patient-info/<str:patient_id>/', views.PatientInfoView.as_view(), name='patient-information'),
     path('patient/patient-preliminary-assessment/<str:patient_id>/<int:queue_number>/', views.PreliminaryAssessmentView.as_view(), name='preliminary-assessment'),

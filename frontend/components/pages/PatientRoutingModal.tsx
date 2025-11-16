@@ -48,20 +48,20 @@ const PatientRoutingModal: React.FC<PatientRoutingModalProps> = ({
       icon: <Stethoscope className="w-6 h-6" />,
       color: 'bg-blue-500 hover:bg-blue-600',
     },
-    {
-      id: 'treatment',
-      label: 'Treatment',
-      description: 'Direct to treatment room for immediate care',
-      icon: <Activity className="w-6 h-6" />,
-      color: 'bg-green-500 hover:bg-green-600',
-    },
-    {
-      id: 'lab',
-      label: 'Lab Test',
-      description: 'Laboratory testing and diagnostic procedures',
-      icon: <TestTube className="w-6 h-6" />,
-      color: 'bg-purple-500 hover:bg-purple-600',
-    }
+    // {
+    //   id: 'treatment',
+    //   label: 'Treatment',
+    //   description: 'Direct to treatment room for immediate care',
+    //   icon: <Activity className="w-6 h-6" />,
+    //   color: 'bg-green-500 hover:bg-green-600',
+    // },
+    // {
+    //   id: 'lab',
+    //   label: 'Lab Test',
+    //   description: 'Laboratory testing and diagnostic procedures',
+    //   icon: <TestTube className="w-6 h-6" />,
+    //   color: 'bg-purple-500 hover:bg-purple-600',
+    // }
   ];
 
   const handleSubmit = async () => {
@@ -123,11 +123,8 @@ const PatientRoutingModal: React.FC<PatientRoutingModalProps> = ({
                 <User className="w-6 h-6 text-gray-600" />
                 <div>
                   <h2 className="text-xl font-semibold text-gray-900">
-                    Where would this patient go?
+                   This patient will be queued to Preliminary Assessment
                   </h2>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Select the appropriate next step for patient care
-                  </p>
                 </div>
               </div>
               <button

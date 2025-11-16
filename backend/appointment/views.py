@@ -48,8 +48,7 @@ class DoctorCreateReferralView(APIView):
             data = payload,
             many=is_bulk,
             context={'request': request}
-        )
-        
+        )        
         serializer.is_valid(raise_exception=True)
         created = serializer.save()
         
@@ -625,59 +624,64 @@ class AppointmentReferralViewSet(viewsets.ModelViewSet):
         
         return Response(result)
     
-# upcoming appointments in registration
+from django.utils import timezone
+from datetime import datetime, time
+from zoneinfo import ZoneInfo
+
+MANILA = ZoneInfo("Asia/Manila")
+
 class UpcomingAppointments(APIView):
     permission_classes = [PatientMedicalStaff]
-    
+
     def get(self, request):
         user = request.user
-        current_time = timezone.localtime(timezone.now())  # Current local time in settings.TIME_ZONE
-        date_today = current_time.date()
-        date_today = current_time.date()          # Manila date
-        print(date_today, current_time)
+
+        # Get current Manila time
+        now_manila = timezone.now().astimezone(MANILA)
+        date_today_manila = now_manila.date()
+
+        # Manila start/end of day
+        start_of_day_manila = datetime.combine(date_today_manila, time.min).replace(tzinfo=MANILA)
+        end_of_day_manila = datetime.combine(date_today_manila, time.max).replace(tzinfo=MANILA)
+
+        # Debug prints
+        print("now_manila:", now_manila)
+        print("date_today_manila:", date_today_manila)
+        print("start_of_day_manila:", start_of_day_manila)
+        print("end_of_day_manila:", end_of_day_manila)
+
+        # Get all scheduled appointments and filter by Manila date in Python
+        all_appointments = Appointment.objects.filter(status="Scheduled")
+        
+        # Filter appointments where the Manila date matches today
+        appointments_today = []
+        for apt in all_appointments:
+            # Convert appointment UTC time to Manila time
+            apt_manila_time = apt.appointment_date.astimezone(MANILA)
+            print(f"Checking appointment {apt.id}: UTC: {apt.appointment_date} -> Manila: {apt_manila_time}")
+            
+            # Check if it falls within today's Manila date
+            if start_of_day_manila <= apt_manila_time <= end_of_day_manila:
+                appointments_today.append(apt)
+                print(f"-> INCLUDED in today's appointments")
+
+        # Apply role-based filtering
         role = getattr(request.user, "role", None)
-        print("Role:", role, "User:", request.user.id)
-
         if role == 'secretary':
-            # Secretaries see ALL
-            appointments_today = Appointment.objects.filter(
-                status="Scheduled",
-                appointment_date__date=date_today,
-                appointment_date__gte=current_time
-            )
-
-        elif role == 'doctor':
-            # General doctor sees their own appointments
+            # Already have the filtered list
+            pass
+        elif role in ('doctor', 'on-call-doctor'):
             doctor = Doctor.objects.filter(user=request.user).first()
-            appointments_today = Appointment.objects.filter(
-                status="Scheduled",
-                appointment_date__date=date_today,
-                appointment_date__gte=current_time,
-                doctor=doctor
-            )
-        elif role == 'on-call-doctor':
-            # On-call doctor sees their own appointments (FIXED)
-            doctor = Doctor.objects.filter(user=request.user).first()
-            appointments_today = Appointment.objects.filter(
-                status="Scheduled",
-                appointment_date__date=date_today,
-                appointment_date__gte=current_time,
-                doctor=doctor  # Changed from patient__user=user to doctor=doctor
-            )
+            appointments_today = [apt for apt in appointments_today if apt.doctor == doctor]
         elif role == 'patient':
-            # Patient sees their own appointments
-            appointments_today = Appointment.objects.filter(
-                status="Scheduled",
-                appointment_date__date=date_today,
-                appointment_date__gte=current_time,
-                patient__user=user  # This is correct for patient role
-            )
+            appointments_today = [apt for apt in appointments_today if apt.patient.user == user]
         else:
-            appointments_today = Appointment.objects.none()
-      
+            appointments_today = []
+
+        print(f"Final appointments today: {len(appointments_today)}")
+
         serializer = AppointmentSerializer(appointments_today, many=True)
         return Response(serializer.data)
-
 
 def ensure_positions_initialized_for_date(queue_date):
     """
@@ -2003,7 +2007,7 @@ class AppointmentRequestViewSet(viewsets.ModelViewSet):
                 appointment_date=appointment_request.requested_datetime,
                 status='Scheduled',
                 scheduled_by=request.user,
-                notes=f"Confirmed from appointment request #{appointment_request.id}"
+                notes=appointment_request.notes,
             )
             
             # Link payment to appointment

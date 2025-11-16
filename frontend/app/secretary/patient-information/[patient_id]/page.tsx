@@ -441,13 +441,15 @@ function EditProfileModal({ isOpen, onClose, patient, onSave }: EditProfileModal
               <label className="mb-2 block text-sm font-medium text-gray-700">
                 Email *
               </label>
-              <input
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full rounded-lg border border-gray-300 px-4 py-3 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
-              />
+<input
+  type="email"
+  value={formData.email}
+  readOnly
+  tabIndex={-1}
+  onFocus={(e) => e.target.blur()}   // prevents keyboard focus
+  className="w-full rounded-lg border border-gray-300 px-4 py-3 bg-white text-gray-700 cursor-default focus:outline-none transition-colors"
+/>
+
             </div>
 
             <div>

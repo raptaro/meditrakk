@@ -57,36 +57,67 @@ class PatientSerializer(serializers.Serializer):
         today = date.today()
         return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
 
+
     def get_queue_data(self, obj):
-        # Return all related queue entries (using your Supabase key names)
+        # Handle RelatedManager properly
         if isinstance(obj, dict):
             queue_info = obj.get('queueing_temporarystoragequeue') or obj.get('temporarystoragequeue')
         else:
             queue_info = getattr(obj, 'queueing_temporarystoragequeue', None) or getattr(obj, 'temporarystoragequeue', None)
+        
+        # If it's a RelatedManager, convert to list of dictionaries
+        if queue_info and hasattr(queue_info, 'all'):
+            try:
+                queue_queryset = queue_info.all()
+                # Convert to list of simple dictionaries
+                queue_list = []
+                for item in queue_queryset:
+                    queue_list.append({
+                        'id': getattr(item, 'id', None),
+                        'created_at': getattr(item, 'created_at', None),
+                        # Add other queue fields you need
+                    })
+                return queue_list
+            except Exception as e:
+                print(f"Error processing queue data: {e}")
+                return None
+        
         if queue_info:
-            # Ensure it's always returned as a list
             if isinstance(queue_info, dict):
                 return [queue_info]
             return queue_info
         return None
 
     def get_latest_queue(self, obj):
-        # Retrieve the list of queue entries first
-        if isinstance(obj, dict):
-            queue_info = obj.get('queueing_temporarystoragequeue') or obj.get('temporarystoragequeue')
-        else:
-            queue_info = getattr(obj, 'queueing_temporarystoragequeue', None) or getattr(obj, 'temporarystoragequeue', None)
-        if queue_info and isinstance(queue_info, list) and len(queue_info) > 0:
-            # Sort the list in descending order by created_at (assuming ISO formatted strings)
+        # Get queue data first
+        queue_data = self.get_queue_data(obj)
+        
+        if queue_data and isinstance(queue_data, list) and len(queue_data) > 0:
+            # Sort by created_at
             sorted_queue = sorted(
-                queue_info,
+                queue_data,
                 key=lambda q: q.get('created_at') if isinstance(q, dict) else getattr(q, 'created_at', None),
                 reverse=True
             )
             return sorted_queue[0]
-        elif isinstance(queue_info, dict):
-            return queue_info
+        elif isinstance(queue_data, dict):
+            return queue_data
         return None
+    
+    def update(self, instance, validated_data):
+        # Only update allowed fields (up to municipal_city)
+        allowed_fields = [
+            'first_name', 'middle_name', 'last_name', 
+            'phone_number', 'date_of_birth', 'street_address', 
+            'barangay', 'municipal_city',
+        ]
+        
+        for field in allowed_fields:
+            if field in validated_data:
+                setattr(instance, field, validated_data[field])
+        
+        instance.save()
+        return instance
 
 class PatientRegistrationSerializer(serializers.Serializer):
     first_name = serializers.CharField(max_length=100)

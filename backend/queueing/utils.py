@@ -5,7 +5,6 @@ from datetime import date
 def compute_queue_snapshot():
     today = localdate()
     
-    # Get ALL waiting patients for today, not just first 3
     priority = TemporaryStorageQueue.objects.filter(
         status="Waiting",
         priority_level="Priority",
@@ -20,11 +19,9 @@ def compute_queue_snapshot():
 
     def fmt(q):
         if not q:
-            return None
-            
-        # Check if this is an existing patient (has patient field)
+            return None           
+
         if q.patient:
-            # Existing patient - get data from Patient model
             patient = q.patient
             first_name = patient.first_name
             last_name = patient.last_name
