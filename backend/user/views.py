@@ -23,6 +23,9 @@ class UserAccountViewSet(viewsets.ModelViewSet):
             return [IsAdminOrGeneralDoctor()]
         if self.action == 'doctors':
             return []
+        # Public endpoints for doctors and patients
+        if self.action in ['doctors', 'patients']:
+            return []
         return super().get_permissions()
 
     def get_queryset(self):
@@ -189,3 +192,13 @@ class UserAccountViewSet(viewsets.ModelViewSet):
             data = {'id': user.id, 'email': user.email, 'role': getattr(user, 'role', None)}
             return Response(data, status=status.HTTP_200_OK)
         return Response({'detail': 'Authentication credentials were not provided.'}, status=status.HTTP_401_UNAUTHORIZED)
+
+    @action(detail=False, methods=['get'], url_path='patients')
+    def patients(self, request):
+        """
+        Public endpoint: GET /user/users/patients/
+        Returns all active patients.
+        """
+        qs = UserAccount.objects.filter(role="patient", is_active=True)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
