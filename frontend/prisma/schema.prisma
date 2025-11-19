@@ -257,16 +257,6 @@ model django_session {
   @@index([session_key], map: "django_session_session_key_c0390e0f_like")
 }
 
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model doctor {
-  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId           String?           @db.VarChar
-  name             String
-  field            String
-  archived         Boolean?          @default(false)
-  user_useraccount user_useraccount? @relation(fields: [userId], references: [id])
-}
-
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
 model medicine_medicine {
   id                   BigInt                 @id @default(autoincrement())
@@ -582,7 +572,6 @@ model user_useraccount {
   appointment_appointmentreferral_appointment_appointmentreferral_referring_doctor_idTouser_useraccount appointment_appointmentreferral[]   @relation("appointment_appointmentreferral_referring_doctor_idTouser_useraccount")
   authtoken_token                                                                                       authtoken_token?
   django_admin_log                                                                                      django_admin_log[]
-  doctor                                                                                                doctor[]
   patient_labrequest                                                                                    patient_labrequest[]
   patient_labresult                                                                                     patient_labresult[]
   patient_patient                                                                                       patient_patient?
