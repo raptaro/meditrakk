@@ -67,3 +67,9 @@ export interface Treatment {
   diagnoses: Diagnosis[];
   prescriptions: Prescription[];
 }
+
+export interface Service {
+  id: string;
+  name: string;
+  type: string;
+};
