@@ -9,624 +9,231 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model appointment_appointment {
-  id                              BigInt                           @id @default(autoincrement())
-  appointment_date                DateTime                         @db.Timestamptz(6)
-  status                          String                           @db.VarChar(20)
-  notes                           String?
-  created_at                      DateTime                         @db.Timestamptz(6)
-  updated_at                      DateTime                         @db.Timestamptz(6)
-  doctor_id                       BigInt
-  patient_id                      String                           @db.VarChar(64)
-  scheduled_by_id                 String?                          @db.VarChar(64)
-  appointment_type                String                           @db.VarChar(20)
-  user_doctor                     user_doctor                      @relation(fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_appointment_doctor_id_5325109f_fk_user_doctor_id")
-  patient_patient                 patient_patient                  @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_appointment_patient_id_893eaa7b_fk")
-  user_useraccount                user_useraccount?                @relation(fields: [scheduled_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_appointment_scheduled_by_id_78368dd0_fk")
-  appointment_appointmentreferral appointment_appointmentreferral?
-  appointment_payment             appointment_payment?
+model User {
+  id        String   @id
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([doctor_id, appointment_date], map: "unique_appointment_per_doctor_and_slot")
-  @@index([doctor_id], map: "appointment_appointment_doctor_id_5325109f")
-  @@index([patient_id], map: "appointment_appointment_patient_id_893eaa7b")
-  @@index([patient_id], map: "appointment_appointment_patient_id_893eaa7b_like")
-  @@index([scheduled_by_id], map: "appointment_appointment_scheduled_by_id_78368dd0")
-  @@index([scheduled_by_id], map: "appointment_appointment_scheduled_by_id_78368dd0_like")
+  name String
+  role String
+
+  patient   Patient?
+  doctor    Doctor?
+  secretary Secretary?
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model appointment_appointmentreferral {
-  id                                                                                     BigInt                   @id @default(autoincrement())
-  reason                                                                                 String
-  notes                                                                                  String
-  created_at                                                                             DateTime                 @db.Timestamptz(6)
-  updated_at                                                                             DateTime                 @db.Timestamptz(6)
-  status                                                                                 String                   @db.VarChar(20)
-  appointment_id                                                                         BigInt?                  @unique
-  patient_id                                                                             String                   @db.VarChar(64)
-  receiving_doctor_id                                                                    String?                  @db.VarChar(64)
-  referring_doctor_id                                                                    String                   @db.VarChar(64)
-  appointment_appointment                                                                appointment_appointment? @relation(fields: [appointment_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_appointm_appointment_id_a91892e5_fk_appointme")
-  patient_patient                                                                        patient_patient          @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_appointmentreferral_patient_id_7a4cfe39_fk")
-  user_useraccount_appointment_appointmentreferral_receiving_doctor_idTouser_useraccount user_useraccount?        @relation("appointment_appointmentreferral_receiving_doctor_idTouser_useraccount", fields: [receiving_doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_appointmentreferral_receiving_doctor_id_ddcbb820_fk")
-  user_useraccount_appointment_appointmentreferral_referring_doctor_idTouser_useraccount user_useraccount         @relation("appointment_appointmentreferral_referring_doctor_idTouser_useraccount", fields: [referring_doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_appointmentreferral_referring_doctor_id_9d1ab68e_fk")
+model Patient {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
-  @@index([receiving_doctor_id], map: "appointment_appointmentr_receiving_doctor_id_ddcbb820_like")
-  @@index([referring_doctor_id], map: "appointment_appointmentr_referring_doctor_id_9d1ab68e_like")
-  @@index([patient_id], map: "appointment_appointmentreferral_patient_id_7a4cfe39")
-  @@index([patient_id], map: "appointment_appointmentreferral_patient_id_7a4cfe39_like")
-  @@index([receiving_doctor_id], map: "appointment_appointmentreferral_receiving_doctor_id_ddcbb820")
-  @@index([referring_doctor_id], map: "appointment_appointmentreferral_referring_doctor_id_9d1ab68e")
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id])
+
+  name        String
+  gender      String?
+  dateOfBirth DateTime? @db.Date
+  city        String?
+  barangay    String?
+
+  patientVisit   PatientVisit[]
+  assessment     Assessment[]
+  treatment      Treatment[]
+  medicalRecords MedicalRecord[]
+  appointment    Appointment[]
+  prescription   Prescription[]
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model appointment_appointmentrequest {
-  id                                 BigInt                              @id @default(autoincrement())
-  requested_datetime                 DateTime                            @db.Timestamptz(6)
-  reason                             String?
-  status                             String                              @db.VarChar(30)
-  created_at                         DateTime                            @db.Timestamptz(6)
-  updated_at                         DateTime                            @db.Timestamptz(6)
-  doctor_id                          BigInt
-  patient_id                         String                              @db.VarChar(64)
-  user_doctor                        user_doctor                         @relation(fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_appointm_doctor_id_313670ee_fk_user_doct")
-  patient_patient                    patient_patient                     @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_appointmentrequest_patient_id_9c4c98f0_fk")
-  appointment_appointmentreservation appointment_appointmentreservation?
-  appointment_payment                appointment_payment?
+model PatientVisit {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([doctor_id], map: "appointment_appointmentrequest_doctor_id_313670ee")
-  @@index([patient_id], map: "appointment_appointmentrequest_patient_id_9c4c98f0")
-  @@index([patient_id], map: "appointment_appointmentrequest_patient_id_9c4c98f0_like")
-  @@index([requested_datetime], map: "appointment_appointmentrequest_requested_datetime_ef9820db")
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  reason String
+  status String
+  date   DateTime @default(now())
+
+  treatment Treatment[]
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model appointment_appointmentreservation {
-  id                             BigInt                         @id @default(autoincrement())
-  appointment_datetime           DateTime                       @db.Timestamptz(6)
-  expires_at                     DateTime                       @db.Timestamptz(6)
-  created_at                     DateTime                       @db.Timestamptz(6)
-  appointment_request_id         BigInt                         @unique
-  doctor_id                      BigInt
-  appointment_appointmentrequest appointment_appointmentrequest @relation(fields: [appointment_request_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_appointm_appointment_request__d749ff48_fk_appointme")
-  user_doctor                    user_doctor                    @relation(fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_appointm_doctor_id_f2c7926f_fk_user_doct")
+model Assessment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([doctor_id, appointment_datetime], map: "unique_reserved_slot_per_doctor")
-  @@index([appointment_datetime], map: "appointment_appointmentres_appointment_datetime_58251a32")
-  @@index([doctor_id], map: "appointment_appointmentreservation_doctor_id_f2c7926f")
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  symptoms         String
+  assessment       String?
+  diagnosis        String?
+  bloodPressure    String
+  pulseRate        Int
+  respiratoryRate  Int
+  oxygenSaturation Float?
+  alcoholUse       Boolean
+  smoker           Boolean?
+  allergies        String?
+  painLocation     String?
+  painScale        Int?
+
+  treatment Treatment[]
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model appointment_payment {
-  id                             BigInt                          @id @default(autoincrement())
-  payment_method                 String                          @db.VarChar(20)
-  amount                         Decimal                         @db.Decimal(10, 2)
-  status                         String                          @db.VarChar(10)
-  paymaya_reference_id           String?                         @db.VarChar(200)
-  paymaya_checkout_url           String?                         @db.VarChar(200)
-  paymaya_response               Json?
-  gcash_proof                    String?                         @db.VarChar(100)
-  created_at                     DateTime                        @db.Timestamptz(6)
-  updated_at                     DateTime                        @db.Timestamptz(6)
-  appointment_id                 BigInt?                         @unique
-  patient_id                     String                          @db.VarChar(64)
-  appointment_request_id         BigInt?                         @unique
-  appointment_appointment        appointment_appointment?        @relation(fields: [appointment_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_payment_appointment_id_18bccdc8_fk_appointme")
-  appointment_appointmentrequest appointment_appointmentrequest? @relation(fields: [appointment_request_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_payment_appointment_request__58f4ad62_fk_appointme")
-  patient_patient                patient_patient                 @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "appointment_payment_patient_id_016c456b_fk")
+model Treatment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([patient_id], map: "appointment_payment_patient_id_016c456b")
-  @@index([patient_id], map: "appointment_payment_patient_id_016c456b_like")
+  patientId    String
+  patient      Patient       @relation(fields: [patientId], references: [id])
+  visitId      String?
+  visit        PatientVisit? @relation(fields: [visitId], references: [id])
+  assessmentId String?
+  assessment   Assessment?   @relation(fields: [assessmentId], references: [id])
+
+  medications    Json?
+  procedures     String?
+  painScale      Int?
+  remarks        String?
+  status         TreatmentStatus @default(PENDING)
+  priority       Int?
+  followUps      FollowUp[]
+  nextFollowUpAt DateTime?
 }
 
-model auth_group {
-  id                      Int                       @id @default(autoincrement())
-  name                    String                    @unique @db.VarChar(150)
-  auth_group_permissions  auth_group_permissions[]
-  auth_user_groups        auth_user_groups[]
-  user_useraccount_groups user_useraccount_groups[]
+model FollowUp {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([name], map: "auth_group_name_a6ea08ec_like")
+  treatmentId  String
+  treatment    Treatment @relation(fields: [treatmentId], references: [id])
+  note         String?
+  findings     String?
+  outcome      String?
+  nextAction   String?
+  painScale    Int?
+  vitals       Json?
+  followUpDate DateTime  @default(now())
+  nextFollowUp DateTime?
+  resolved     Boolean   @default(false)
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model auth_group_permissions {
-  id              BigInt          @id @default(autoincrement())
-  group_id        Int
-  permission_id   Int
-  auth_permission auth_permission @relation(fields: [permission_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_group_permissio_permission_id_84c5c92e_fk_auth_perm")
-  auth_group      auth_group      @relation(fields: [group_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_group_permissions_group_id_b120cbf9_fk_auth_group_id")
+model MedicalRecord {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([group_id, permission_id], map: "auth_group_permissions_group_id_permission_id_0cd325b0_uniq")
-  @@index([group_id], map: "auth_group_permissions_group_id_b120cbf9")
-  @@index([permission_id], map: "auth_group_permissions_permission_id_84c5c92e")
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+
+  diagnosis String
+  treatment String
+  notes     String?
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model auth_permission {
-  id                                Int                                 @id @default(autoincrement())
-  name                              String                              @db.VarChar(255)
-  content_type_id                   Int
-  codename                          String                              @db.VarChar(100)
-  auth_group_permissions            auth_group_permissions[]
-  django_content_type               django_content_type                 @relation(fields: [content_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_permission_content_type_id_2f476e4b_fk_django_co")
-  auth_user_user_permissions        auth_user_user_permissions[]
-  user_useraccount_user_permissions user_useraccount_user_permissions[]
+model Doctor {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
-  @@unique([content_type_id, codename], map: "auth_permission_content_type_id_codename_01ab375a_uniq")
-  @@index([content_type_id], map: "auth_permission_content_type_id_2f476e4b")
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id])
+
+  name  String
+  field String
+
+  appointment  Appointment[]
+  prescription Prescription[]
 }
 
-model auth_user {
-  id                         Int                          @id @default(autoincrement())
-  password                   String                       @db.VarChar(128)
-  last_login                 DateTime?                    @db.Timestamptz(6)
-  is_superuser               Boolean
-  username                   String                       @unique @db.VarChar(150)
-  first_name                 String                       @db.VarChar(150)
-  last_name                  String                       @db.VarChar(150)
-  email                      String                       @db.VarChar(254)
-  is_staff                   Boolean
-  is_active                  Boolean
-  date_joined                DateTime                     @db.Timestamptz(6)
-  auth_user_groups           auth_user_groups[]
-  auth_user_user_permissions auth_user_user_permissions[]
-  user_userprofile           user_userprofile?
+model Appointment {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
-  @@index([username], map: "auth_user_username_6821ab7c_like")
+  patientId String
+  patient   Patient @relation(fields: [patientId], references: [id])
+  doctorId  String
+  doctor    Doctor  @relation(fields: [doctorId], references: [id])
+
+  date   DateTime
+  status String
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model auth_user_groups {
-  id         BigInt     @id @default(autoincrement())
-  user_id    Int
-  group_id   Int
-  auth_group auth_group @relation(fields: [group_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_user_groups_group_id_97559544_fk_auth_group_id")
-  auth_user  auth_user  @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_user_groups_user_id_6a12ed8b_fk_auth_user_id")
+model MedicineType {
+  id       String @id @default(cuid())
+  name     String
+  form     String
+  strength String
 
-  @@unique([user_id, group_id], map: "auth_user_groups_user_id_group_id_94350c0c_uniq")
-  @@index([group_id], map: "auth_user_groups_group_id_97559544")
-  @@index([user_id], map: "auth_user_groups_user_id_6a12ed8b")
+  medicineBatch MedicineBatch[]
+  prescription  Prescription[]
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model auth_user_user_permissions {
-  id              BigInt          @id @default(autoincrement())
-  user_id         Int
-  permission_id   Int
-  auth_permission auth_permission @relation(fields: [permission_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_user_user_permi_permission_id_1fbb5f2c_fk_auth_perm")
-  auth_user       auth_user       @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "auth_user_user_permissions_user_id_a95ead1b_fk_auth_user_id")
+model MedicineBatch {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([user_id, permission_id], map: "auth_user_user_permissions_user_id_permission_id_14a6b632_uniq")
-  @@index([permission_id], map: "auth_user_user_permissions_permission_id_1fbb5f2c")
-  @@index([user_id], map: "auth_user_user_permissions_user_id_a95ead1b")
+  medicineId String
+  medicine   MedicineType @relation(fields: [medicineId], references: [id])
+
+  batchNumber String
+  quantity    Int
+  expiryDate  DateTime
 }
 
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model authtoken_token {
-  key              String           @id @db.VarChar(40)
-  created          DateTime         @db.Timestamptz(6)
-  user_id          String           @unique @db.VarChar(64)
-  user_useraccount user_useraccount @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "authtoken_token_user_id_35299eff_fk")
+model Prescription {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@index([key], map: "authtoken_token_key_10f0b77e_like")
+  patientId  String
+  patient    Patient      @relation(fields: [patientId], references: [id])
+  doctorId   String
+  doctor     Doctor       @relation(fields: [doctorId], references: [id])
+  medicineId String
+  medicine   MedicineType @relation(fields: [medicineId], references: [id])
+
+  quantity  Int
+  frequency String
+  duration  String
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model django_admin_log {
-  id                  Int                  @id @default(autoincrement())
-  action_time         DateTime             @db.Timestamptz(6)
-  object_id           String?
-  object_repr         String               @db.VarChar(200)
-  action_flag         Int                  @db.SmallInt
-  change_message      String
-  content_type_id     Int?
-  user_id             String               @db.VarChar(64)
-  django_content_type django_content_type? @relation(fields: [content_type_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "django_admin_log_content_type_id_c4bce8eb_fk_django_co")
-  user_useraccount    user_useraccount     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "django_admin_log_user_id_c564eba6_fk")
+model Secretary {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  archived  Boolean  @default(false)
 
-  @@index([content_type_id], map: "django_admin_log_content_type_id_c4bce8eb")
-  @@index([user_id], map: "django_admin_log_user_id_c564eba6")
+  userId String? @unique
+  user   User?   @relation(fields: [userId], references: [id])
+
+  name String
 }
 
-model django_content_type {
-  id               Int                @id @default(autoincrement())
-  app_label        String             @db.VarChar(100)
-  model            String             @db.VarChar(100)
-  auth_permission  auth_permission[]
-  django_admin_log django_admin_log[]
+model Post {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  @@unique([app_label, model], map: "django_content_type_app_label_model_76bd3d3b_uniq")
+  title     String
+  slug      String   @unique
+  content   String
+  published Boolean? @default(false)
 }
 
-model django_migrations {
-  id      BigInt   @id @default(autoincrement())
-  app     String   @db.VarChar(255)
-  name    String   @db.VarChar(255)
-  applied DateTime @db.Timestamptz(6)
-}
-
-model django_session {
-  session_key  String   @id @db.VarChar(40)
-  session_data String
-  expire_date  DateTime @db.Timestamptz(6)
-
-  @@index([expire_date], map: "django_session_expire_date_a5c62663")
-  @@index([session_key], map: "django_session_session_key_c0390e0f_like")
-}
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-model doctor {
-  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId           String?           @db.VarChar
-  name             String
-  field            String
-  archived         Boolean?          @default(false)
-  user_useraccount user_useraccount? @relation(fields: [userId], references: [id])
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model medicine_medicine {
-  id                   BigInt                 @id @default(autoincrement())
-  name                 String                 @db.VarChar(255)
-  dosage_form          String                 @db.VarChar(255)
-  strength             String                 @db.VarChar(255)
-  expiration_date      DateTime?              @db.Date
-  stocks               Int
-  patient_prescription patient_prescription[]
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model patient_diagnosis {
-  id                           BigInt                         @id @default(autoincrement())
-  diagnosis_code               String?                        @db.VarChar(10)
-  diagnosis_description        String
-  diagnosis_date               DateTime                       @db.Date
-  patient_id                   String                         @db.VarChar(64)
-  patient_patient              patient_patient                @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "patient_diagnosis_patient_id_c47781cb_fk")
-  patient_healthtips           patient_healthtips[]
-  queueing_treatment_diagnoses queueing_treatment_diagnoses[]
-
-  @@index([patient_id], map: "patient_diagnosis_patient_id_c47781cb")
-  @@index([patient_id], map: "patient_diagnosis_patient_id_c47781cb_like")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model patient_healthtips {
-  id                BigInt            @id @default(autoincrement())
-  tip_text          String
-  created_at        DateTime          @db.Timestamptz(6)
-  updated_at        DateTime          @db.Timestamptz(6)
-  source            String?           @db.VarChar(100)
-  is_for_patient    Boolean
-  diagnosis_id      BigInt
-  doctor_id         BigInt
-  patient_id        String            @db.VarChar(64)
-  patient_diagnosis patient_diagnosis @relation(fields: [diagnosis_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "patient_healthtips_diagnosis_id_0a321bcf_fk_patient_d")
-  user_doctor       user_doctor       @relation(fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "patient_healthtips_doctor_id_ed4f9e43_fk_user_doctor_id")
-  patient_patient   patient_patient   @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "patient_healthtips_patient_id_d965b177_fk_patient_p")
-
-  @@index([doctor_id], map: "patient_hea_doctor__4d3f14_idx")
-  @@index([patient_id], map: "patient_hea_patient_fd882f_idx")
-  @@index([diagnosis_id], map: "patient_healthtips_diagnosis_id_0a321bcf")
-  @@index([doctor_id], map: "patient_healthtips_doctor_id_ed4f9e43")
-  @@index([patient_id], map: "patient_healthtips_patient_id_d965b177")
-  @@index([patient_id], map: "patient_healthtips_patient_id_d965b177_like")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model patient_labrequest {
-  id                String             @id @db.VarChar(8)
-  test_name         String             @db.VarChar(255)
-  custom_test       String?            @db.VarChar(255)
-  status            String             @db.VarChar(50)
-  created_at        DateTime           @db.Timestamptz(6)
-  patient_id        String             @db.VarChar(64)
-  requested_by_id   String             @db.VarChar(64)
-  patient_patient   patient_patient    @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "patient_labrequest_patient_id_0b6bcc0e_fk")
-  user_useraccount  user_useraccount   @relation(fields: [requested_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "patient_labrequest_requested_by_id_2ee6ed1a_fk")
-  patient_labresult patient_labresult?
-
-  @@index([patient_id], map: "patient_labrequest_patient_id_0b6bcc0e")
-  @@index([patient_id], map: "patient_labrequest_patient_id_0b6bcc0e_like")
-  @@index([requested_by_id], map: "patient_labrequest_requested_by_id_2ee6ed1a")
-  @@index([requested_by_id], map: "patient_labrequest_requested_by_id_2ee6ed1a_like")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model patient_labresult {
-  id                 String              @id @db.VarChar(8)
-  image              String              @db.VarChar(100)
-  uploaded_at        DateTime            @db.Timestamptz(6)
-  submitted_by_id    String?             @db.VarChar(64)
-  lab_request_id     String?             @unique @db.VarChar(8)
-  patient_labrequest patient_labrequest? @relation(fields: [lab_request_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "patient_labresult_lab_request_id_d360668a_fk")
-  user_useraccount   user_useraccount?   @relation(fields: [submitted_by_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "patient_labresult_submitted_by_id_49130665_fk")
-
-  @@index([submitted_by_id], map: "patient_labresult_submitted_by_id_49130665")
-  @@index([submitted_by_id], map: "patient_labresult_submitted_by_id_49130665_like")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model patient_patient {
-  patient_id                      String                            @id @db.VarChar(64)
-  first_name                      String?                           @db.VarChar(200)
-  middle_name                     String?                           @db.VarChar(100)
-  last_name                       String                            @db.VarChar(200)
-  email                           String                            @db.VarChar(254)
-  phone_number                    String                            @db.VarChar(15)
-  date_of_birth                   DateTime?                         @db.Date
-  street_address                  String?                           @db.VarChar(100)
-  barangay                        String?                           @db.VarChar(100)
-  municipal_city                  String?                           @db.VarChar(100)
-  gender                          String?                           @db.VarChar(10)
-  user_id                         String?                           @unique @db.VarChar(64)
-  role_id                         String?                           @db.VarChar(50)
-  appointment_appointment         appointment_appointment[]
-  appointment_appointmentreferral appointment_appointmentreferral[]
-  appointment_appointmentrequest  appointment_appointmentrequest[]
-  appointment_payment             appointment_payment[]
-  patient_diagnosis               patient_diagnosis[]
-  patient_healthtips              patient_healthtips[]
-  patient_labrequest              patient_labrequest[]
-  user_useraccount                user_useraccount?                 @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "patient_patient_user_id_40c1c82a_fk")
-  patient_prescription            patient_prescription[]
-  queueing_preliminaryassessment  queueing_preliminaryassessment[]
-  queueing_temporarystoragequeue  queueing_temporarystoragequeue[]
-  queueing_treatment              queueing_treatment[]
-
-  @@index([patient_id], map: "patient_patient_patient_id_2da02ead_like")
-  @@index([user_id], map: "patient_patient_user_id_40c1c82a_like")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model patient_prescription {
-  id                               BigInt                             @id @default(autoincrement())
-  medication_id                    BigInt
-  dosage                           String                             @db.VarChar(50)
-  frequency                        String                             @db.VarChar(50)
-  start_date                       DateTime                           @db.Date
-  end_date                         DateTime?                          @db.Date
-  patient_id                       String                             @db.VarChar(64)
-  quantity                         Int
-  medicine_medicine                medicine_medicine                  @relation(fields: [medication_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "patient_prescription_medication_id_02cb9154_fk_medicine_")
-  patient_patient                  patient_patient                    @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "patient_prescription_patient_id_79096fb4_fk")
-  queueing_treatment_prescriptions queueing_treatment_prescriptions[]
-
-  @@index([medication_id], map: "patient_prescription_medication_id_02cb9154")
-  @@index([patient_id], map: "patient_prescription_patient_id_79096fb4")
-  @@index([patient_id], map: "patient_prescription_patient_id_79096fb4_like")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model queueing_preliminaryassessment {
-  id                  BigInt          @id @default(autoincrement())
-  symptoms            String
-  assessment_date     DateTime        @db.Timestamptz(6)
-  patient_id          String          @db.VarChar(64)
-  blood_pressure      String?         @db.VarChar(200)
-  heart_rate          String?         @db.VarChar(200)
-  pulse_rate          String?         @db.VarChar(200)
-  respiratory_rate    String?         @db.VarChar(200)
-  temperature         String?         @db.VarChar(200)
-  alcohol_use         String?         @db.VarChar(200)
-  allergies           String?
-  current_medications String?
-  medical_history     String?
-  pain_location       String?         @db.VarChar(200)
-  pain_scale          String?         @db.VarChar(200)
-  smoking_status      String?         @db.VarChar(200)
-  assessment          String?
-  patient_patient     patient_patient @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "queueing_preliminaryassessment_patient_id_b48b5a72_fk")
-
-  @@index([patient_id], map: "queueing_preliminaryassessment_patient_id_b48b5a72")
-  @@index([patient_id], map: "queueing_preliminaryassessment_patient_id_b48b5a72_like")
-}
-
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model queueing_temporarystoragequeue {
-  id                  BigInt            @id @default(autoincrement())
-  priority_level      String            @db.VarChar(10)
-  created_at          DateTime          @db.Timestamptz(6)
-  status              String            @db.VarChar(50)
-  queue_date          DateTime          @db.Date
-  queue_number        BigInt?
-  complaint           String?
-  position            Int
-  is_new_patient      Boolean
-  temp_barangay       String?           @db.VarChar(100)
-  temp_date_of_birth  DateTime?         @db.Date
-  temp_email          String?           @db.VarChar(254)
-  temp_first_name     String?           @db.VarChar(100)
-  temp_gender         String?           @db.VarChar(10)
-  temp_last_name      String?           @db.VarChar(100)
-  temp_middle_name    String?           @db.VarChar(100)
-  temp_municipal_city String?           @db.VarChar(100)
-  temp_phone_number   String?           @db.VarChar(15)
-  temp_street_address String?
-  user_id             String?           @unique @db.VarChar(64)
-  patient_id          String?           @db.VarChar(64)
-  patient_patient     patient_patient?  @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "queueing_temporarystoragequeue_patient_id_7bf6f479_fk")
-  user_useraccount    user_useraccount? @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "queueing_temporarystoragequeue_user_id_0f18a9f2_fk")
-
-  @@index([patient_id], map: "queueing_temporarystoragequeue_patient_id_7bf6f479")
-  @@index([patient_id], map: "queueing_temporarystoragequeue_patient_id_7bf6f479_like")
-  @@index([position], map: "queueing_temporarystoragequeue_position_333d7e8c")
-  @@index([user_id], map: "queueing_temporarystoragequeue_user_id_0f18a9f2_like")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model queueing_treatment {
-  id                               BigInt                             @id @default(autoincrement())
-  treatment_notes                  String?
-  created_at                       DateTime                           @db.Timestamptz(6)
-  updated_at                       DateTime                           @db.Timestamptz(6)
-  patient_id                       String                             @db.VarChar(64)
-  doctor_id                        String?                            @db.VarChar(64)
-  user_useraccount                 user_useraccount?                  @relation(fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "queueing_treatment_doctor_id_65c26b55_fk")
-  patient_patient                  patient_patient                    @relation(fields: [patient_id], references: [patient_id], onDelete: NoAction, onUpdate: NoAction, map: "queueing_treatment_patient_id_faf96092_fk")
-  queueing_treatment_diagnoses     queueing_treatment_diagnoses[]
-  queueing_treatment_prescriptions queueing_treatment_prescriptions[]
-
-  @@index([doctor_id], map: "queueing_treatment_doctor_id_65c26b55")
-  @@index([doctor_id], map: "queueing_treatment_doctor_id_65c26b55_like")
-  @@index([patient_id], map: "queueing_treatment_patient_id_faf96092")
-  @@index([patient_id], map: "queueing_treatment_patient_id_faf96092_like")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model queueing_treatment_diagnoses {
-  id                 BigInt             @id @default(autoincrement())
-  treatment_id       BigInt
-  diagnosis_id       BigInt
-  patient_diagnosis  patient_diagnosis  @relation(fields: [diagnosis_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "queueing_treatment_d_diagnosis_id_187e2452_fk_patient_d")
-  queueing_treatment queueing_treatment @relation(fields: [treatment_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "queueing_treatment_d_treatment_id_56dc55be_fk_queueing_")
-
-  @@unique([treatment_id, diagnosis_id], map: "queueing_treatment_diagn_treatment_id_diagnosis_i_1cbe28fb_uniq")
-  @@index([diagnosis_id], map: "queueing_treatment_diagnoses_diagnosis_id_187e2452")
-  @@index([treatment_id], map: "queueing_treatment_diagnoses_treatment_id_56dc55be")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model queueing_treatment_prescriptions {
-  id                   BigInt               @id @default(autoincrement())
-  treatment_id         BigInt
-  prescription_id      BigInt
-  patient_prescription patient_prescription @relation(fields: [prescription_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "queueing_treatment_p_prescription_id_0a90669e_fk_patient_p")
-  queueing_treatment   queueing_treatment   @relation(fields: [treatment_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "queueing_treatment_p_treatment_id_4f362584_fk_queueing_")
-
-  @@unique([treatment_id, prescription_id], map: "queueing_treatment_presc_treatment_id_prescriptio_199920d9_uniq")
-  @@index([prescription_id], map: "queueing_treatment_prescriptions_prescription_id_0a90669e")
-  @@index([treatment_id], map: "queueing_treatment_prescriptions_treatment_id_4f362584")
-}
-
-model service {
-  id         String    @id @default(dbgenerated("extensions.uuid_generate_v4()")) @db.Uuid
-  name       String
-  created_at DateTime? @default(now()) @db.Timestamp(6)
-  updated_at DateTime? @default(now()) @db.Timestamp(6)
-  type       String
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model user_admin {
-  id               BigInt           @id @default(autoincrement())
-  role_id          String?          @db.VarChar(50)
-  office           String?          @db.VarChar(255)
-  user_id          String           @unique @db.VarChar(64)
-  user_useraccount user_useraccount @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_admin_user_id_38057951_fk")
-
-  @@index([user_id], map: "user_admin_user_id_38057951_like")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model user_doctor {
-  id                                 BigInt                               @id @default(autoincrement())
-  specialization                     String                               @db.VarChar
-  user_id                            String                               @unique @db.VarChar(64)
-  timezone                           String?                              @db.VarChar(50)
-  role_id                            String?                              @db.VarChar(50)
-  appointment_appointment            appointment_appointment[]
-  appointment_appointmentrequest     appointment_appointmentrequest[]
-  appointment_appointmentreservation appointment_appointmentreservation[]
-  patient_healthtips                 patient_healthtips[]
-  user_useraccount                   user_useraccount                     @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_doctor_user_id_ac818471_fk")
-  user_schedule                      user_schedule[]
-
-  @@index([user_id], map: "user_doctor_user_id_ac818471_like")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model user_schedule {
-  id          BigInt      @id @default(autoincrement())
-  day_of_week String      @db.VarChar(10)
-  start_time  DateTime    @db.Time(6)
-  end_time    DateTime    @db.Time(6)
-  doctor_id   BigInt
-  user_doctor user_doctor @relation(fields: [doctor_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_schedule_doctor_id_876334cc_fk_user_doctor_id")
-
-  @@unique([doctor_id, day_of_week, start_time, end_time], map: "user_schedule_doctor_id_day_of_week_st_87ae5c6a_uniq")
-  @@index([doctor_id], map: "user_schedule_doctor_id_876334cc")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model user_secretary {
-  id               BigInt           @id @default(autoincrement())
-  role_id          String?          @db.VarChar(50)
-  department       String?          @db.VarChar(255)
-  user_id          String           @unique @db.VarChar(64)
-  user_useraccount user_useraccount @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_secretary_user_id_db6e28e3_fk")
-
-  @@index([user_id], map: "user_secretary_user_id_db6e28e3_like")
-}
-
-model user_useraccount {
-  id                                                                                                    String                              @id @db.VarChar(64)
-  password                                                                                              String                              @db.VarChar(128)
-  last_login                                                                                            DateTime?                           @db.Timestamptz(6)
-  first_name                                                                                            String                              @db.VarChar(255)
-  last_name                                                                                             String                              @db.VarChar(255)
-  email                                                                                                 String                              @unique @db.VarChar(255)
-  is_active                                                                                             Boolean
-  is_staff                                                                                              Boolean
-  is_superuser                                                                                          Boolean
-  role                                                                                                  String                              @db.VarChar(20)
-  date_joined                                                                                           DateTime?                           @db.Timestamptz(6)
-  appointment_appointment                                                                               appointment_appointment[]
-  appointment_appointmentreferral_appointment_appointmentreferral_receiving_doctor_idTouser_useraccount appointment_appointmentreferral[]   @relation("appointment_appointmentreferral_receiving_doctor_idTouser_useraccount")
-  appointment_appointmentreferral_appointment_appointmentreferral_referring_doctor_idTouser_useraccount appointment_appointmentreferral[]   @relation("appointment_appointmentreferral_referring_doctor_idTouser_useraccount")
-  authtoken_token                                                                                       authtoken_token?
-  django_admin_log                                                                                      django_admin_log[]
-  doctor                                                                                                doctor[]
-  patient_labrequest                                                                                    patient_labrequest[]
-  patient_labresult                                                                                     patient_labresult[]
-  patient_patient                                                                                       patient_patient?
-  queueing_temporarystoragequeue                                                                        queueing_temporarystoragequeue?
-  queueing_treatment                                                                                    queueing_treatment[]
-  user_admin                                                                                            user_admin?
-  user_doctor                                                                                           user_doctor?
-  user_secretary                                                                                        user_secretary?
-  user_useraccount_groups                                                                               user_useraccount_groups[]
-  user_useraccount_user_permissions                                                                     user_useraccount_user_permissions[]
-
-  @@index([email], map: "user_useraccount_email_15943a3f_like")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model user_useraccount_groups {
-  id               BigInt           @id @default(autoincrement())
-  useraccount_id   String           @db.VarChar(64)
-  group_id         Int
-  auth_group       auth_group       @relation(fields: [group_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_useraccount_groups_group_id_4ce6c571_fk_auth_group_id")
-  user_useraccount user_useraccount @relation(fields: [useraccount_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_useraccount_groups_useraccount_id_9784fa3e_fk")
-
-  @@unique([useraccount_id, group_id], map: "user_useraccount_groups_useraccount_id_group_id_ba2d9637_uniq")
-  @@index([group_id], map: "user_useraccount_groups_group_id_4ce6c571")
-  @@index([useraccount_id], map: "user_useraccount_groups_useraccount_id_9784fa3e")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model user_useraccount_user_permissions {
-  id               BigInt           @id @default(autoincrement())
-  useraccount_id   String           @db.VarChar(64)
-  permission_id    Int
-  auth_permission  auth_permission  @relation(fields: [permission_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_useraccount_use_permission_id_24370196_fk_auth_perm")
-  user_useraccount user_useraccount @relation(fields: [useraccount_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_useraccount_user_permissions_useraccount_id_8f039e10_fk")
-
-  @@unique([useraccount_id, permission_id], map: "user_useraccount_user_pe_useraccount_id_permissio_ba82c04f_uniq")
-  @@index([permission_id], map: "user_useraccount_user_permissions_permission_id_24370196")
-  @@index([useraccount_id], map: "user_useraccount_user_permissions_useraccount_id_8f039e10")
-}
-
-/// This model has constraints using non-default deferring rules and requires additional setup for migrations. Visit https://pris.ly/d/constraint-deferring for more info.
-model user_userprofile {
-  id           BigInt    @id @default(autoincrement())
-  address      String?
-  phone_number String?   @db.VarChar(20)
-  user_id      Int       @unique
-  auth_user    auth_user @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_userprofile_user_id_2474538d_fk_auth_user_id")
+enum TreatmentStatus {
+  PENDING
+  ONGOING
+  COMPLETED
+  CANCELLED
 }

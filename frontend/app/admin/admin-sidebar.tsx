@@ -36,11 +36,6 @@ const menu_items = [
     url: "/admin/secretary-management",
     icon: ChartNoAxesGantt,
   },
-  {
-    title: "Services Management",
-    url: "/admin/services-management",
-    icon: ChartNoAxesGantt,
-  },
 ];
 
 export function AdminSidebar() {
