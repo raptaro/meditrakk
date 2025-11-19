@@ -32,12 +32,12 @@ export async function editEntity<T extends PrismaModel>(
 export async function toggleArchive<T extends PrismaModel>(
   model: T,
   id: string,
-  archived: boolean,
+  isArchived: boolean,
   path: string
 ) {
   await (prisma[model] as any).update({
     where: { id },
-    data: { archived },
+    data: { isArchived },
   });
   revalidatePath(path);
 }
