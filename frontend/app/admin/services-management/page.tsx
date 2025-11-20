@@ -23,12 +23,26 @@ export default async function ServiceManagement() {
 
   return (
     <>
-      <AddService />
       <Tabs defaultValue="service">
-        <TabsList>
-          <TabsTrigger value="service">Services</TabsTrigger>
-          <TabsTrigger value="archived">Archived Services</TabsTrigger>
-        </TabsList>
+        <div className="m-6 flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger
+              value="service"
+              className="transition-colors hover:bg-primary/20 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Services
+            </TabsTrigger>
+
+            <TabsTrigger
+              value="archived"
+              className="transition-colors hover:bg-primary/20 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+            >
+              Archived Services
+            </TabsTrigger>
+          </TabsList>
+
+          <AddService />
+        </div>
 
         <TabsContent value="service">
           <ServiceTableClient services={services} typeOptions={types} />
