@@ -28,6 +28,7 @@ const colors: Record<ColorKey, { border: string; bg: string; text: string }> = {
 type SummaryCardProps = {
   title: string;
   value: number;
+  description: string;
   icon: JSX.Element;
   color: ColorKey;
 };
@@ -35,16 +36,18 @@ type SummaryCardProps = {
 export default function SummaryCard({
   title,
   value,
+  description,
   icon,
   color,
 }: SummaryCardProps) {
   return (
     <div
-      className={`flex justify-between items-center card hover:scale-105 transition-all duration-300 hover:shadow-xl rounded-none ${colors[color].border} ${colors[color].bg} group`}
+      className={`flex justify-between items-center border-b-[2px]  text-card-foreground p-6 hover:scale-105 transition-all duration-300 hover:shadow-xl rounded-none ${colors[color].border} group`}
     >
       <div className="flex flex-col">
-        <span className="text-sm font-semibold">{title}</span>
-        <span className="font-bold text-xl">{value}</span>
+        <span className="text-sm">{title}</span>
+        <span className="text-2xl font-bold">{value}</span>
+        <span className="text-sm">{description}</span>
       </div>
 
       <div className={`rounded-full ${colors[color].bg} p-3`}>

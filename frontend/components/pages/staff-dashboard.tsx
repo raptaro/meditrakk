@@ -23,12 +23,14 @@ export default function StaffDashboard() {
     id: number;
     title: string;
     value: number;
+    description: string;
     icon: JSX.Element;
     color: ColorKey;
   }[] = [
     {
       id: 1,
       title: "Monthly Patients",
+      description: "as of this month",
       value: 0,
       icon: <User />,
       color: "blue",
@@ -36,6 +38,7 @@ export default function StaffDashboard() {
     {
       id: 2,
       title: "Todays Appointment",
+      description: "as of today",
       value: 0,
       icon: <Clock />,
       color: "green",
@@ -43,6 +46,7 @@ export default function StaffDashboard() {
     {
       id: 3,
       title: "Patient Request",
+      description: "as of today",
       value: 0,
       icon: <GitPullRequest />,
       color: "yellow",
@@ -50,6 +54,7 @@ export default function StaffDashboard() {
     {
       id: 4,
       title: "Inventory Updates",
+      description: "as of today",
       value: 0,
       icon: <Cylinder />,
       color: "red",
@@ -77,6 +82,7 @@ export default function StaffDashboard() {
             key={index}
             title={item.title}
             value={item.value}
+            description={item.description}
             icon={item.icon}
             color={item.color}
           />
