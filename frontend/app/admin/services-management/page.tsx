@@ -1,18 +1,25 @@
 import { prisma } from "@/lib/prisma";
-import { ServiceColumns } from "./service-columns";
-import { DataTable } from "@/components/ui/data-table";
 import AddService from "./components/add-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArchivedServiceColumns } from "./components/archived-service-columns";
+import ArchivedServiceTableClient from "./components/archived-service-table-client";
+import ServiceTableClient from "./components/service-table-client";
 
 export default async function ServiceManagement() {
   const services = await prisma.service.findMany({
     where: { isArchived: false },
   });
-
   const archivedServices = await prisma.service.findMany({
     where: { isArchived: true },
   });
+
+  // Distinct types for the select dropdown
+  const types = await prisma.service
+    .findMany({
+      where: { isArchived: false },
+      distinct: ["type"],
+      select: { type: true },
+    })
+    .then((res) => res.map((t) => t.type));
 
   return (
     <>
@@ -22,18 +29,15 @@ export default async function ServiceManagement() {
           <TabsTrigger value="service">Services</TabsTrigger>
           <TabsTrigger value="archived">Archived Services</TabsTrigger>
         </TabsList>
+
         <TabsContent value="service">
-          <DataTable
-            title="Service List"
-            columns={ServiceColumns}
-            data={services ?? []}
-          />
+          <ServiceTableClient services={services} typeOptions={types} />
         </TabsContent>
+
         <TabsContent value="archived">
-          <DataTable
-            title="Service Archive"
-            columns={ArchivedServiceColumns}
-            data={archivedServices ?? []}
+          <ArchivedServiceTableClient
+            archivedServices={archivedServices}
+            typeOptions={types}
           />
         </TabsContent>
       </Tabs>
