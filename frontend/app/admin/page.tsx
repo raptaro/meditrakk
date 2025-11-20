@@ -58,13 +58,13 @@ export default function Page() {
   return (
     <div className="m-4 space-y-4">
       <AdminStatCards />
-      <div className="grid sm:grid-cols-1 lg:grid-cols-3 gap-4">
+      <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-3">
         <PatientChart />
         <DailyAppointments />
 
         <div className="card">
           <h1 className="font-bold">Calendar</h1>
-          <div className="flex justify-center items-center pt-4">
+          <div className="flex items-center justify-center pt-4">
             <Calendar
               mode="single"
               selected={date}
@@ -75,27 +75,27 @@ export default function Page() {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <HospitalSurveyChart />
         <TotalAppointments />
         <RevenueChart />
       </div>
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 gap-4">
         <div className="card col-span-2">
-          <h1 className="font-bold mb-4">Appointments</h1>
+          <h1 className="mb-4 font-bold">Appointments</h1>
           <DashboardTable
             columns={AppointmentColumns}
             data={appointments ?? []}
           />
         </div>
         <div className="card">
-          <h1 className="font-bold mb-4">Doctor </h1>
+          <h1 className="mb-4 font-bold">Doctor </h1>
           {loading ? (
-            <div className="flex justify-center items-center h-32">
+            <div className="flex h-32 items-center justify-center">
               <div className="text-muted-foreground">Loading doctors...</div>
             </div>
           ) : error ? (
-            <div className="flex justify-center items-center h-32">
+            <div className="flex h-32 items-center justify-center">
               <div className="text-red-500">Error: {error}</div>
             </div>
           ) : (
@@ -104,7 +104,7 @@ export default function Page() {
         </div>
       </div>
       <div className="card">
-        <h1 className="font-bold mb-4">Operations</h1>
+        <h1 className="mb-4 font-bold">Operations</h1>
         <DashboardTable columns={OperationColumns} data={operations ?? []} />
       </div>
     </div>
