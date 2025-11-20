@@ -1,4 +1,10 @@
-import { LayoutDashboard, ChartNoAxesGantt } from "lucide-react";
+import {
+  LayoutDashboard,
+  Stethoscope,
+  NotepadText,
+  Cog,
+  Users2,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -24,22 +30,22 @@ const menu_items = [
   {
     title: "Patients",
     url: "/admin/patient-list",
-    icon: ChartNoAxesGantt,
+    icon: Users2,
   },
   {
     title: "Doctor Management",
     url: "/admin/doctor-management",
-    icon: ChartNoAxesGantt,
+    icon: Stethoscope,
   },
   {
     title: "Secretary Management",
     url: "/admin/secretary-management",
-    icon: ChartNoAxesGantt,
+    icon: NotepadText,
   },
   {
     title: "Services Management",
     url: "/admin/services-management",
-    icon: ChartNoAxesGantt,
+    icon: Cog,
   },
 ];
 
