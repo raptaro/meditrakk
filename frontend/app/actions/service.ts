@@ -1,5 +1,6 @@
 "use server";
 import { addEntity, editEntity, toggleArchive } from "@/app/actions/crud";
+import { prisma } from "@/lib/prisma";
 
 export async function addService(formData: FormData) {
   const name = formData.get("name") as string;
@@ -20,4 +21,14 @@ export async function archiveService(formData: FormData) {
 export async function restoreService(formData: FormData) {
   const id = formData.get("id") as string;
   await toggleArchive("service", id, false, "/service-management");
+}
+
+export async function getServiceTypes() {
+  const types = await prisma.service.findMany({
+    where: { isArchived: false },
+    distinct: ["type"],
+    select: { type: true },
+  });
+
+  return types.map((t) => t.type);
 }

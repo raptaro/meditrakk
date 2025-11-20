@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { ServiceColumns } from "./service-columns";
 import { DataTable } from "@/components/ui/data-table";
-import { AddService } from "./components/add-service";
+import AddService from "./components/add-service";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArchivedServiceColumns } from "./components/archived-service-columns";
 
