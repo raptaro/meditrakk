@@ -45,6 +45,7 @@ interface Diagnosis {
   diagnosis_description: string;
   diagnosis_date: string;
 }
+
 interface ApiResponse {
   patient: Patient;
   preliminary_assessment: PreliminaryAssessment;
@@ -66,6 +67,12 @@ interface Medicine {
   name: string;
   strength: string;
   stocks: number;
+}
+
+interface Service {
+  id: string;
+  name: string;
+  type: string;
 }
 
 export default function TreatmentForm() {
@@ -101,10 +108,16 @@ export default function TreatmentForm() {
 
   const role = userInfo();
   const [showRequestModal, setShowRequestModal] = useState(false);
-  // Lab test request states
-  const [labTestChoice, setLabTestChoice] = useState("");
+  
+  // Updated lab test request states
+  const [selectedService, setSelectedService] = useState("");
   const [customLabTest, setCustomLabTest] = useState("");
   const [showModal, setShowModal] = useState(false);
+  
+  // Services state
+  const [services, setServices] = useState<Service[]>([]);
+  const [servicesLoading, setServicesLoading] = useState(false);
+  
   const router = useRouter();
 
   // Medicine State
@@ -112,6 +125,45 @@ export default function TreatmentForm() {
   const [medicineQuery, setMedicineQuery] = useState("");
   const [medicineResults, setMedicineResults] = useState<Medicine[]>([]);
   const [isMedicineLoading, setIsMedicineLoading] = useState(false);
+
+  // Fetch services
+  const fetchServices = async () => {
+    setServicesLoading(true);
+    try {
+      const token = localStorage.getItem("access");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/queueing/services/`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch services: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      setServices(data.services || []);
+    } catch (err) {
+      console.error("Error fetching services:", err);
+      setError("Failed to load laboratory services");
+    } finally {
+      setServicesLoading(false);
+    }
+  };
+
+  // Group services by type
+  const groupedServices = services.reduce((acc, service) => {
+    if (!acc[service.type]) {
+      acc[service.type] = [];
+    }
+    acc[service.type].push(service);
+    return acc;
+  }, {} as Record<string, Service[]>);
 
   useEffect(() => {
     if (!patient_id || !queue_number) return;
@@ -187,6 +239,13 @@ export default function TreatmentForm() {
       return () => clearTimeout(handler);
     }
   }, [medicineQuery]);
+
+  // Open modal and fetch services
+  const handleOpenRequestModal = () => {
+    setShowRequestModal(true);
+    fetchServices();
+  };
+
   // Diagnosis handlers
   const addDiagnosis = () => {
     setDiagnoses([
@@ -241,12 +300,9 @@ export default function TreatmentForm() {
     );
   };
 
-  // LAB RESULT HANDLING COMMENTED OUT
-
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
 
-    // LAB RESULT HANDLING COMMENTED OUT: always send as JSON for now
     const treatmentData = {
       treatment_notes: treatmentNotes,
       patient_id: patient_id,
@@ -295,8 +351,6 @@ export default function TreatmentForm() {
         },
       ]);
       setTreatmentNotes("");
-      // LAB RESULT HANDLING COMMENTED OUT
-      // setSelectedFile(null);
     } catch (error) {
       console.error("Submission error:", error);
       alert(
@@ -304,16 +358,24 @@ export default function TreatmentForm() {
       );
     }
   };
+
   const handleSave = async (e: FormEvent) => {
     e.preventDefault();
+    
     // Determine final lab test name based on selection
-    const labTestName =
-      labTestChoice === "Other" ? customLabTest : labTestChoice;
+    const labTestName = selectedService === "Other" ? customLabTest : selectedService;
     const token = localStorage.getItem("access");
+    
     if (!token) {
       console.error("No access token found");
       return;
     }
+    
+    if (!labTestName) {
+      alert("Please select or specify a laboratory test");
+      return;
+    }
+
     try {
       // Submit the lab request
       const labResponse = await fetch(
@@ -328,27 +390,26 @@ export default function TreatmentForm() {
           body: JSON.stringify({
             patient: patient_id,
             test_name: labTestName,
-            custom_test: labTestChoice === "Other" ? customLabTest : null,
+            custom_test: selectedService === "Other" ? customLabTest : null,
           }),
         }
       );
+      
       if (!labResponse.ok) {
-        throw new Error(
-          `Lab Request HTTP error! Status: ${labResponse.status}`
-        );
+        throw new Error(`Lab Request HTTP error! Status: ${labResponse.status}`);
       }
+      
       const labData = await labResponse.json();
       console.log("Lab request successful:", labData);
+      
       // Clear lab request inputs and close modal
       setShowRequestModal(false);
-      setLabTestChoice("");
+      setSelectedService("");
       setCustomLabTest("");
       setShowModal(true);
     } catch (error) {
-      console.error("Failed to save lab request and treatment:", error);
-      alert(
-        "Failed to submit lab request and save treatment. Please try again."
-      );
+      console.error("Failed to save lab request:", error);
+      alert("Failed to submit lab request. Please try again.");
     }
   };
 
@@ -562,7 +623,7 @@ export default function TreatmentForm() {
         <div className="mb-8">
           <Button
             className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white transition-all hover:from-blue-700 hover:to-indigo-700 hover:shadow-md"
-            onClick={() => setShowRequestModal(true)}
+            onClick={handleOpenRequestModal}
           >
             <Plus size={16} />
             Request Laboratory Examination
@@ -939,76 +1000,58 @@ export default function TreatmentForm() {
                   <label className="mb-1 block text-sm font-medium text-gray-700">
                     Select Laboratory Test
                   </label>
-                  <select
-                    value={labTestChoice}
-                    onChange={(e) => setLabTestChoice(e.target.value)}
-                    className="w-full rounded-md border border-gray-300 p-2 text-sm shadow-sm focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-                    required
-                  >
-                    <option value="">-- Select a test --</option>
-                    <optgroup label="Laboratory Tests">
-                      <option value="Standard Chemistry">
-                        Standard Chemistry
-                      </option>
-                      <option value="Blood Typing Urinalysis">
-                        Blood Typing Urinalysis
-                      </option>
-                      <option value="Complete Blood Count (CBC)">
-                        Complete Blood Count (CBC)
-                      </option>
-                      <option value="Complete Blood Count (CBC) with Platelet Count">
-                        Complete Blood Count (CBC) with Platelet Count
-                      </option>
-                      <option value="HBA1C">HBA1C</option>
-                      <option value="Electrocardiogram (ECG)">
-                        Electrocardiogram (ECG)
-                      </option>
-                      <option value="Epidermolysis Bullosa Simplex (EBS)">
-                        Epidermolysis Bullosa Simplex (EBS)
-                      </option>
-                      <option value="Sodium">Sodium</option>
-                      <option value="Potassium">Potassium</option>
-                      <option value="Rabies">Rabies</option>
-                      <option value="Flu">Flu</option>
-                      <option value="Pneumonia">Pneumonia</option>
-                      <option value="Anti-tetanus">Anti-tetanus</option>
-                      <option value="Hepatitis B Screening">
-                        Hepatitis B Screening
-                      </option>
-                    </optgroup>
-                    <optgroup label="Radiology Tests">
-                      <option value="Chest (PA)">Chest (PA)</option>
-                      <option value="Chest (PA-LATERAL)">
-                        Chest (PA-LATERAL)
-                      </option>
-                      <option value="Chest (LATERAL)">Chest (LATERAL)</option>
-                      <option value="Chest (APICOLORDOTIC VIEW)">
-                        Chest (APICOLORDOTIC VIEW)
-                      </option>
-                      <option value="Elbow">Elbow</option>
-                      <option value="Hand">Hand</option>
-                      <option value="Pelvic">Pelvic</option>
-                      <option value="Hip Joint">Hip Joint</option>
-                      <option value="Knee">Knee</option>
-                      <option value="Foot imaging">Foot imaging</option>
-                    </optgroup>
-                    <optgroup label="Other Services">
-                      <option value="Rapid Antigen Testing">
-                        Rapid Antigen Testing
-                      </option>
-                      <option value="Reverse Transcription Polymerase Chain Reaction (RT-PCR)">
-                        Reverse Transcription Polymerase Chain Reaction (RT-PCR)
-                      </option>
-                      <option value="Saliva testing">Saliva testing</option>
-                      <option value="Rapid Antibody testing">
-                        Rapid Antibody testing
-                      </option>
-                    </optgroup>
-                    <option value="Other">Other (Specify)</option>
-                  </select>
+                  {servicesLoading ? (
+                    <div className="flex items-center justify-center p-4">
+                      <div className="text-sm text-gray-500">Loading services...</div>
+                    </div>
+                  ) : (
+                    <select
+                      value={selectedService}
+                      onChange={(e) => setSelectedService(e.target.value)}
+                      className="w-full rounded-md border border-gray-300 p-2 text-sm shadow-sm focus:border-blue-400 focus:outline-none focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                      required
+                    >
+                      <option value="">-- Select a test --</option>
+                      
+                      {/* Lab Services */}
+                      {groupedServices['Lab'] && groupedServices['Lab'].length > 0 && (
+                        <optgroup label="Laboratory Tests">
+                          {groupedServices['Lab'].map((service) => (
+                            <option key={service.id} value={service.name}>
+                              {service.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      
+                      {/* X-Ray Services */}
+                      {groupedServices['X-Ray'] && groupedServices['X-Ray'].length > 0 && (
+                        <optgroup label="Radiology Tests">
+                          {groupedServices['X-Ray'].map((service) => (
+                            <option key={service.id} value={service.name}>
+                              {service.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      
+                      {/* Other Services */}
+                      {groupedServices['Others'] && groupedServices['Others'].length > 0 && (
+                        <optgroup label="Other Services">
+                          {groupedServices['Others'].map((service) => (
+                            <option key={service.id} value={service.name}>
+                              {service.name}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      
+                      <option value="Other">Other (Specify)</option>
+                    </select>
+                  )}
                 </div>
 
-                {labTestChoice === "Other" && (
+                {selectedService === "Other" && (
                   <div>
                     <label className="mb-1 block text-sm font-medium text-gray-700">
                       Custom Test Name
@@ -1035,8 +1078,9 @@ export default function TreatmentForm() {
                   <Button
                     type="submit"
                     className="bg-blue-600 text-white hover:bg-blue-700"
+                    disabled={servicesLoading}
                   >
-                    Submit Request
+                    {servicesLoading ? "Loading..." : "Submit Request"}
                   </Button>
                 </div>
               </form>
@@ -1045,60 +1089,60 @@ export default function TreatmentForm() {
         )}
 
         {/* Success Modal */}
-{showModal && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-    <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl relative">
-      {/* Close button (top-right) */}
-      <button
-        type="button"
-        onClick={() => setShowModal(false)}
-        aria-label="Close"
-        title="Close"
-        className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-md bg-white text-gray-600 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+            <div className="w-full max-w-md overflow-hidden rounded-xl bg-white shadow-2xl relative">
+              {/* Close button (top-right) */}
+              <button
+                type="button"
+                onClick={() => setShowModal(false)}
+                aria-label="Close"
+                title="Close"
+                className="absolute right-3 top-3 inline-flex h-9 w-9 items-center justify-center rounded-md bg-white text-gray-600 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
 
-      <div className="bg-green-50 px-6 py-4 text-center">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
-          <svg
-            className="h-8 w-8 text-green-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-        </div>
-        <h3 className="text-xl font-bold text-gray-900">Success!</h3>
-      </div>
+              <div className="bg-green-50 px-6 py-4 text-center">
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+                  <svg
+                    className="h-8 w-8 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg"
+                    aria-hidden="true"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">Success!</h3>
+              </div>
 
-      <div className="p-6">
-        <p className="mb-6 text-center text-gray-600">
-          Laboratory request has been successfully submitted.
-        </p>
-        <div className="grid grid-cols-2 gap-4">
-          <button
-            className="rounded-lg border border-blue-600 bg-white px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            onClick={() => router.push("/doctor")}
-          >
-            Go To Dashboard
-          </button>
-          <button
-            className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            onClick={() => router.push("/doctor/treatment-queue")}
-          >
-            Treatment Queue
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+              <div className="p-6">
+                <p className="mb-6 text-center text-gray-600">
+                  Laboratory request has been successfully submitted.
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <button
+                    className="rounded-lg border border-blue-600 bg-white px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    onClick={() => router.push("/doctor")}
+                  >
+                    Go To Dashboard
+                  </button>
+                  <button
+                    className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                    onClick={() => router.push("/doctor/treatment-queue")}
+                  >
+                    Treatment Queue
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -19,6 +19,9 @@ urlpatterns = [
     path('queueing/patient-treatment/<str:patient_id>/<str:queue_number>/', 
         views.PatientTreatmentForm.as_view(), 
         name='patient-treatment'),
+    path('queueing/services/', 
+        views.Services.as_view(), 
+        name='services'),
 
     path('', include(router.urls)),
 ]

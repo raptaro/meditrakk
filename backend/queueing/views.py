@@ -398,3 +398,29 @@ class RegistrationViewSet(viewsets.ModelViewSet):
         instance.status = "Cancelled"
         instance.save(update_fields=["status"])
         return Response(status=status.HTTP_204_NO_CONTENT)
+    
+class Services(APIView):
+    
+    permission_classes = []
+    def get(self, request):
+        try:
+            services = supabase.table("service").select(
+                'id', 'name', 'type'
+            ).execute()
+            services_data = services.data
+            if hasattr(services, 'error'):
+                return Response({'error': services},
+                                status=status.HTTP_400_BAD_REQUEST)
+                
+            data = []
+            
+            for service in services_data:
+                data.append({
+                    'id': service['id'],
+                    'name': service['name'],
+                    'type': service['type']
+                })
+            return Response({'services': data}, status=status.HTTP_200_OK)    
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+

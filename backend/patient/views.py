@@ -487,7 +487,7 @@ class Treatment(APIView):
                 "patient_patient(*), "
                 "queueing_treatment_diagnoses(id, treatment_id, diagnosis_id, patient_diagnosis(*)), "
                 "queueing_treatment_prescriptions(id, treatment_id, prescription_id, patient_prescription(*))"
-            ).execute()
+            ).order("created_at", desc=True).execute()
 
             if hasattr(treatment_response, 'error') and treatment_response.error:
                 return Response({"error": treatment_response.error.message},
