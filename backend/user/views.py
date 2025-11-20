@@ -16,10 +16,7 @@ class UserAccountViewSet(viewsets.ModelViewSet):
 
     def get_permissions(self):
         # update/partial_update/destroy => user-level (IsMe)
-        if self.action in ['update', 'partial_update', 'destroy']:
-            return [IsAdminOrGeneralDoctor()]
-        # create/restore => admin-level
-        if self.action in ['create', 'restore']:
+        if self.action in ['create', 'restore','update', 'partial_update', 'destroy']:
             return [IsAdminOrGeneralDoctor()]
         if self.action == 'doctors':
             return []
@@ -88,22 +85,12 @@ class UserAccountViewSet(viewsets.ModelViewSet):
         role = request.query_params.get('role')
         print(role)
         queryset = UserAccount.objects.filter(is_active=False)
-        if role:
-            # allow same normalization if you like; keeping simple here
-            queryset = queryset.filter(role=role)
+        # if role:
+        #     # allow same normalization if you like; keeping simple here
+        #     queryset = queryset.filter(role=role)
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @action(detail=False, methods=['get'], url_path='doctors')
-    def doctors(self, request):
-        """
-        Simple endpoint: GET /user/users/doctors/
-        Returns both regular doctors and on-call doctors.
-        """
-        doctor_roles = ["doctor", "on-call-doctor", "on-call"]
-        qs = UserAccount.objects.filter(role__in=doctor_roles, is_active=True).exclude(id=request.user.id)
-        serializer = self.get_serializer(qs, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @action(detail=False, methods=['get'], url_path='doctors-debug')
     def doctors_debug(self, request):
@@ -204,15 +191,25 @@ class UserAccountViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     
-    @action(detail=False, methods=['get'], url_path='doctors')
-    def doctors(self, request):
-        """
-        Public endpoint: GET /user/users/doctor/
-        Returns all active patients.
-        """
+    @action(detail=False, methods=['get'], url_path='doctors-admin')
+    def doctors_admin(self, request):
         qs = UserAccount.objects.filter(
             role__in=["doctor", "on-call-doctor", "on-call", "oncall"],
             is_active=True
         )
         serializer = self.get_serializer(qs, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    
+    @action(detail=False, methods=['get'], url_path='doctors')
+    def doctors(self, request):
+        doctor_roles = ["doctor", "on-call-doctor", "on-call"]
+        qs = UserAccount.objects.filter(role__in=doctor_roles, is_active=True).exclude(id=request.user.id)
+        serializer = self.get_serializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    @action(detail=False, methods=['get'], url_path='secretary')
+    def secretary(self, request):
+        qs = UserAccount.objects.filter(role='secretary', is_active=True)
+        serializer=self.get_serializer(qs, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK) 

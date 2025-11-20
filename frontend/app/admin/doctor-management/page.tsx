@@ -4,9 +4,9 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Eye, Archive, Plus, RotateCcw } from "lucide-react";
+import { Eye, Archive, Plus, RotateCcw, Edit } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Dialog,
   DialogContent,
@@ -28,13 +28,14 @@ export type Doctor = {
   doctor_profile: null | any;
 };
 
-// Add Doctor Form Types
-type AddDoctorForm = {
+// Add/Edit Doctor Form Types
+type DoctorForm = {
   email: string;
   first_name: string;
   last_name: string;
   password: string;
   confirm_password: string;
+  role: string;
   specialization: string;
   schedules: Array<{
     day_of_week: string;
@@ -147,31 +148,66 @@ function SkeletonDataTable() {
   );
 }
 
-// Add Doctor Modal Component
-function AddDoctorModal({ 
+// Doctor Modal Component (for both Add and Edit)
+function DoctorModal({ 
   isOpen, 
   onClose, 
-  onAdd 
+  onSave,
+  defaultRole,
+  doctor,
+  mode
 }: { 
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (doctorData: AddDoctorForm) => Promise<void>;
+  onSave: (doctorData: DoctorForm) => Promise<void>;
+  defaultRole: string;
+  doctor?: Doctor | null;
+  mode: 'add' | 'edit';
 }) {
-  const [formData, setFormData] = useState<AddDoctorForm>({
+  const [formData, setFormData] = useState<DoctorForm>({
     email: "",
     first_name: "",
     last_name: "",
     password: "",
     confirm_password: "",
+    role: defaultRole,
     specialization: "",
     schedules: [],
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Initialize form when doctor data is provided (edit mode)
+  useEffect(() => {
+    if (mode === 'edit' && doctor) {
+      setFormData({
+        email: doctor.email,
+        first_name: doctor.first_name,
+        last_name: doctor.last_name,
+        password: "",
+        confirm_password: "",
+        role: doctor.role,
+        specialization: doctor.doctor_profile?.specialization || "",
+        schedules: doctor.doctor_profile?.schedules || [],
+      });
+    } else {
+      // Reset form for add mode
+      setFormData({
+        email: "",
+        first_name: "",
+        last_name: "",
+        password: "",
+        confirm_password: "",
+        role: defaultRole,
+        specialization: "",
+        schedules: [],
+      });
+    }
+  }, [doctor, mode, defaultRole]);
+
   const handleScheduleChange = (
     index: number,
-    field: keyof AddDoctorForm['schedules'][0],
+    field: keyof DoctorForm['schedules'][0],
     value: string
   ) => {
     setFormData(prev => {
@@ -202,14 +238,17 @@ function AddDoctorModal({
     e.preventDefault();
     setError(null);
 
-    if (formData.password !== formData.confirm_password) {
-      setError("Passwords do not match");
-      return;
-    }
+    // Validation for add mode
+    if (mode === 'add') {
+      if (formData.password !== formData.confirm_password) {
+        setError("Passwords do not match");
+        return;
+      }
 
-    if (formData.password.length < 8) {
-      setError("Password must be at least 8 characters long");
-      return;
+      if (formData.password.length < 8) {
+        setError("Password must be at least 8 characters long");
+        return;
+      }
     }
 
     if (!formData.specialization.trim()) {
@@ -217,23 +256,40 @@ function AddDoctorModal({
       return;
     }
 
+    if (!formData.role) {
+      setError("Please select a role");
+      return;
+    }
+
     setLoading(true);
     try {
-      await onAdd(formData);
+      await onSave(formData);
       setFormData({
         email: "",
         first_name: "",
         last_name: "",
         password: "",
         confirm_password: "",
+        role: defaultRole,
         specialization: "",
         schedules: [],
       });
       onClose();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add doctor");
+      setError(err instanceof Error ? err.message : `Failed to ${mode} doctor`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'doctor':
+        return 'Doctor';
+      case 'on-call-doctor':
+        return 'On-Call Doctor';
+      default:
+        return role;
     }
   };
 
@@ -243,9 +299,14 @@ function AddDoctorModal({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Add New Doctor</DialogTitle>
+          <DialogTitle>
+            {mode === 'add' ? 'Add New Medical Professional' : 'Edit Medical Professional'}
+          </DialogTitle>
           <DialogDescription>
-            Create a new doctor account with their specialization and schedule.
+            {mode === 'add' 
+              ? 'Create a new medical professional account with their role, specialization and schedule.'
+              : 'Update the medical professional information.'
+            }
           </DialogDescription>
         </DialogHeader>
         
@@ -283,33 +344,57 @@ function AddDoctorModal({
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
+              disabled={mode === 'edit'} // Email shouldn't be editable in edit mode
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Password *
-              </label>
-              <Input
-                type="password"
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                required
-              />
-            </div>
+          {mode === 'add' && (
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Password *
+                </label>
+                <Input
+                  type="password"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  required
+                />
+              </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Confirm Password *
-              </label>
-              <Input
-                type="password"
-                value={formData.confirm_password}
-                onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
-                required
-              />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Confirm Password *
+                </label>
+                <Input
+                  type="password"
+                  value={formData.confirm_password}
+                  onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
+                  required
+                />
+              </div>
             </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Role *
+            </label>
+            <select
+              value={formData.role}
+              onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+              className="w-full rounded border p-2 text-sm"
+              required
+            >
+              <option value="doctor">Doctor</option>
+              <option value="on-call-doctor">On-Call Doctor</option>
+            </select>
+            <p className="text-xs text-gray-500 mt-1">
+              {formData.role === 'doctor' 
+                ? 'Regular doctor with fixed schedule' 
+                : 'On-call doctor for emergency and after-hours coverage'
+              }
+            </p>
           </div>
 
           <div>
@@ -386,7 +471,7 @@ function AddDoctorModal({
             
             {formData.schedules.length === 0 && (
               <p className="text-sm text-gray-500 text-center py-4">
-                No schedules added. Doctor will have no available hours.
+                No schedules added. {getRoleDisplayName(formData.role)} will have no available hours.
               </p>
             )}
           </div>
@@ -405,7 +490,10 @@ function AddDoctorModal({
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Adding..." : "Add Doctor"}
+              {loading 
+                ? `${mode === 'add' ? 'Adding' : 'Updating'}...` 
+                : `${mode === 'add' ? 'Add' : 'Update'} ${getRoleDisplayName(formData.role)}`
+              }
             </Button>
           </div>
         </form>
@@ -414,30 +502,45 @@ function AddDoctorModal({
   );
 }
 
-// Helper Components
 function ActionsCell({ 
   doctorId, 
   isActive, 
   onArchive,
-  onRestore 
+  onRestore,
+  onEdit
 }: { 
   doctorId: string;
   isActive: boolean;
   onArchive: (id: string) => void;
   onRestore: (id: string) => void;
+  onEdit: (id: string) => void;
 }) {
-  const pathname = usePathname();
-  const basePath = pathname.includes("oncall-doctors")
-    ? "/oncall-doctors"
-    : pathname.includes("secretary")
-    ? "/secretary"
-    : "/doctor";
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
+  const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
+
+  const handleArchive = () => {
+    onArchive(doctorId);
+    setArchiveDialogOpen(false);
+  };
+
+  const handleRestore = () => {
+    onRestore(doctorId);
+    setRestoreDialogOpen(false);
+  };
 
   return (
     <div className="flex flex-row space-x-2">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="text-blue-500 hover:text-blue-700 hover:bg-blue-50"
+        onClick={() => onEdit(doctorId)}
+      >
+        <Edit className="w-4 h-4" />
+      </Button>
       
       {isActive ? (
-        <Dialog>
+        <Dialog open={archiveDialogOpen} onOpenChange={setArchiveDialogOpen}>
           <DialogTrigger asChild>
             <Button
               variant="ghost"
@@ -457,18 +560,18 @@ function ActionsCell({
             <div className="mt-4 flex justify-end gap-2">
               <Button
                 variant="outline"
-                onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))}
+                onClick={() => setArchiveDialogOpen(false)}
               >
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={() => onArchive(doctorId)}>
+              <Button variant="destructive" onClick={handleArchive}>
                 Confirm Archive
               </Button>
             </div>
           </DialogContent>
         </Dialog>
       ) : (
-        <Dialog>
+        <Dialog open={restoreDialogOpen} onOpenChange={setRestoreDialogOpen}>
           <DialogTrigger asChild>
             <Button
               variant="ghost"
@@ -488,11 +591,11 @@ function ActionsCell({
             <div className="mt-4 flex justify-end gap-2">
               <Button
                 variant="outline"
-                onClick={() => document.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape" }))}
+                onClick={() => setRestoreDialogOpen(false)}
               >
                 Cancel
               </Button>
-              <Button variant="default" onClick={() => onRestore(doctorId)}>
+              <Button variant="default" onClick={handleRestore}>
                 Confirm Restore
               </Button>
             </div>
@@ -515,10 +618,41 @@ function StatusBadge({ isActive }: { isActive: boolean }) {
   );
 }
 
+function RoleBadge({ role }: { role: string }) {
+  const getRoleStyles = (role: string) => {
+    switch (role) {
+      case 'doctor':
+        return "border-blue-500 bg-blue-100 text-blue-800";
+      case 'on-call-doctor':
+        return "border-orange-500 bg-orange-100 text-orange-800";
+      default:
+        return "border-gray-500 bg-gray-100 text-gray-800";
+    }
+  };
+
+  const getRoleDisplayName = (role: string) => {
+    switch (role) {
+      case 'doctor':
+        return 'Doctor';
+      case 'on-call-doctor':
+        return 'On-Call Doctor';
+      default:
+        return role;
+    }
+  };
+
+  return (
+    <Badge variant="outline" className={`${getRoleStyles(role)} rounded-full font-medium`}>
+      {getRoleDisplayName(role)}
+    </Badge>
+  );
+}
+
 // Columns Definition
 const getDoctorColumns = (
   onArchive: (id: string) => void,
-  onRestore: (id: string) => void
+  onRestore: (id: string) => void,
+  onEdit: (id: string) => void
 ): ColumnDef<Doctor>[] => [
   {
     accessorKey: "id",
@@ -535,6 +669,13 @@ const getDoctorColumns = (
   {
     accessorKey: "email",
     header: "Email",
+  },
+  {
+    accessorKey: "role",
+    header: "Role",
+    cell: ({ row }) => {
+      return <RoleBadge role={row.original.role} />;
+    },
   },
   {
     accessorKey: "doctor_profile.specialization",
@@ -572,6 +713,7 @@ const getDoctorColumns = (
         isActive={row.original.is_active}
         onArchive={onArchive}
         onRestore={onRestore}
+        onEdit={onEdit}
       />
     ),
   },
@@ -584,16 +726,34 @@ export default function DoctorList() {
   const [error, setError] = useState<string | null>(null);
   const [showArchived, setShowArchived] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingDoctor, setEditingDoctor] = useState<Doctor | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  
+  // Get the current path to determine default role
+  const pathname = usePathname();
+  const router = useRouter();
+  
+  // Determine default role based on current path
+  const getDefaultRole = () => {
+    if (pathname.includes("oncall-doctors")) {
+      return "on-call-doctor";
+    }
+    return "doctor"; // default role
+  };
+
+  const defaultRole = getDefaultRole();
+  const displayTitle = defaultRole === 'on-call-doctor' ? 'On-Call Doctors' : 'Doctors';
 
   const fetchDoctors = async (showArchived: boolean = false) => {
     try {
-      // Using the specified URL without changes
+      const token = localStorage.getItem("access");
       const url = `${process.env.NEXT_PUBLIC_API_BASE}/user/users/doctors`;
       
       const response = await fetch(url, {
         method: "GET",
         headers: {
+          "Authorization": `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         credentials: "include",
@@ -626,19 +786,17 @@ export default function DoctorList() {
   const handleArchive = async (doctorId: string) => {
     setActionLoading(doctorId);
     try {
-        const token = localStorage.getItem("access");
+      const token = localStorage.getItem("access");
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE}/user/users/${doctorId}/`,
         {
           method: "DELETE",
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({
-            is_active: false
-          }),
         }
       );
 
@@ -659,18 +817,17 @@ export default function DoctorList() {
   const handleRestore = async (doctorId: string) => {
     setActionLoading(doctorId);
     try {
-            const token = localStorage.getItem("access");
+      const token = localStorage.getItem("access");
+      
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_BASE}/user/users/${doctorId}/`,
+        `${process.env.NEXT_PUBLIC_API_BASE}/user/users/${doctorId}/restore/`,
         {
           method: "PATCH",
           headers: {
-            Authorization: `Bearer ${token}`,
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
           credentials: "include",
-          body: JSON.stringify({
-            is_active: true
-          }),
         }
       );
 
@@ -688,13 +845,16 @@ export default function DoctorList() {
     }
   };
 
-  const handleAddDoctor = async (doctorData: AddDoctorForm) => {
+  const handleAddDoctor = async (doctorData: DoctorForm) => {
+    const token = localStorage.getItem("access");
+    
     const response = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE}/user/users/`,
       {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
         },
         credentials: "include",
         body: JSON.stringify({
@@ -703,7 +863,7 @@ export default function DoctorList() {
           last_name: doctorData.last_name,
           password: doctorData.password,
           re_password: doctorData.confirm_password,
-          role: "doctor",
+          role: doctorData.role,
           doctor_profile: {
             specialization: doctorData.specialization,
             schedules: doctorData.schedules,
@@ -725,12 +885,63 @@ export default function DoctorList() {
     await fetchDoctors(showArchived);
   };
 
-  const columns = getDoctorColumns(handleArchive, handleRestore);
+  const handleEditDoctor = async (doctorData: DoctorForm) => {
+    if (!editingDoctor) return;
+
+    const token = localStorage.getItem("access");
+    
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE}/user/users/${editingDoctor.id}/`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          first_name: doctorData.first_name,
+          last_name: doctorData.last_name,
+          role: doctorData.role,
+          doctor_profile: {
+            specialization: doctorData.specialization,
+            schedules: doctorData.schedules,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(
+        errorData.detail || 
+        errorData.message || 
+        `Failed to update doctor: ${response.status}`
+      );
+    }
+
+    // Refresh the list
+    await fetchDoctors(showArchived);
+  };
+
+  const handleEditClick = (doctorId: string) => {
+    const doctor = doctors.find(d => d.id === doctorId);
+    if (doctor) {
+      setEditingDoctor(doctor);
+      setShowEditModal(true);
+    }
+  };
+
+  const handleArchivesClick = () => {
+    router.push("/admin/user-archives");
+  };
+
+  const columns = getDoctorColumns(handleArchive, handleRestore, handleEditClick);
 
   if (loading) {
     return (
       <div className="p-4">
-        <h2 className="text-2xl font-bold mb-4">Doctors</h2>
+        <h2 className="text-2xl font-bold mb-4">{displayTitle}</h2>
         <SkeletonDataTable />
       </div>
     );
@@ -740,29 +951,19 @@ export default function DoctorList() {
     <div className="p-4">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-2xl font-bold">
-          {showArchived ? "Archived Doctors" : "Active Doctors"}
+          {showArchived ? `Archived ${displayTitle}` : `Active ${displayTitle}`}
         </h2>
         
         <div className="flex space-x-2">
-          <Button
-            variant={showArchived ? "default" : "outline"}
-            onClick={() => setShowArchived(false)}
-          >
-            Active Doctors
-          </Button>
-          <Button
-            variant={showArchived ? "outline" : "default"}
-            onClick={() => setShowArchived(true)}
-          >
-            Archived Doctors
+          <Button variant="outline" onClick={handleArchivesClick}>
+            <Archive className="w-4 h-4 mr-2" />
+            View Archives
           </Button>
           
-          {!showArchived && (
-            <Button onClick={() => setShowAddModal(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Doctor
-            </Button>
-          )}
+          <Button onClick={() => setShowAddModal(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Medical Professional
+          </Button>
         </div>
       </div>
 
@@ -783,13 +984,29 @@ export default function DoctorList() {
         data={doctors} 
         columns={columns}
         searchKey="first_name"
-        placeholder="Search doctors by name..."
+        placeholder={`Search ${displayTitle.toLowerCase()} by name...`}
       />
 
-      <AddDoctorModal
+      {/* Add Doctor Modal */}
+      <DoctorModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
-        onAdd={handleAddDoctor}
+        onSave={handleAddDoctor}
+        defaultRole={defaultRole}
+        mode="add"
+      />
+
+      {/* Edit Doctor Modal */}
+      <DoctorModal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingDoctor(null);
+        }}
+        onSave={handleEditDoctor}
+        defaultRole={defaultRole}
+        doctor={editingDoctor}
+        mode="edit"
       />
     </div>
   );

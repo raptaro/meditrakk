@@ -53,49 +53,27 @@ class UserAccount(AbstractBaseUser, PermissionsMixin):
     
 @receiver(pre_save, sender=UserAccount)
 def create_user_id(sender, instance, **kwargs):
-    # only generate when no id set yet
-    if instance.id:
-        return
-
-    prefix = "02000"    # keep as string for final id composition
-    start_num = 10      # numeric offset for the sequence base
-
-    # find last user (by pk broadly) - could be non-numeric pk in some setups
-    last_user = UserAccount.objects.order_by('-pk').first()
-
-    # determine numeric base for next number
-    next_base = start_num
-    if last_user:
-        # try interpreting last_user.pk as int
-        try:
-            next_base = int(last_user.pk) + start_num
-        except (TypeError, ValueError):
-            # pk isn't a plain integer — try to extract trailing digits from last_user.id
-            # e.g. "doe-0200012" -> 12
-            last_id = getattr(last_user, "id", "") or ""
-            m = re.search(r'(\d+)$', last_id)
-            if m:
-                try:
-                    last_num = int(m.group(1))
-                    next_base = last_num + 1
-                except ValueError:
-                    # fallback to start_num if extraction fails
-                    next_base = start_num
-            else:
-                next_base = start_num
-
-    # slugify last name
-    last_name_slug = slugify(instance.last_name) or "user"
-
-    # Build candidate id and ensure unique (avoid collisions)
-    # This loop is defensive — it will increment the numeric suffix until unique.
-    candidate_num = int(next_base)
-    while True:
-        candidate_id = f"{last_name_slug}-{prefix}{candidate_num}"
-        if not UserAccount.objects.filter(id=candidate_id).exists():
-            instance.id = candidate_id
-            break
-        candidate_num += 1
+    if not instance.id:
+        prefix = "02000"
+        
+        # Use timestamp + random to ensure uniqueness
+        import time
+        import random
+        
+        timestamp = int(time.time() * 1000)  # Current time in milliseconds
+        random_part = random.randint(0, 9999)
+        
+        # Combine and convert to hex
+        unique_num = (timestamp + random_part) % 0xFFFFF  # Limit to 5 hex digits max
+        
+        # Create the new ID
+        from django.utils.text import slugify
+        last_name_slug = slugify(instance.last_name) or "user"
+        
+        # Convert to hex (lowercase)
+        unique_hex = format(unique_num, 'x')
+        
+        instance.id = f"{last_name_slug}-{prefix}{unique_hex}"
 # @receiver(pre_save, sender=UserAccount)
 # def create_user_id(sender, instance, **kwargs):
 #     if not instance.id:

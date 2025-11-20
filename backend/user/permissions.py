@@ -40,17 +40,26 @@ class isAdmin(BasePermission):
 
 class IsAdminOrGeneralDoctor(BasePermission):
     def has_permission(self, request, view):
+        print(f"DEBUG IsAdminOrGeneralDoctor - Method: {request.method}")
+        print(f"DEBUG IsAdminOrGeneralDoctor - User: {request.user}")
+        print(f"DEBUG IsAdminOrGeneralDoctor - User role: {getattr(request.user, 'role', 'No role')}")
+        
         if request.method in SAFE_METHODS:
+            print("DEBUG - Allowing safe method")
             return True
 
         if not request.user or not hasattr(request.user, 'role'):
+            print("DEBUG - No user or no role attribute")
             return False
 
         role = request.user.role.lower()
         email = request.user.email.lower()
 
-        if role == 'admin' or (role == 'doctor'):
+        if role == 'admin' or role == 'doctor':
+            print("DEBUG - User is admin or doctor, allowing")
             return True
+            
+        print("DEBUG - User is not admin or doctor, denying")
         return False
     
 class IsReferralParticipant(BasePermission):

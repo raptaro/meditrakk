@@ -4,6 +4,7 @@ import {
   NotepadText,
   Cog,
   Users2,
+  Archive
 } from "lucide-react";
 
 import {
@@ -46,6 +47,11 @@ const menu_items = [
     title: "Services Management",
     url: "/admin/services-management",
     icon: Cog,
+  },
+    {
+    title: "Archives",
+    url: "/admin/user-archives",
+    icon: Archive,
   },
 ];
 
