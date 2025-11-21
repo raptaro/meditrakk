@@ -1,3 +1,5 @@
+export const dynamic = "force-dynamic";
+
 import { getServiceTypes } from "@/app/actions/service";
 import { AddServiceClient } from "./add-service-client";
 
