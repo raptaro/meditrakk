@@ -406,7 +406,7 @@ class Services(APIView):
         try:
             services = supabase.table("service").select(
                 'id', 'name', 'type'
-            ).execute()
+            ).eq('isArchived', False).execute()
             services_data = services.data
             if hasattr(services, 'error'):
                 return Response({'error': services},
