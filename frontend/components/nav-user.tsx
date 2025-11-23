@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronsUpDown, Eclipse, LogOut } from "lucide-react";
+import { Bell, ChevronsUpDown, Eclipse, LogOut } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -79,6 +79,10 @@ export function NavUser({
               >
                 <Eclipse />
                 Toggle Theme
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Bell />
+                Notifications
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
