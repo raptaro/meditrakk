@@ -1,4 +1,5 @@
 import DarkModeToggle from "@/components/molecules/header/dark-mode-toggle";
+import Notification from "@/components/molecules/header/notification";
 import ProfileDropdown from "@/components/molecules/header/profile-dropdown";
 import { Menu } from "lucide-react";
 import { SidebarTrigger } from "../ui/sidebar";
@@ -23,6 +24,7 @@ const Header = () => {
         {/* Right section (icons) */}
         <div className="hidden items-center gap-2 sm:gap-3 md:flex">
           <DarkModeToggle />
+          <Notification />
           <ProfileDropdown />
         </div>
       </div>
