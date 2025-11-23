@@ -459,22 +459,24 @@ const exportToPDF = async () => {
           </div>
         )}
 
-        {/* Filters and Search */}
+        {/* Filters and Search - FIXED ALIGNMENT */}
         <div className="bg-white rounded-lg shadow-sm p-6 mb-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="Search by patient name, ID, or diagnosis..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-              />
+          <div className="flex flex-col md:flex-row gap-4 items-stretch md:items-end">
+            {/* Search - Takes full width on mobile, flexible on desktop */}
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <input
+                  type="text"
+                  placeholder="Search by patient name, ID, or diagnosis..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+              </div>
             </div>
 
-            {/* Doctor Filter */}
+            {/* Doctor Filter - Fixed width */}
             <div className="w-full md:w-64">
               <label htmlFor="doctor-filter" className="block text-sm font-medium text-gray-700 mb-1">
                 Filter by Doctor
@@ -494,12 +496,12 @@ const exportToPDF = async () => {
               </select>
             </div>
 
-            {/* Export Button */}
-            <div className="flex items-end">
+            {/* Export Button - Auto width */}
+            <div className="w-full md:w-auto">
               <button 
                 onClick={exportToPDF}
                 disabled={filteredPatients.length === 0 || exporting}
-                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+                className="w-full md:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
               >
                 {exporting ? (
                   <>
