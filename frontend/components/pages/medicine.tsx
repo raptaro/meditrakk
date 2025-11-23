@@ -16,6 +16,9 @@ import {
   MoreHorizontal,
   Edit,
   Trash2,
+  X,
+  Archive,
+  RotateCcw,
 } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -43,9 +46,19 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
 
 interface Medicine {
   id: number;
+  name: string;
+  dosage_form: string;
+  strength: string;
+  stocks: number;
+  expiration_date: string;
+  is_active: boolean;
+}
+
+interface MedicineFormData {
   name: string;
   dosage_form: string;
   strength: string;
@@ -62,12 +75,37 @@ export default function MedicineList() {
   const [stockFilter, setStockFilter] = useState("all");
   const [sortField, setSortField] = useState<keyof Medicine>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+  
+  // Modal states
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const [isRestoreModalOpen, setIsRestoreModalOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
+
+  // Form states
+  const [formData, setFormData] = useState<MedicineFormData>({
+    name: "",
+    dosage_form: "",
+    strength: "",
+    stocks: 0,
+    expiration_date: "",
+  });
+
+  const [editingMedicine, setEditingMedicine] = useState<Medicine | null>(null);
+  const [archiveMedicine, setArchiveMedicine] = useState<Medicine | null>(null);
+  const [restoreMedicine, setRestoreMedicine] = useState<Medicine | null>(null);
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const rowsPerPage = 15;
 
   useEffect(() => {
+    fetchMedicines();
+  }, []);
+
+  const fetchMedicines = () => {
     const token = localStorage.getItem("access");
 
     setIsLoading(true);
@@ -94,7 +132,7 @@ export default function MedicineList() {
         setError("Failed to load medicines. Please try again later.");
         setIsLoading(false);
       });
-  }, []);
+  };
 
   useEffect(() => {
     let results = medicines.filter((medicine) =>
@@ -141,6 +179,309 @@ export default function MedicineList() {
       setSortField(field);
       setSortDirection("asc");
     }
+  };
+
+  // Form handlers
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'stocks' ? parseInt(value) || 0 : value
+    }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  // Add Medicine
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const token = localStorage.getItem("access");
+      
+      // Validate form data
+      if (!formData.name.trim()) {
+        throw new Error("Medicine name is required");
+      }
+      if (!formData.dosage_form.trim()) {
+        throw new Error("Dosage form is required");
+      }
+      if (!formData.strength.trim()) {
+        throw new Error("Strength is required");
+      }
+      if (formData.stocks < 0) {
+        throw new Error("Stocks cannot be negative");
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/medicines/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to add medicine");
+      }
+
+      const newMedicine = await response.json();
+      
+      // Update the medicines list
+      setMedicines(prev => [newMedicine, ...prev]);
+      
+      // Reset form and close modal
+      resetForm();
+      setIsAddModalOpen(false);
+      
+    } catch (error) {
+      console.error("Error adding medicine:", error);
+      setSubmitError(error instanceof Error ? error.message : "Failed to add medicine");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Edit Medicine
+  const handleEditSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingMedicine) return;
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const token = localStorage.getItem("access");
+      
+      // Validate form data
+      if (!formData.name.trim()) {
+        throw new Error("Medicine name is required");
+      }
+      if (!formData.dosage_form.trim()) {
+        throw new Error("Dosage form is required");
+      }
+      if (!formData.strength.trim()) {
+        throw new Error("Strength is required");
+      }
+      if (formData.stocks < 0) {
+        throw new Error("Stocks cannot be negative");
+      }
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/medicines/${editingMedicine.id}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update medicine");
+      }
+
+      const updatedMedicine = await response.json();
+      
+      // Update the medicines list
+      setMedicines(prev => prev.map(med => 
+        med.id === editingMedicine.id ? updatedMedicine : med
+      ));
+      
+      // Reset form and close modal
+      resetForm();
+      setIsEditModalOpen(false);
+      setEditingMedicine(null);
+      
+    } catch (error) {
+      console.error("Error updating medicine:", error);
+      setSubmitError(error instanceof Error ? error.message : "Failed to update medicine");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Archive Medicine
+  const handleArchive = async () => {
+    if (!archiveMedicine) return;
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const token = localStorage.getItem("access");
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/medicines/${archiveMedicine.id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ is_active: false }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to archive medicine");
+      }
+
+      const archivedMedicine = await response.json();
+      
+      // Update the medicines list
+      setMedicines(prev => prev.map(med => 
+        med.id === archiveMedicine.id ? archivedMedicine : med
+      ));
+      
+      // Close modal
+      setIsArchiveModalOpen(false);
+      setArchiveMedicine(null);
+      
+    } catch (error) {
+      console.error("Error archiving medicine:", error);
+      setSubmitError(error instanceof Error ? error.message : "Failed to archive medicine");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Restore Medicine
+  const handleRestore = async () => {
+    if (!restoreMedicine) return;
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const token = localStorage.getItem("access");
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/medicines/${restoreMedicine.id}/`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ is_active: true }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to restore medicine");
+      }
+
+      const restoredMedicine = await response.json();
+      
+      // Update the medicines list
+      setMedicines(prev => prev.map(med => 
+        med.id === restoreMedicine.id ? restoredMedicine : med
+      ));
+      
+      // Close modal
+      setIsRestoreModalOpen(false);
+      setRestoreMedicine(null);
+      
+    } catch (error) {
+      console.error("Error restoring medicine:", error);
+      setSubmitError(error instanceof Error ? error.message : "Failed to restore medicine");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Delete Medicine (Hard Delete)
+  const handleDelete = async () => {
+    if (!archiveMedicine) return;
+
+    setIsSubmitting(true);
+    setSubmitError("");
+
+    try {
+      const token = localStorage.getItem("access");
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/medicine/${archiveMedicine.id}/`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete medicine");
+      }
+      
+      // Remove from medicines list
+      setMedicines(prev => prev.filter(med => med.id !== archiveMedicine.id));
+      
+      // Close modal
+      setIsArchiveModalOpen(false);
+      setArchiveMedicine(null);
+      
+    } catch (error) {
+      console.error("Error deleting medicine:", error);
+      setSubmitError(error instanceof Error ? error.message : "Failed to delete medicine");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      dosage_form: "",
+      strength: "",
+      stocks: 0,
+      expiration_date: "",
+    });
+    setSubmitError("");
+  };
+
+  // Modal handlers
+  const openAddModal = () => {
+    resetForm();
+    setIsAddModalOpen(true);
+  };
+
+  const openEditModal = (medicine: Medicine) => {
+    setEditingMedicine(medicine);
+    setFormData({
+      name: medicine.name,
+      dosage_form: medicine.dosage_form,
+      strength: medicine.strength,
+      stocks: medicine.stocks,
+      expiration_date: medicine.expiration_date,
+    });
+    setIsEditModalOpen(true);
+  };
+
+  const openArchiveModal = (medicine: Medicine) => {
+    setArchiveMedicine(medicine);
+    setIsArchiveModalOpen(true);
+  };
+
+  const openRestoreModal = (medicine: Medicine) => {
+    setRestoreMedicine(medicine);
+    setIsRestoreModalOpen(true);
+  };
+
+  const closeAllModals = () => {
+    setIsAddModalOpen(false);
+    setIsEditModalOpen(false);
+    setIsArchiveModalOpen(false);
+    setIsRestoreModalOpen(false);
+    setEditingMedicine(null);
+    setArchiveMedicine(null);
+    setRestoreMedicine(null);
+    resetForm();
   };
 
   // Calculate pagination
@@ -195,6 +536,10 @@ export default function MedicineList() {
     );
   };
 
+  // Filter active and archived medicines for stats
+  const activeMedicines = medicines.filter(med => med.is_active);
+  const archivedMedicines = medicines.filter(med => !med.is_active);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 py-8">
@@ -248,7 +593,7 @@ export default function MedicineList() {
                   Prescribed Medicines
                 </Link>
               </Button>
-              <Button>
+              <Button onClick={openAddModal}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Medicine
               </Button>
@@ -257,7 +602,7 @@ export default function MedicineList() {
         </div>
 
         {/* Quick Stats */}
-        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="mb-6 grid grid-cols-2 gap-4 md:grid-cols-5">
           <Card className="bg-white">
             <CardContent className="p-4">
               <div className="text-center">
@@ -272,9 +617,19 @@ export default function MedicineList() {
             <CardContent className="p-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-green-600">
-                  {medicines.filter(m => m.stocks >= 50).length}
+                  {activeMedicines.length}
                 </p>
-                <p className="text-sm text-slate-600">Good Stock</p>
+                <p className="text-sm text-slate-600">Active</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card className="bg-white">
+            <CardContent className="p-4">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-600">
+                  {archivedMedicines.length}
+                </p>
+                <p className="text-sm text-slate-600">Archived</p>
               </div>
             </CardContent>
           </Card>
@@ -282,7 +637,7 @@ export default function MedicineList() {
             <CardContent className="p-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-orange-600">
-                  {medicines.filter(m => m.stocks < 50 && m.stocks > 0).length}
+                  {activeMedicines.filter(m => m.stocks < 50 && m.stocks > 0).length}
                 </p>
                 <p className="text-sm text-slate-600">Low Stock</p>
               </div>
@@ -292,7 +647,7 @@ export default function MedicineList() {
             <CardContent className="p-4">
               <div className="text-center">
                 <p className="text-2xl font-bold text-red-600">
-                  {medicines.filter(m => m.stocks === 0).length}
+                  {activeMedicines.filter(m => m.stocks === 0).length}
                 </p>
                 <p className="text-sm text-slate-600">Out of Stock</p>
               </div>
@@ -396,7 +751,7 @@ export default function MedicineList() {
                         </div>
                       </TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead className="w-[80px]">Actions</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -406,7 +761,12 @@ export default function MedicineList() {
                       const expired = isExpired(medicine.expiration_date);
 
                       return (
-                        <TableRow key={medicine.id} className="hover:bg-slate-50">
+                        <TableRow 
+                          key={medicine.id} 
+                          className={`hover:bg-slate-50 ${
+                            !medicine.is_active ? 'bg-gray-50 opacity-60' : ''
+                          }`}
+                        >
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100">
@@ -416,6 +776,11 @@ export default function MedicineList() {
                                 <div className="font-medium text-slate-800">
                                   {medicine.name}
                                 </div>
+                                {!medicine.is_active && (
+                                  <Badge variant="outline" className="mt-1 bg-gray-200 text-gray-700">
+                                    Archived
+                                  </Badge>
+                                )}
                               </div>
                             </div>
                           </TableCell>
@@ -466,11 +831,10 @@ export default function MedicineList() {
                               {(expired || isExpiring) && (
                                 <Badge
                                   variant={expired ? "destructive" : "outline"}
-                                  className={expired ? "" : "bg-yellow-500 text-white"}
+                                  className={expired ? '' : 'bg-yellow-500 text-white'}
                                 >
                                   {expired ? "Expired" : "Expiring Soon"}
                                 </Badge>
-
                               )}
                             </div>
                           </TableCell>
@@ -487,14 +851,38 @@ export default function MedicineList() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600">
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
+                                {medicine.is_active ? (
+                                  <>
+                                    <DropdownMenuItem onClick={() => openEditModal(medicine)}>
+                                      <Edit className="mr-2 h-4 w-4" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      onClick={() => openArchiveModal(medicine)}
+                                      className="text-amber-600"
+                                    >
+                                      <Archive className="mr-2 h-4 w-4" />
+                                      Archive
+                                    </DropdownMenuItem>
+                                  </>
+                                ) : (
+                                  <>
+                                    <DropdownMenuItem 
+                                      onClick={() => openRestoreModal(medicine)}
+                                      className="text-green-600"
+                                    >
+                                      <RotateCcw className="mr-2 h-4 w-4" />
+                                      Restore
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      onClick={() => openArchiveModal(medicine)}
+                                      className="text-red-600"
+                                    >
+                                      <Trash2 className="mr-2 h-4 w-4" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </>
+                                )}
                               </DropdownMenuContent>
                             </DropdownMenu>
                           </TableCell>
@@ -542,6 +930,313 @@ export default function MedicineList() {
             )}
           </>
         )}
+
+        {/* Add Medicine Modal */}
+        {isAddModalOpen && (
+          <MedicineModal
+            title="Add New Medicine"
+            isOpen={isAddModalOpen}
+            onClose={closeAllModals}
+            onSubmit={handleSubmit}
+            formData={formData}
+            onInputChange={handleInputChange}
+            onSelectChange={handleSelectChange}
+            isSubmitting={isSubmitting}
+            submitError={submitError}
+          />
+        )}
+
+        {/* Edit Medicine Modal */}
+        {isEditModalOpen && editingMedicine && (
+          <MedicineModal
+            title="Edit Medicine"
+            isOpen={isEditModalOpen}
+            onClose={closeAllModals}
+            onSubmit={handleEditSubmit}
+            formData={formData}
+            onInputChange={handleInputChange}
+            onSelectChange={handleSelectChange}
+            isSubmitting={isSubmitting}
+            submitError={submitError}
+          />
+        )}
+
+        {/* Archive Confirmation Modal */}
+        {isArchiveModalOpen && archiveMedicine && (
+          <ConfirmationModal
+            title={archiveMedicine.is_active ? "Archive Medicine" : "Delete Medicine"}
+            message={
+              archiveMedicine.is_active
+                ? `Are you sure you want to archive "${archiveMedicine.name}"? This will make it unavailable for new prescriptions.`
+                : `Are you sure you want to permanently delete "${archiveMedicine.name}"? This action cannot be undone.`
+            }
+            confirmText={archiveMedicine.is_active ? "Archive" : "Delete"}
+            confirmVariant={archiveMedicine.is_active ? "default" : "destructive"}
+            isOpen={isArchiveModalOpen}
+            onClose={closeAllModals}
+            onConfirm={archiveMedicine.is_active ? handleArchive : handleDelete}
+            isSubmitting={isSubmitting}
+            submitError={submitError}
+          />
+        )}
+
+        {/* Restore Confirmation Modal */}
+        {isRestoreModalOpen && restoreMedicine && (
+          <ConfirmationModal
+            title="Restore Medicine"
+            message={`Are you sure you want to restore "${restoreMedicine.name}"? This will make it available for new prescriptions.`}
+            confirmText="Restore"
+            confirmVariant="default"
+            isOpen={isRestoreModalOpen}
+            onClose={closeAllModals}
+            onConfirm={handleRestore}
+            isSubmitting={isSubmitting}
+            submitError={submitError}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Reusable Medicine Form Modal Component
+interface MedicineModalProps {
+  title: string;
+  isOpen: boolean;
+  onClose: () => void;
+  onSubmit: (e: React.FormEvent) => void;
+  formData: MedicineFormData;
+  onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onSelectChange: (name: string, value: string) => void;
+  isSubmitting: boolean;
+  submitError: string;
+}
+
+function MedicineModal({
+  title,
+  isOpen,
+  onClose,
+  onSubmit,
+  formData,
+  onInputChange,
+  onSelectChange,
+  isSubmitting,
+  submitError,
+}: MedicineModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-semibold text-slate-800">{title}</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="h-8 w-8 p-0"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <form onSubmit={onSubmit} className="p-6 space-y-4">
+          {submitError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-red-700 text-sm">{submitError}</p>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-sm font-medium text-slate-700">
+              Medicine Name *
+            </Label>
+            <Input
+              id="name"
+              name="name"
+              value={formData.name}
+              onChange={onInputChange}
+              placeholder="Enter medicine name"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="dosage_form" className="text-sm font-medium text-slate-700">
+              Dosage Form *
+            </Label>
+            <Select
+              value={formData.dosage_form}
+              onValueChange={(value) => onSelectChange("dosage_form", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select dosage form" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Tablet">Tablet</SelectItem>
+                <SelectItem value="Capsule">Capsule</SelectItem>
+                <SelectItem value="Syrup">Syrup</SelectItem>
+                <SelectItem value="Injection">Injection</SelectItem>
+                <SelectItem value="Ointment">Ointment</SelectItem>
+                <SelectItem value="Cream">Cream</SelectItem>
+                <SelectItem value="Drops">Drops</SelectItem>
+                <SelectItem value="Inhaler">Inhaler</SelectItem>
+                <SelectItem value="Suppository">Suppository</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="strength" className="text-sm font-medium text-slate-700">
+              Strength *
+            </Label>
+            <Input
+              id="strength"
+              name="strength"
+              value={formData.strength}
+              onChange={onInputChange}
+              placeholder="e.g., 500mg, 10mg/mL"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="stocks" className="text-sm font-medium text-slate-700">
+              Stock Quantity
+            </Label>
+            <Input
+              id="stocks"
+              name="stocks"
+              type="number"
+              min="0"
+              value={formData.stocks}
+              onChange={onInputChange}
+              placeholder="Enter stock quantity"
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="expiration_date" className="text-sm font-medium text-slate-700">
+              Expiration Date
+            </Label>
+            <Input
+              id="expiration_date"
+              name="expiration_date"
+              type="date"
+              value={formData.expiration_date}
+              onChange={onInputChange}
+            />
+          </div>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={isSubmitting}
+              className="flex-1"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  {title.includes("Add") ? "Adding..." : "Updating..."}
+                </>
+              ) : (
+                title
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+// Reusable Confirmation Modal Component
+interface ConfirmationModalProps {
+  title: string;
+  message: string;
+  confirmText: string;
+  confirmVariant: "default" | "destructive";
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  isSubmitting: boolean;
+  submitError: string;
+}
+
+function ConfirmationModal({
+  title,
+  message,
+  confirmText,
+  confirmVariant,
+  isOpen,
+  onClose,
+  onConfirm,
+  isSubmitting,
+  submitError,
+}: ConfirmationModalProps) {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg shadow-xl max-w-md w-full">
+        <div className="flex items-center justify-between p-6 border-b">
+          <h2 className="text-xl font-semibold text-slate-800">{title}</h2>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            className="h-8 w-8 p-0"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+
+        <div className="p-6 space-y-4">
+          {submitError && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-red-700 text-sm">{submitError}</p>
+            </div>
+          )}
+
+          <p className="text-slate-700">{message}</p>
+
+          <div className="flex gap-3 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+              className="flex-1"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant={confirmVariant}
+              onClick={onConfirm}
+              disabled={isSubmitting}
+              className="flex-1"
+            >
+              {isSubmitting ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Processing...
+                </>
+              ) : (
+                confirmText
+              )}
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

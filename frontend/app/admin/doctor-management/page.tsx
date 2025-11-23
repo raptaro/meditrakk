@@ -397,18 +397,55 @@ function DoctorModal({
             </p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Specialization *
-            </label>
-            <Input
-              value={formData.specialization}
-              onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
-              placeholder="e.g., Cardiologist, Pediatrics, etc."
-              required
-            />
-          </div>
-
+<div>
+  <label className="block text-sm font-medium text-gray-700 mb-1">
+    Specialization *
+  </label>
+  <select
+    value={formData.specialization}
+    onChange={(e) => setFormData({ ...formData, specialization: e.target.value })}
+    className="w-full rounded border p-2 text-sm"
+    required
+  >
+    <option value="">Select a specialization</option>
+    <option value="Allergy and Immunology">Allergy and Immunology</option>
+    <option value="Anesthesiology">Anesthesiology</option>
+    <option value="Cardiology">Cardiology</option>
+    <option value="Colon and Rectal Surgery">Colon and Rectal Surgery</option>
+    <option value="Dermatology">Dermatology</option>
+    <option value="Emergency Medicine">Emergency Medicine</option>
+    <option value="Endocrinology">Endocrinology</option>
+    <option value="Family Medicine">Family Medicine</option>
+    <option value="Gastroenterology">Gastroenterology</option>
+    <option value="Geriatrics">Geriatrics</option>
+    <option value="Hematology">Hematology</option>
+    <option value="Infectious Disease">Infectious Disease</option>
+    <option value="Internal Medicine">Internal Medicine</option>
+    <option value="Medical Genetics">Medical Genetics</option>
+    <option value="Neurology">Neurology</option>
+    <option value="Nephrology">Nephrology</option>
+    <option value="Obstetrics and Gynecology">Obstetrics and Gynecology</option>
+    <option value="Oncology">Oncology</option>
+    <option value="Ophthalmology">Ophthalmology</option>
+    <option value="Orthopedic Surgery">Orthopedic Surgery</option>
+    <option value="Otolaryngology">Otolaryngology</option>
+    <option value="Pathology">Pathology</option>
+    <option value="Pediatrics">Pediatrics</option>
+    <option value="Physical Medicine and Rehabilitation">Physical Medicine and Rehabilitation</option>
+    <option value="Plastic Surgery">Plastic Surgery</option>
+    <option value="Preventive Medicine">Preventive Medicine</option>
+    <option value="Psychiatry">Psychiatry</option>
+    <option value="Pulmonology">Pulmonology</option>
+    <option value="Radiology">Radiology</option>
+    <option value="Rheumatology">Rheumatology</option>
+    <option value="Sports Medicine">Sports Medicine</option>
+    <option value="General Surgery">General Surgery</option>
+    <option value="Urology">Urology</option>
+    <option value="Nuclear Medicine">Nuclear Medicine</option>
+    <option value="Forensic Pathology">Forensic Pathology</option>
+    <option value="Hospice and Palliative Medicine">Hospice and Palliative Medicine</option>
+  </select>
+</div>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <label className="block text-sm font-medium text-gray-700">

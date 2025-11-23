@@ -410,6 +410,77 @@ class MedicineCSVUploadView(APIView):
         except Exception as e:
             return Response({"error": str(e)}, status=500)
 
+from rest_framework import viewsets, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from django.shortcuts import get_object_or_404
+from .models import Medicine
+from .serializers import MedicineSerializer, MedicineWriteSerializer
+
+class MedicineViewSet(viewsets.ModelViewSet):
+    queryset = Medicine.objects.all()
+    
+    def get_serializer_class(self):
+        # Use write serializer for create/update actions
+        if self.action in ['create', 'update', 'partial_update']:
+            return MedicineWriteSerializer
+        return MedicineSerializer
+    
+    def create(self, request):
+        serializer = MedicineWriteSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def update(self, request, pk=None):
+        medicine = get_object_or_404(Medicine, pk=pk)
+        serializer = MedicineWriteSerializer(medicine, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def partial_update(self, request, pk=None):
+        medicine = get_object_or_404(Medicine, pk=pk)
+        serializer = MedicineWriteSerializer(medicine, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    # Archive action (soft delete)
+    @action(detail=True, methods=['post'])
+    def archive(self, request, pk=None):
+        medicine = get_object_or_404(Medicine, pk=pk)
+        medicine.is_active = False
+        medicine.save()
+        return Response({'status': 'medicine archived'}, status=status.HTTP_200_OK)
+    
+    # Unarchive action
+    @action(detail=True, methods=['post'])
+    def unarchive(self, request, pk=None):
+        medicine = get_object_or_404(Medicine, pk=pk)
+        medicine.is_active = True
+        medicine.save()
+        return Response({'status': 'medicine unarchived'}, status=status.HTTP_200_OK)
+    
+    # List only active medicines by default
+    def get_queryset(self):
+        queryset = Medicine.objects.all()
+        # Filter by archive status if specified
+        show_archived = self.request.query_params.get('show_archived', 'false').lower() == 'true'
+        if not show_archived:
+            queryset = queryset.filter(is_active=True)
+        return queryset
+    
+    # Separate endpoint to list archived medicines
+    @action(detail=False, methods=['get'])
+    def archived(self, request):
+        archived_medicines = Medicine.objects.filter(is_active=False)
+        serializer = self.get_serializer(archived_medicines, many=True)
+        return Response(serializer.data)
+
 # import random
 # from datetime import date, timedelta
 

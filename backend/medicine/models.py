@@ -11,6 +11,7 @@ class Medicine(models.Model):
     # classification = models.CharField(max_length=255)
     stocks = models.PositiveIntegerField(default=0)
     expiration_date = models.DateField(blank=True, null=True)
+    is_active = models.BooleanField(default=True)
     
     def __str__(self):
         return f"{self.name} ({self.strength}) - {self.stocks} left"

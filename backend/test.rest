@@ -51,7 +51,7 @@ Content-Type: application/json
 }
 
 ### doctor
-GET   http://localhost:8000/patient/my_treatments/
+GET   http://localhost:8000/medicine/medicines
 Content-Type: application/json  
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcxNjA1NDkxLCJpYXQiOjE3NjM4Mjk0OTEsImp0aSI6IjQ0YTVlMzE0ODc0NjQ5MzZhMWJmNWU1MzdmMmQ4MjMxIiwidXNlcl9pZCI6ImNvb3Blci0wMjAwMDYiLCJpc19zdGFmZiI6ZmFsc2UsImlzX3N1cGVydXNlciI6ZmFsc2UsImVtYWlsIjoiZ2VuZXJhbGRvY3RvckBob3NwaXRhbC5jb20iLCJyb2xlIjoiZG9jdG9yIiwiZmlyc3RfbmFtZSI6IlNoZWxkb24ifQ.i7B_T2ecM7ofoMFpSeECr2sdlurWU0ys-xRmMyo3jCs
 

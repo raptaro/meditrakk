@@ -1,6 +1,9 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views 
 
+router = DefaultRouter()
+router.register(r'medicines', views.MedicineViewSet)
 app_name = 'medicine'
 
 urlpatterns = [
@@ -15,4 +18,6 @@ urlpatterns = [
     # path('medicine/dummy/', views.AddDummy.as_view()), 
     # path('dummy-preliminary/<str:patient_id>/<str:queue_number>/', views.DummyPreliminaryAssessmentView.as_view(), name='dummy-preliminary'),
     # path('bulk-add-dummy/', views.BulkDummyFlowAPIView.as_view(), name='bulk-add-dummy'),
+
+    path('', include(router.urls))
 ]
