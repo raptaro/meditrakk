@@ -1,15 +1,22 @@
 import { prisma } from "@/lib/prisma";
-import { ServiceColumns } from "./service-columns";
 import TitleCard from "@/components/molecules/title-card";
-import { DataTable } from "@/components/ui/data-table";
+import ServiceTableClient from "./service-table-client";
 
 export default async function ServiceList() {
   const services = await prisma.service.findMany();
 
+  const types = await prisma.service
+    .findMany({
+      where: { isArchived: false },
+      distinct: ["type"],
+      select: { type: true },
+    })
+    .then((res) => res.map((t) => t.type));
+
   return (
     <div className="mt-6 xl:mx-48">
       <TitleCard title="Service List">
-        <DataTable columns={ServiceColumns} data={services ?? []} />
+        <ServiceTableClient services={services} typeOptions={types} />
       </TitleCard>
     </div>
   );
