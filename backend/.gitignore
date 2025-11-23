@@ -21,7 +21,7 @@ ENV/
 env/
 *.env
 test.rest
-backend/test.rest
+backend\test.rest
 # IDE / Editor
 .vscode/
 .idea/

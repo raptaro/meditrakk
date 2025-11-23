@@ -37,8 +37,8 @@ POST http://localhost:8000/auth/jwt/create/
 Content-Type: application/json
 
 {
-  "email": "admin@gmail.com",
-  "password": "10200922"
+  "email": "generaldoctor@hospital.com",
+  "password": "securepassword123"
 }
 
 ### Login Doctor
@@ -51,9 +51,9 @@ Content-Type: application/json
 }
 
 ### doctor
-GET   http://localhost:8000/user/users/doctors
+GET   http://localhost:8000/patient/my_treatments/
 Content-Type: application/json  
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcxNDIwMzkyLCJpYXQiOjE3NjM2NDQzOTIsImp0aSI6ImE0YWNlMzgxMzg1MjRiMGNhZjM0OWQ4YjM1NWIzMmRlIiwidXNlcl9pZCI6IjUiLCJpc19zdGFmZiI6dHJ1ZSwiaXNfc3VwZXJ1c2VyIjp0cnVlLCJlbWFpbCI6ImFkbWluQGdtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsImZpcnN0X25hbWUiOiJHdXMifQ.UvY7JlKZV9NO7Rkf_GtPbDxX__Z-aqne90tLti4AAN8
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcxNjA1NDkxLCJpYXQiOjE3NjM4Mjk0OTEsImp0aSI6IjQ0YTVlMzE0ODc0NjQ5MzZhMWJmNWU1MzdmMmQ4MjMxIiwidXNlcl9pZCI6ImNvb3Blci0wMjAwMDYiLCJpc19zdGFmZiI6ZmFsc2UsImlzX3N1cGVydXNlciI6ZmFsc2UsImVtYWlsIjoiZ2VuZXJhbGRvY3RvckBob3NwaXRhbC5jb20iLCJyb2xlIjoiZG9jdG9yIiwiZmlyc3RfbmFtZSI6IlNoZWxkb24ifQ.i7B_T2ecM7ofoMFpSeECr2sdlurWU0ys-xRmMyo3jCs
 
 ### secretary request
 GET    http://localhost:8000/medicine/predict/
@@ -61,7 +61,7 @@ Content-Type: application/json
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcxMDkxMTU0LCJpYXQiOjE3NjMzMTUxNTQsImp0aSI6IjJiZGZjZTljYjMyZDRmOTliZjU1ZmU3MWY0OTQ4NTRhIiwidXNlcl9pZCI6ImxhbmUtMDIwMDA4IiwiaXNfc3RhZmYiOmZhbHNlLCJpc19zdXBlcnVzZXIiOmZhbHNlLCJlbWFpbCI6InNlY3JldGFyeWFjY291bnRAZ21haWwuY29tIiwicm9sZSI6InNlY3JldGFyeSIsImZpcnN0X25hbWUiOiJQZW5ueSJ9.7bdjo8SLivFgUevk3zPqYMw7XVukEKAqCLTrljmNltU
 tinson-0200010
 ### oncalldoctor request
-GET http://localhost:8000/patient/patient-info/stinson-02000
+GET http://localhost:8000/patient/my_treatments/
 Content-Type: application/json  
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5ODczNzIwLCJpYXQiOjE3NjIwOTc3MjAsImp0aSI6IjNjZGUxOGFlYWY4ODQ1NjQ5ZDM2MThhNmEzNWFlZDg5IiwidXNlcl9pZCI6ImhvZnN0YWR0ZXItMDIwMDA3IiwiaXNfc3RhZmYiOmZhbHNlLCJpc19zdXBlcnVzZXIiOmZhbHNlLCJlbWFpbCI6ImNhcmRpb2xvZ2lzdEBob3NwaXRhbC5jb20iLCJyb2xlIjoib24tY2FsbC1kb2N0b3IiLCJmaXJzdF9uYW1lIjoiTGVvbmFyZCJ9.Ck70MesoN12NxM9heHFIaT2s30fX--H5wVoHlMDGiHY
 

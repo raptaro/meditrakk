@@ -1,4 +1,4 @@
-import { LayoutDashboard, Calendar, Users, Heart } from "lucide-react";
+import { LayoutDashboard, Calendar, Users, Heart,  ChartArea, } from "lucide-react";
 
 import {
   Sidebar,
@@ -34,6 +34,11 @@ const menu_items = [
     title: "Medical Records",
     url: "/oncall-doctors/medical-records",
     icon: Users,
+  },
+  {
+    title: "Reports",
+    url: "/oncall-doctors/reports",
+    icon: ChartArea,
   },
 ];
 

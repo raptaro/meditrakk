@@ -51,6 +51,8 @@ urlpatterns = [
     path('patient/prescriptions/', views.PatientMyPrescriptionsView.as_view(), name='my-prescriptions'),
     path('patient/records/', views.PatientRecordsView.as_view(), name='patient-records'),
     path('patient/show/lab-results/', views.PatientLabResultsView.as_view(), name='patient-lab-results'),
+    path('patient/my_treatments/', views.MyTreatmentsView.as_view(), name='patient-treatment-detail'),
+
     # download file
     path('patient/lab-results/<str:result_id>/download/', views.download_lab_result, name='download_lab_result'),
 

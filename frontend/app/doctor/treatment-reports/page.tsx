@@ -11,6 +11,7 @@ import {
   FileText,
   Download,
   ChevronRight,
+  Filter,
 } from "lucide-react";
 
 // TypeScript interfaces based on your backend response
@@ -40,10 +41,12 @@ interface LatestQueue {
 }
 
 interface BackendTreatment {
+  id?: number;
   patient_info: PatientInfo;
   diagnoses: Diagnosis[];
   treatment_notes: string;
   latest_queue: LatestQueue;
+  doctor: string; // Added doctor field
 }
 
 interface ApiResponse {
@@ -51,7 +54,7 @@ interface ApiResponse {
 }
 
 interface PatientTreatment {
-  id: number;
+  id: string;
   report_id: string;
   patient_id: string;
   patient_name: string;
@@ -61,6 +64,7 @@ interface PatientTreatment {
   visit_time: string;
   diagnosis: string;
   treatment_summary: string;
+  doctor_id: string; // Added doctor_id field
   raw_data: BackendTreatment;
 }
 
@@ -136,9 +140,21 @@ const TableSkeleton = () => {
   );
 };
 
+// Function to generate unique IDs
+const generateUniqueId = (treatment: BackendTreatment, index: number): string => {
+  const baseId = treatment.id || treatment.latest_queue.id;
+  const diagnosesHash = treatment.diagnoses
+    .map(d => d.diagnosis_code)
+    .join('-')
+    .slice(0, 20);
+  
+  return `${baseId}-${diagnosesHash}-${index}`;
+};
+
 export default function DoctorPatientTreatmentList() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDoctor, setSelectedDoctor] = useState<string>("all");
   const [selectedPatient, setSelectedPatient] = useState<PatientTreatment | null>(null);
   const [patientTreatments, setPatientTreatments] = useState<PatientTreatment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -175,7 +191,6 @@ export default function DoctorPatientTreatmentList() {
 
         const data: ApiResponse = await response.json();
         
-        // Check if data["My Treatments"] exists and is an array
         if (!data["My Treatments"] || !Array.isArray(data["My Treatments"])) {
           console.warn('No treatments found or invalid data structure:', data);
           setPatientTreatments([]);
@@ -184,16 +199,15 @@ export default function DoctorPatientTreatmentList() {
 
         // Transform backend data to match frontend interface
         const transformedData: PatientTreatment[] = data["My Treatments"].map((treatment: BackendTreatment, index: number) => {
-          // Combine all diagnoses into a single string
+          const uniqueId = generateUniqueId(treatment, index);
+          
           const diagnosisText = treatment.diagnoses
             .map(d => d.diagnosis_description)
             .join(', ');
 
-          // Use treatment_notes as treatment summary (fallback to diagnosis-based summary if not available)
           const treatmentSummary = treatment.treatment_notes || 
             treatment.diagnoses.map(d => `Treatment for ${d.diagnosis_description}`).join('; ');
 
-          // Format date and time
           const visitDate = new Date(treatment.latest_queue.queue_date).toISOString().split('T')[0];
           const visitTime = new Date(treatment.latest_queue.created_at).toLocaleTimeString('en-US', {
             hour: '2-digit',
@@ -202,8 +216,8 @@ export default function DoctorPatientTreatmentList() {
           });
 
           return {
-            id: treatment.latest_queue.id + index,
-            report_id: `TR-${treatment.latest_queue.id.toString().padStart(3, '0')}`,
+            id: uniqueId,
+            report_id: `TR${treatment.latest_queue.id.toString().padStart(3, '0')}-${index}`,
             patient_id: treatment.patient_info.patient_id,
             patient_name: treatment.patient_info.full_name,
             age: treatment.patient_info.age,
@@ -212,6 +226,7 @@ export default function DoctorPatientTreatmentList() {
             visit_time: visitTime,
             diagnosis: diagnosisText,
             treatment_summary: treatmentSummary,
+            doctor_id: treatment.doctor, // Add doctor_id
             raw_data: treatment
           };
         });
@@ -228,6 +243,11 @@ export default function DoctorPatientTreatmentList() {
     fetchPatientTreatments();
   }, []);
 
+  // Get unique doctors for filter
+  const uniqueDoctors = Array.from(new Set(patientTreatments.map(treatment => treatment.doctor_id)))
+    .filter(doctor => doctor) // Remove empty/null values
+    .sort();
+
   // Filter patients
   const filteredPatients = patientTreatments.filter(patient => {
     const matchesSearch = 
@@ -235,121 +255,144 @@ export default function DoctorPatientTreatmentList() {
       patient.patient_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       patient.diagnosis.toLowerCase().includes(searchTerm.toLowerCase());
     
-    return matchesSearch;
+    const matchesDoctor = selectedDoctor === "all" || patient.doctor_id === selectedDoctor;
+    
+    return matchesSearch && matchesDoctor;
   });
 
   // Statistics
   const stats = {
     total: patientTreatments.length,
     today: patientTreatments.filter(p => p.visit_date === new Date().toISOString().split('T')[0]).length,
+    filtered: filteredPatients.length,
   };
 
   // Export table data to PDF with direct download
-  const exportToPDF = async () => {
-    if (filteredPatients.length === 0) return;
+const exportToPDF = async () => {
+  if (filteredPatients.length === 0) return;
 
-    setExporting(true);
-    
-    try {
-      // Dynamically import the required libraries
-      const { jsPDF } = await import('jspdf');
-      const html2canvas = (await import('html2canvas')).default;
+  setExporting(true);
+  
+  try {
+    const { jsPDF } = await import('jspdf');
+    const html2canvas = (await import('html2canvas')).default;
 
-      // Create a temporary container for the PDF content
-      const pdfContainer = document.createElement('div');
-      pdfContainer.style.position = 'absolute';
-      pdfContainer.style.left = '-9999px';
-      pdfContainer.style.top = '0';
-      pdfContainer.style.width = '794px'; // A4 width in pixels at 96 DPI
-      pdfContainer.style.padding = '20px';
-      pdfContainer.style.backgroundColor = 'white';
-      pdfContainer.style.fontFamily = 'Arial, sans-serif';
+    // Create a container for paginated content
+    const contentContainer = document.createElement('div');
+    contentContainer.style.position = 'absolute';
+    contentContainer.style.left = '-9999px';
+    contentContainer.style.top = '0';
+    contentContainer.style.width = '794px'; // A4 width in pixels at 96 DPI
+    contentContainer.style.backgroundColor = 'white';
+    contentContainer.style.fontFamily = 'Arial, sans-serif';
 
-      const currentDate = new Date().toLocaleDateString();
+    const currentDate = new Date().toLocaleDateString();
+    const selectedDoctorLabel = selectedDoctor === "all" 
+      ? "All Doctors" 
+      : `Dr. ${selectedDoctor}`;
+
+    // Header content (appears on every page)
+    const headerHTML = `
+      <div style="text-align: center; margin-bottom: 20px; border-bottom: 2px solid #3b82f6; padding-bottom: 15px;">
+        <h1 style="color: #1f2937; margin: 0; font-size: 24px;">Patient Treatments Report</h1>
+        <div style="color: #6b7280; margin-top: 5px;">Generated on ${currentDate}</div>
+        <div style="color: #6b7280; margin-top: 5px; font-weight: 500;">Filter: ${selectedDoctorLabel}</div>
+      </div>
       
-      pdfContainer.innerHTML = `
-        <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #3b82f6; padding-bottom: 20px;">
-          <h1 style="color: #1f2937; margin: 0; font-size: 28px;">Patient Treatments Report</h1>
-          <div style="color: #6b7280; margin-top: 5px;">Generated on ${currentDate}</div>
-        </div>
-        
-        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
-          <p style="margin: 5px 0; font-weight: 500;"><strong>Total Patients:</strong> ${stats.total}</p>
-          <p style="margin: 5px 0; font-weight: 500;"><strong>Treated Today:</strong> ${stats.today}</p>
-          <p style="margin: 5px 0; font-weight: 500;"><strong>Filtered Results:</strong> ${filteredPatients.length} patients</p>
-        </div>
+      <div style="background: #f8fafc; padding: 12px; border-radius: 6px; margin-bottom: 20px; border-left: 4px solid #3b82f6;">
+        <p style="margin: 4px 0; font-weight: 500;"><strong>Total Patients:</strong> ${stats.total}</p>
+        <p style="margin: 4px 0; font-weight: 500;"><strong>Treated Today:</strong> ${stats.today}</p>
+        <p style="margin: 4px 0; font-weight: 500;"><strong>Filtered Results:</strong> ${filteredPatients.length} patients</p>
+      </div>
+    `;
 
-        <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 10px;">
+    // Calculate how many rows per page (adjust based on your content height)
+    const rowsPerPage = 20;
+    const totalPages = Math.ceil(filteredPatients.length / rowsPerPage);
+
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    for (let page = 0; page < totalPages; page++) {
+      if (page > 0) {
+        pdf.addPage();
+      }
+
+      const startIndex = page * rowsPerPage;
+      const endIndex = Math.min(startIndex + rowsPerPage, filteredPatients.length);
+      const pagePatients = filteredPatients.slice(startIndex, endIndex);
+
+      const tableHTML = `
+        <table style="width: 100%; border-collapse: collapse; font-size: 9px;">
           <thead>
             <tr>
-              <th style="background-color: #3b82f6; color: white; padding: 8px; text-align: left; border: 1px solid #2563eb;">Report ID</th>
-              <th style="background-color: #3b82f6; color: white; padding: 8px; text-align: left; border: 1px solid #2563eb;">Patient Name</th>
-              <th style="background-color: #3b82f6; color: white; padding: 8px; text-align: left; border: 1px solid #2563eb;">Patient ID</th>
-              <th style="background-color: #3b82f6; color: white; padding: 8px; text-align: left; border: 1px solid #2563eb;">Age</th>
-              <th style="background-color: #3b82f6; color: white; padding: 8px; text-align: left; border: 1px solid #2563eb;">Gender</th>
-              <th style="background-color: #3b82f6; color: white; padding: 8px; text-align: left; border: 1px solid #2563eb;">Visit Date</th>
-              <th style="background-color: #3b82f6; color: white; padding: 8px; text-align: left; border: 1px solid #2563eb;">Diagnosis</th>
-              <th style="background-color: #3b82f6; color: white; padding: 8px; text-align: left; border: 1px solid #2563eb;">Treatment Summary</th>
+              <th style="background-color: #3b82f6; color: white; padding: 6px; text-align: left; border: 1px solid #2563eb;">Treatment ID</th>
+              <th style="background-color: #3b82f6; color: white; padding: 6px; text-align: left; border: 1px solid #2563eb;">Patient Name</th>
+              <th style="background-color: #3b82f6; color: white; padding: 6px; text-align: left; border: 1px solid #2563eb;">Patient ID</th>
+              <th style="background-color: #3b82f6; color: white; padding: 6px; text-align: left; border: 1px solid #2563eb;">Age</th>
+              <th style="background-color: #3b82f6; color: white; padding: 6px; text-align: left; border: 1px solid #2563eb;">Gender</th>
+              <th style="background-color: #3b82f6; color: white; padding: 6px; text-align: left; border: 1px solid #2563eb;">Visit Date</th>
+              <th style="background-color: #3b82f6; color: white; padding: 6px; text-align: left; border: 1px solid #2563eb;">Doctor</th>
+              <th style="background-color: #3b82f6; color: white; padding: 6px; text-align: left; border: 1px solid #2563eb;">Diagnosis</th>
+              <th style="background-color: #3b82f6; color: white; padding: 6px; text-align: left; border: 1px solid #2563eb;">Treatment Summary</th>
             </tr>
           </thead>
           <tbody>
-            ${filteredPatients.map((patient, index) => `
+            ${pagePatients.map((patient, index) => `
               <tr style="${index % 2 === 0 ? 'background-color: #f9fafb;' : ''}">
-                <td style="padding: 6px 8px; border: 1px solid #e5e7eb;">${patient.report_id}</td>
-                <td style="padding: 6px 8px; border: 1px solid #e5e7eb;">${patient.patient_name}</td>
-                <td style="padding: 6px 8px; border: 1px solid #e5e7eb;">${patient.patient_id}</td>
-                <td style="padding: 6px 8px; border: 1px solid #e5e7eb;">${patient.age}</td>
-                <td style="padding: 6px 8px; border: 1px solid #e5e7eb;">${patient.gender}</td>
-                <td style="padding: 6px 8px; border: 1px solid #e5e7eb;">${patient.visit_date}</td>
-                <td style="padding: 6px 8px; border: 1px solid #e5e7eb; max-width: 150px; word-wrap: break-word;">${patient.diagnosis}</td>
-                <td style="padding: 6px 8px; border: 1px solid #e5e7eb; max-width: 150px; word-wrap: break-word;">${patient.treatment_summary}</td>
+                <td style="padding: 4px 5px; border: 1px solid #e5e7eb;">${patient.report_id}</td>
+                <td style="padding: 4px 5px; border: 1px solid #e5e7eb;">${patient.patient_name}</td>
+                <td style="padding: 4px 5px; border: 1px solid #e5e7eb;">${patient.patient_id}</td>
+                <td style="padding: 4px 5px; border: 1px solid #e5e7eb;">${patient.age}</td>
+                <td style="padding: 4px 5px; border: 1px solid #e5e7eb;">${patient.gender}</td>
+                <td style="padding: 4px 5px; border: 1px solid #e5e7eb;">${patient.visit_date}</td>
+                <td style="padding: 4px 5px; border: 1px solid #e5e7eb;">${patient.doctor_id}</td>
+                <td style="padding: 4px 5px; border: 1px solid #e5e7eb; max-width: 80px; word-wrap: break-word;">${patient.diagnosis}</td>
+                <td style="padding: 4px 5px; border: 1px solid #e5e7eb; max-width: 100px; word-wrap: break-word;">${patient.treatment_summary}</td>
               </tr>
             `).join('')}
           </tbody>
         </table>
 
-        <div style="margin-top: 30px; text-align: center; color: #6b7280; font-size: 10px; border-top: 1px solid #e5e7eb; padding-top: 10px;">
-          <p>Report generated from Medical System - ${currentDate}</p>
+        <div style="margin-top: 20px; text-align: center; color: #6b7280; font-size: 8px; border-top: 1px solid #e5e7eb; padding-top: 8px;">
+          <p>Report generated from Medical System - ${currentDate} - Page ${page + 1} of ${totalPages}</p>
         </div>
       `;
 
-      document.body.appendChild(pdfContainer);
+      contentContainer.innerHTML = headerHTML + tableHTML;
+      document.body.appendChild(contentContainer);
 
-      // Convert the container to canvas then to PDF
-      const canvas = await html2canvas(pdfContainer, {
-        scale: 2, // Higher quality
+      const canvas = await html2canvas(contentContainer, {
+        scale: 2,
         useCORS: true,
         logging: false,
       });
 
-      // Remove the temporary container
-      document.body.removeChild(pdfContainer);
+      document.body.removeChild(contentContainer);
 
       const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      // Calculate image dimensions to fit the PDF
-      const imgWidth = canvas.width;
-      const imgHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-      const imgX = (pdfWidth - imgWidth * ratio) / 2;
-      const imgY = 10;
+      const imgWidth = pdf.internal.pageSize.getWidth() - 20; // Margin
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      pdf.addImage(imgData, 'PNG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
-      pdf.save(`patient-treatments-${currentDate.replace(/\//g, '-')}.pdf`);
-
-    } catch (error) {
-      console.error('Error generating PDF:', error);
-      alert('Error generating PDF. Please try again.');
-    } finally {
-      setExporting(false);
+      pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight);
     }
-  };
+
+    const fileName = selectedDoctor === "all" 
+      ? `patient-treatments-${currentDate.replace(/\//g, '-')}.pdf`
+      : `patient-treatments-${selectedDoctor}-${currentDate.replace(/\//g, '-')}.pdf`;
+    
+    pdf.save(fileName);
+
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    alert('Error generating PDF. Please try again.');
+  } finally {
+    setExporting(false);
+  }
+};
 
   const handleViewFullReport = (patientId: string) => {
-    router.push(`/oncall-doctors/patient-report/${patientId}`);
+    router.push(`/doctor/patient-report/${patientId}`);
   };
 
   if (error) {
@@ -383,7 +426,7 @@ export default function DoctorPatientTreatmentList() {
         {loading ? (
           <StatsSkeleton />
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <div className="flex items-center justify-between">
                 <div>
@@ -401,6 +444,16 @@ export default function DoctorPatientTreatmentList() {
                   <div className="text-sm text-gray-500 uppercase tracking-wide">Treated Today</div>
                 </div>
                 <Calendar className="w-10 h-10 text-gray-400" />
+              </div>
+            </div>
+
+            <div className="bg-white rounded-lg p-6 shadow-sm">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-3xl font-bold text-gray-800 mb-1">{stats.filtered}</div>
+                  <div className="text-sm text-gray-500 uppercase tracking-wide">Filtered Results</div>
+                </div>
+                <Filter className="w-10 h-10 text-gray-400" />
               </div>
             </div>
           </div>
@@ -421,24 +474,46 @@ export default function DoctorPatientTreatmentList() {
               />
             </div>
 
+            {/* Doctor Filter */}
+            <div className="w-full md:w-64">
+              <label htmlFor="doctor-filter" className="block text-sm font-medium text-gray-700 mb-1">
+                Filter by Doctor
+              </label>
+              <select
+                id="doctor-filter"
+                value={selectedDoctor}
+                onChange={(e) => setSelectedDoctor(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+              >
+                <option value="all">All Doctors</option>
+                {uniqueDoctors.map((doctor) => (
+                  <option key={doctor} value={doctor}>
+                    Dr. {doctor}
+                  </option>
+                ))}
+              </select>
+            </div>
+
             {/* Export Button */}
-            <button 
-              onClick={exportToPDF}
-              disabled={filteredPatients.length === 0 || exporting}
-              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
-            >
-              {exporting ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  Generating PDF...
-                </>
-              ) : (
-                <>
-                  <Download className="w-4 h-4" />
-                  Export PDF
-                </>
-              )}
-            </button>
+            <div className="flex items-end">
+              <button 
+                onClick={exportToPDF}
+                disabled={filteredPatients.length === 0 || exporting}
+                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg transition-colors"
+              >
+                {exporting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    Generating PDF...
+                  </>
+                ) : (
+                  <>
+                    <Download className="w-4 h-4" />
+                    Export PDF
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -452,13 +527,16 @@ export default function DoctorPatientTreatmentList() {
                 <thead className="bg-gray-50 border-b-2 border-gray-200">
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Report ID
+                      Treatment ID
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Patient
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Visit Date
+                    </th>
+                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                      Doctor
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Diagnosis
@@ -497,6 +575,11 @@ export default function DoctorPatientTreatmentList() {
                         <div className="flex items-center gap-2 text-xs text-gray-500 mt-1">
                           <Clock className="w-3 h-3" />
                           <span>{patient.visit_time}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900 font-medium">
+                          Dr. {patient.doctor_id}
                         </div>
                       </td>
                       <td className="px-6 py-4">
@@ -548,8 +631,8 @@ export default function DoctorPatientTreatmentList() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <div className="text-sm text-gray-500 mb-1">Report ID</div>
-                    <div className="font-semibold">{selectedPatient.report_id}</div>
+                    <div className="text-sm text-gray-500 mb-1">Treatment ID</div>
+                    <div className="font-semibold">{selectedPatient.id}</div>
                   </div>
                   <div>
                     <div className="text-sm text-gray-500 mb-1">Patient Name</div>
@@ -568,8 +651,8 @@ export default function DoctorPatientTreatmentList() {
                     <div className="font-semibold">{new Date(selectedPatient.visit_date).toLocaleDateString()}</div>
                   </div>
                   <div>
-                    <div className="text-sm text-gray-500 mb-1">Visit Time</div>
-                    <div className="font-semibold">{selectedPatient.visit_time}</div>
+                    <div className="text-sm text-gray-500 mb-1">Doctor</div>
+                    <div className="font-semibold">Dr. {selectedPatient.doctor_id}</div>
                   </div>
                 </div>
 

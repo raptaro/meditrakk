@@ -8,7 +8,7 @@ from django.db.models.functions import Lower
 from django.utils.timezone import now
 
 from queueing.serializers import PreliminaryAssessmentBasicSerializer, TemporaryStorageQueueSerializer
-from .serializers import PatientMedicalRecordSerializer, PatientSerializer, PatientRegistrationSerializer, LabRequestSerializer, LabResultSerializer, PatientVisitSerializer, PatientLabTestSerializer, CommonDiseasesSerializer, PrescriptionSerializer
+from .serializers import PatientMedicalRecordSerializer, PatientSerializer, PatientRegistrationSerializer, LabRequestSerializer, LabResultSerializer, PatientTreatmentsSerializer, PatientVisitSerializer, PatientLabTestSerializer, CommonDiseasesSerializer, PrescriptionSerializer
 from queueing.models import  PreliminaryAssessment, TemporaryStorageQueue
 from queueing.models import Treatment as TreatmentModel
 
@@ -1838,7 +1838,6 @@ class PatientTreatmentRecordsView(APIView):
 
         patient = user.patient_profile
 
-        # Get that patient's treatments
         treatments = TreatmentModel.objects.filter(patient=patient).order_by('-created_at')
         serializer = PatientMedicalRecordSerializer(treatments, many=True)
         return Response(serializer.data)
@@ -2124,3 +2123,21 @@ class PatientLabResultsView(APIView):
             print(f"Error: {e}")
             return Response({"error": str(e)})
 
+class MyTreatmentsView(APIView):
+    permission_classes = []
+
+    
+    def get(self, request):
+        user = request.user
+        
+        if user.role == 'doctor':
+            treatments = TreatmentModel.objects.all().distinct()
+        elif user.role == 'on-call-doctor':
+            treatments = TreatmentModel.objects.filter(doctor=user).distinct() 
+            
+        treatments = treatments.filter(diagnoses__isnull=False).distinct()
+        serializer = PatientTreatmentsSerializer(treatments, many=True)
+        
+        return Response({
+            'My Treatments': serializer.data
+        })

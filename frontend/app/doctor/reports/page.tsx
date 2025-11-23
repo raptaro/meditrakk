@@ -398,11 +398,11 @@ export default function ReportDashboard() {
         </div>
         <div className="rounded-lg bg-white p-6 shadow-sm flex flex-col justify-between">
           <div>
-            <h2 className="mb-4 text-xl font-semibold">Diagnosis Trends</h2>
-            <div className="text-gray-500">Diagnosis patterns over time placeholder</div>
+            <h2 className="mb-4 text-xl font-semibold">Doctors Treatments</h2>
+            <div className="text-gray-500">See Doctors Treatments</div>
           </div>
           <div className="mt-4 text-right">
-            <Link href="/reports/visits" className="text-sm text-blue-600 hover:underline">
+            <Link href="/doctor/treatment-reports" className="text-sm text-blue-600 hover:underline">
               View All
             </Link>
           </div>

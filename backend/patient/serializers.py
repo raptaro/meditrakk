@@ -3,6 +3,7 @@ from datetime import datetime, date
 import os
 from django.conf import settings
 from rest_framework import serializers
+
 from .models import HealthTips, Patient, Diagnosis, Prescription, LabRequest, LabResult
 
 from datetime import datetime, date
@@ -276,32 +277,6 @@ class LabResultSerializer(serializers.ModelSerializer):
     class Meta:
         model = LabResult
         fields = ['id', 'lab_request', 'image', 'image_url', 'uploaded_at', 'submitted_by']
-
-class PatientReportSerializer(serializers.Serializer):    
-    patient_id = serializers.CharField(max_length=8)
-    first_name = serializers.CharField(max_length=200, allow_blank=True, required=False)
-    middle_name = serializers.CharField(max_length=100, allow_blank=True, required=False)
-    last_name = serializers.CharField(max_length=200)
-    email = serializers.EmailField()
-    phone_number = serializers.CharField(max_length=11)
-    date_of_birth = serializers.DateField(allow_null=True, required=False)
-    street_address = serializers.CharField(max_length=100, allow_blank=True, required=False)
-    barangay = serializers.CharField(max_length=100, allow_blank=True, required=False)
-    municipal_city = serializers.CharField(max_length=100, allow_blank=True, required=False)
-    age = serializers.SerializerMethodField()
-    
-    def get_age(self, obj):
-    # Support both dicts and model instances
-        dob = obj.get('date_of_birth') if isinstance(obj, dict) else getattr(obj, 'date_of_birth', None)
-        if not dob:
-            return None
-        if isinstance(dob, str):
-            try:
-                dob = datetime.strptime(dob, "%Y-%m-%d").date()
-            except ValueError:
-                return None
-        today = date.today()
-        return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
     
 class PatientVisitSerializer(serializers.ModelSerializer):
     visit_date = serializers.DateField(source='queue_date')
@@ -405,6 +380,61 @@ class PatientMedicalRecordSerializer(serializers.ModelSerializer):
 
         return queue.complaint if queue else None
 
+class PatientTreatmentsSerializer(serializers.ModelSerializer):
+    patient_info = serializers.SerializerMethodField()    
+    diagnoses = DiagnosisSerializer(many=True, read_only=True)  
+    doctor = serializers.SerializerMethodField()    
+    latest_queue = serializers.SerializerMethodField()
+    class Meta:
+        model = Treatment
+        fields = [ 
+            'id',
+            'patient_info',
+            'diagnoses', 
+            'doctor',
+            'treatment_notes',
+            'latest_queue'           
+        ]
+    def get_doctor(self, obj):
+        # Handle case where doctor might be null
+        if obj.doctor:
+            return f"{obj.doctor.first_name} {obj.doctor.last_name}"
+        return "Unassigned"
+    def get_patient_info(self, obj):
+        
+        if obj.patient:
+            return{
+                'patient_id': obj.patient.patient_id,
+                'full_name': f"{obj.patient.first_name} {obj.patient.last_name}",
+                'age': obj.patient.get_age(),
+                'gender': obj.patient.gender,
+                'contact_number': obj.patient.phone_number,
+                'email': obj.patient.email, 
+            }    
+            
+    def get_latest_queue(self, obj):
+        # Get the patient from the treatment
+        patient = obj.patient
+        
+        # Get the latest completed queue entry for this patient
+        if patient and hasattr(patient, "temporarystoragequeue"):
+            latest_queue = patient.temporarystoragequeue.filter(
+                status='Completed'
+            ).order_by('-created_at').first()
+            
+            if latest_queue:
+                return {
+                    "id": latest_queue.id,
+                    "priority_level": latest_queue.priority_level,
+                    "status": latest_queue.status,
+                    "created_at": latest_queue.created_at,
+                    "complaint": latest_queue.complaint,
+                    "queue_number": latest_queue.queue_number,
+                    "queue_date": latest_queue.queue_date,
+                }
+        return None
+
+
 class HealthTipsSerializer(serializers.ModelSerializer):
     patient_name = serializers.CharField(source='patient.full_name', read_only=True)
     diagnosis_code = serializers.CharField(source='diagnosis.diagnosis_code', read_only=True)
@@ -419,3 +449,4 @@ class HealthTipsSerializer(serializers.ModelSerializer):
             'source', 'is_for_patient', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+        
