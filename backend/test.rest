@@ -46,30 +46,38 @@ POST  http://localhost:8000/auth/jwt/create/
 Content-Type: application/json
 
 {
-  "email": "stinson@gmail.com",
-  "password": "stinson-020001019861206"
+  "email": "zuma@gmail.com",
+  "password": "zuma-02000920070320"
 }
 
 ### doctor
-GET   http://localhost:8000/medicine/medicines
+GET   http://localhost:8000/patients/zuma-020009/diagnoses/
 Content-Type: application/json  
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcxNjA1NDkxLCJpYXQiOjE3NjM4Mjk0OTEsImp0aSI6IjQ0YTVlMzE0ODc0NjQ5MzZhMWJmNWU1MzdmMmQ4MjMxIiwidXNlcl9pZCI6ImNvb3Blci0wMjAwMDYiLCJpc19zdGFmZiI6ZmFsc2UsImlzX3N1cGVydXNlciI6ZmFsc2UsImVtYWlsIjoiZ2VuZXJhbGRvY3RvckBob3NwaXRhbC5jb20iLCJyb2xlIjoiZG9jdG9yIiwiZmlyc3RfbmFtZSI6IlNoZWxkb24ifQ.i7B_T2ecM7ofoMFpSeECr2sdlurWU0ys-xRmMyo3jCs
 
+### doctor
+POST   http://localhost:8000/health-tips/generate-preview/
+Content-Type: application/json  
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcxNjA1NDkxLCJpYXQiOjE3NjM4Mjk0OTEsImp0aSI6IjQ0YTVlMzE0ODc0NjQ5MzZhMWJmNWU1MzdmMmQ4MjMxIiwidXNlcl9pZCI6ImNvb3Blci0wMjAwMDYiLCJpc19zdGFmZiI6ZmFsc2UsImlzX3N1cGVydXNlciI6ZmFsc2UsImVtYWlsIjoiZ2VuZXJhbGRvY3RvckBob3NwaXRhbC5jb20iLCJyb2xlIjoiZG9jdG9yIiwiZmlyc3RfbmFtZSI6IlNoZWxkb24ifQ.i7B_T2ecM7ofoMFpSeECr2sdlurWU0ys-xRmMyo3jCs
+
+{
+  "patient_id": "zuma-020009",
+  "doctor_id": 18
+}
 ### secretary request
 GET    http://localhost:8000/medicine/predict/
 Content-Type: application/json  
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcxMDkxMTU0LCJpYXQiOjE3NjMzMTUxNTQsImp0aSI6IjJiZGZjZTljYjMyZDRmOTliZjU1ZmU3MWY0OTQ4NTRhIiwidXNlcl9pZCI6ImxhbmUtMDIwMDA4IiwiaXNfc3RhZmYiOmZhbHNlLCJpc19zdXBlcnVzZXIiOmZhbHNlLCJlbWFpbCI6InNlY3JldGFyeWFjY291bnRAZ21haWwuY29tIiwicm9sZSI6InNlY3JldGFyeSIsImZpcnN0X25hbWUiOiJQZW5ueSJ9.7bdjo8SLivFgUevk3zPqYMw7XVukEKAqCLTrljmNltU
-tinson-0200010
+
 ### oncalldoctor request
 GET http://localhost:8000/patient/my_treatments/
 Content-Type: application/json  
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzY5ODczNzIwLCJpYXQiOjE3NjIwOTc3MjAsImp0aSI6IjNjZGUxOGFlYWY4ODQ1NjQ5ZDM2MThhNmEzNWFlZDg5IiwidXNlcl9pZCI6ImhvZnN0YWR0ZXItMDIwMDA3IiwiaXNfc3RhZmYiOmZhbHNlLCJpc19zdXBlcnVzZXIiOmZhbHNlLCJlbWFpbCI6ImNhcmRpb2xvZ2lzdEBob3NwaXRhbC5jb20iLCJyb2xlIjoib24tY2FsbC1kb2N0b3IiLCJmaXJzdF9uYW1lIjoiTGVvbmFyZCJ9.Ck70MesoN12NxM9heHFIaT2s30fX--H5wVoHlMDGiHY
 
 ### patient
-
-GET    http://localhost:8000/user/users/?role=doctor
+GET    http://localhost:8000/patients/health-tips/patient/
 Content-Type: application/json  
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcwNzI5NzA2LCJpYXQiOjE3NjI5NTM3MDYsImp0aSI6IjNiMjU4MjFkNjdlNTQ4YjdiYTUxMWI1YzEzYTdiNzkwIiwidXNlcl9pZCI6InN0aW5zb24tMDIwMDAxMCIsImlzX3N0YWZmIjpmYWxzZSwiaXNfc3VwZXJ1c2VyIjpmYWxzZSwiZW1haWwiOiJzdGluc29uQGdtYWlsLmNvbSIsInJvbGUiOiJwYXRpZW50IiwiZmlyc3RfbmFtZSI6IkJhcm5leSJ9.ri1OtSzDb44qQVlDdY3izhH0MrR6hb0NzwcJdSMin80
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b2tlbl90eXBlIjoiYWNjZXNzIiwiZXhwIjoxNzcxOTQ0Mjk2LCJpYXQiOjE3NjQxNjgyOTYsImp0aSI6ImFhOWQxY2U0MGYyOTRiYmE4ZDI1MmM1ZDEyODA3YzhhIiwidXNlcl9pZCI6Inp1bWEtMDIwMDA5IiwiaXNfc3RhZmYiOmZhbHNlLCJpc19zdXBlcnVzZXIiOmZhbHNlLCJlbWFpbCI6Inp1bWFAZ21haWwuY29tIiwicm9sZSI6InBhdGllbnQiLCJmaXJzdF9uYW1lIjoiRGVtYmUifQ.TzEGxn4rn0Sn_RQCDzhJzLJ0ql5CmLudmpztQRIxmKY
  
 # {
 #   "doctor_id": 20,

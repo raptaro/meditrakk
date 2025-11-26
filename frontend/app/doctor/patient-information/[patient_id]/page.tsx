@@ -10,7 +10,10 @@ import {
   FaPrescription,
   FaRegCalendarCheck,
   FaLightbulb,
+
 } from "react-icons/fa6";
+import { FaSave, FaTimes } from 'react-icons/fa';
+
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 
@@ -120,33 +123,54 @@ interface PatientData {
   laboratories: Laboratory | null;
 }
 
-// Date formatting utility - FIXED for UTC times
+// Health Tips Interfaces
+interface GeneratedTip {
+  diagnosis_id: number;
+  diagnosis_code: string;
+  diagnosis_description: string;
+  tip_text: string;
+  source: string;
+}
+
+interface HealthTip {
+  id: number;
+  patient: string;
+  diagnosis: number;
+  doctor: number;
+  tip_text: string;
+  source: string;
+  is_for_patient: boolean;
+  status: string;
+  is_auto_generated: boolean;
+  confirmed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+// Date formatting utility
 const formatDateTime = (datetime: string | undefined) => {
   if (!datetime) {
     return { date: '-', time: '-' };
   }
 
   try {
-    // Parse the datetime string - this will handle UTC times correctly
     const parsed = new Date(datetime);
     if (Number.isNaN(parsed.getTime())) {
       return { date: datetime, time: '' };
     }
 
-    // Format date in UTC to preserve the original time
     const date = new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-      timeZone: 'UTC' // Use UTC to preserve backend time
+      timeZone: 'UTC'
     }).format(parsed);
 
-    // Format time in UTC to preserve the original time
     const time = new Intl.DateTimeFormat('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
-      timeZone: 'UTC' // Use UTC to preserve backend time
+      timeZone: 'UTC'
     }).format(parsed);
 
     return { date, time };
@@ -169,7 +193,7 @@ const formatDateOnly = (dateString: string | undefined) => {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
-      timeZone: 'UTC' // Use UTC for consistency
+      timeZone: 'UTC'
     }).format(parsed);
   } catch (error) {
     console.error('Error formatting date:', error);
@@ -224,32 +248,6 @@ const SkeletonLoader = () => (
             </div>
           </div>
 
-          {/* Appointments Skeleton */}
-          <div className="rounded-xl border p-6 shadow-sm">
-            <div className="flex items-center justify-between border-b pb-4">
-              <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
-            </div>
-            <div className="mt-6 space-y-3">
-              {[1, 2].map((item) => (
-                <div key={item} className="h-20 bg-gray-100 rounded-lg animate-pulse"></div>
-              ))}
-            </div>
-          </div>
-
-          {/* Prescriptions Skeleton */}
-          <div className="rounded-xl border p-6 shadow-sm">
-            <div className="flex items-center justify-between border-b pb-4">
-              <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
-            </div>
-            <div className="mt-6 space-y-3">
-              {[1, 2, 3].map((item) => (
-                <div key={item} className="h-12 bg-gray-100 rounded animate-pulse"></div>
-              ))}
-            </div>
-          </div>
-
           {/* Health Tips Skeleton */}
           <div className="rounded-xl border p-6 shadow-sm">
             <div className="flex items-center justify-between border-b pb-4">
@@ -276,27 +274,6 @@ const SkeletonLoader = () => (
                 <div className="h-4 w-28 bg-gray-200 rounded animate-pulse"></div>
                 <div className="h-3 w-40 bg-gray-200 rounded animate-pulse"></div>
               </div>
-            </div>
-          </div>
-
-          {/* Lab Results Skeleton */}
-          <div className="rounded-xl border p-6 shadow-sm">
-            <div className="flex items-center justify-between border-b pb-4">
-              <div className="h-6 w-24 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
-            </div>
-            <div className="mt-6 space-y-3">
-              <div className="h-16 bg-gray-100 rounded-lg animate-pulse"></div>
-            </div>
-          </div>
-
-          {/* Clinical Notes Skeleton */}
-          <div className="rounded-xl border p-6 shadow-sm">
-            <div className="h-6 w-32 bg-gray-200 rounded animate-pulse mb-4"></div>
-            <div className="space-y-2">
-              <div className="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 w-3/4 bg-gray-200 rounded animate-pulse"></div>
-              <div className="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>
             </div>
           </div>
         </div>
@@ -422,7 +399,7 @@ function EditProfileModal({ isOpen, onClose, patient, onSave }: EditProfileModal
   value={formData.email}
   readOnly
   tabIndex={-1}
-  onFocus={(e) => e.target.blur()}   // prevents keyboard focus
+  onFocus={(e) => e.target.blur()}
   className="w-full rounded-lg border border-gray-300 px-4 py-3 bg-white text-gray-700 cursor-default focus:outline-none transition-colors"
 />
             </div>
@@ -564,87 +541,165 @@ function ViewAllModal({ isOpen, onClose, title, children }: ViewAllModalProps) {
 }
 
 // Health Tips Component
+// Health Tips Component
+// Health Tips Component - Simplified version
 interface HealthTipsProps {
   patientData: PatientData | null;
+  patientId: string;
 }
 
-function HealthTips({ patientData }: HealthTipsProps) {
-  const [healthTips, setHealthTips] = useState("");
+function HealthTips({ patientData, patientId }: HealthTipsProps) {
+  const [generatedTips, setGeneratedTips] = useState<GeneratedTip[]>([]);
+  const [savedTips, setSavedTips] = useState<HealthTip[]>([]);
   const [isEditing, setIsEditing] = useState(false);
-  const [originalTips, setOriginalTips] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [combinedTipsText, setCombinedTipsText] = useState("");
 
-  // Generate health tips based on patient data
-  const generateHealthTips = () => {
-    if (!patientData) return "";
+  // Fetch existing health tips
+  const fetchHealthTips = async () => {
+    try {
+      const accessToken = localStorage.getItem("access");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/patients/${patientId}/health-tips/`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
-    const { patient, preliminary_assessment } = patientData;
-    const tips = [];
-
-    // Age-based tips
-    if (patient.age) {
-      if (patient.age > 50) {
-        tips.push("• Consider regular health screenings for age-related conditions.");
-      } else if (patient.age < 30) {
-        tips.push("• Focus on building healthy habits for long-term wellness.");
-      }
-    }
-
-    // Blood pressure tips
-    if (preliminary_assessment.blood_pressure) {
-      const bp = preliminary_assessment.blood_pressure;
-      if (bp.includes('/')) {
-        const [systolic, diastolic] = bp.split('/').map(Number);
-        if (systolic > 130 || diastolic > 85) {
-          tips.push("• Monitor your blood pressure regularly and reduce sodium intake.");
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success) {
+          setSavedTips(data.tips || []);
         }
       }
+    } catch (error) {
+      console.error("Error fetching health tips:", error);
     }
-
-    // Smoking status
-    if (preliminary_assessment.smoking_status && preliminary_assessment.smoking_status !== 'Never') {
-      tips.push("• Consider smoking cessation programs to improve overall health.");
-    }
-
-    // Alcohol use
-    if (preliminary_assessment.alcohol_use && preliminary_assessment.alcohol_use !== 'Never') {
-      tips.push("• Moderate alcohol consumption and consider alcohol-free days.");
-    }
-
-    // General health tips
-    tips.push(
-      "• Maintain a balanced diet rich in fruits and vegetables.",
-      "• Engage in regular physical activity (30 minutes daily).",
-      "• Stay hydrated by drinking at least 8 glasses of water daily.",
-      "• Get 7-9 hours of quality sleep each night.",
-      "• Manage stress through relaxation techniques or meditation."
-    );
-
-    return tips.join('\n');
   };
 
-  const handleGenerateTips = () => {
-    const generatedTips = generateHealthTips();
-    setHealthTips(generatedTips);
-    setOriginalTips(generatedTips);
-    setIsEditing(true);
+  useEffect(() => {
+    if (patientId) {
+      fetchHealthTips();
+    }
+  }, [patientId]);
+
+  const handleGenerateTips = async () => {
+    if (!patientData) return;
+
+    setIsGenerating(true);
+    try {
+      const accessToken = localStorage.getItem("access");
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/health-tips/generate-preview/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            patient_id: patientId,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP ${response.status}: ${errorText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success) {
+        setGeneratedTips(data.generated_tips || []);
+        
+        // Combine all tips into a single text with bullet points
+        const allTips = data.generated_tips.map((tip: GeneratedTip) => 
+          `• ${tip.tip_text}`
+        ).join('\n');
+        
+        setCombinedTipsText(allTips);
+        setIsEditing(true);
+      } else {
+        console.error("Failed to generate tips:", data.error);
+        alert(`Failed to generate health tips: ${data.error}`);
+      }
+    } catch (error: any) {
+      console.error("Error generating health tips:", error);
+      alert(`Error generating health tips: ${error.message}`);
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const handleSave = () => {
-    // Here you would typically save to your backend
-    console.log("Saving health tips:", healthTips);
-    setOriginalTips(healthTips);
-    setIsEditing(false);
+  const handleSaveTips = async () => {
+    if (!patientData) return;
+
+    setIsSaving(true);
+    try {
+      const accessToken = localStorage.getItem("access");
+      
+      // Split the combined text back into individual tips
+      const tipLines = combinedTipsText.split('\n')
+        .filter(line => line.trim().startsWith('•') || line.trim().length > 0)
+        .map(line => line.replace(/^•\s*/, '').trim())
+        .filter(line => line.length > 0);
+
+      // Prepare tips data for saving
+      const tipsToSave = tipLines.map((tipText, index) => {
+        const originalTip = generatedTips[index] || generatedTips[0];
+        return {
+          diagnosis_id: originalTip?.diagnosis_id || patientData.latest_treatment.diagnoses[0]?.id,
+          tip_text: tipText,
+          source: 'auto_generated'
+        };
+      });
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_BASE}/health-tips/save-generated/`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({
+            patient_id: patientId,
+            tips: tipsToSave,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (data.success) {
+        alert(`Successfully saved ${data.saved_count} health tips!`);
+        setIsEditing(false);
+        setGeneratedTips([]);
+        setCombinedTipsText("");
+        // Refresh the saved tips list
+        fetchHealthTips();
+      } else {
+        console.error("Failed to save tips:", data.error);
+        alert("Failed to save health tips. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error saving health tips:", error);
+      alert("Error saving health tips. Please try again.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleCancel = () => {
-    setHealthTips(originalTips);
     setIsEditing(false);
-  };
-
-  const handleClear = () => {
-    setHealthTips("");
-    setOriginalTips("");
-    setIsEditing(false);
+    setGeneratedTips([]);
+    setCombinedTipsText("");
   };
 
   return (
@@ -654,74 +709,102 @@ function HealthTips({ patientData }: HealthTipsProps) {
           <FaLightbulb className="h-6 w-6 text-yellow-600" />
           Health Tips
         </h2>
-        <Button
-          onClick={handleGenerateTips}
-          className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-        >
-          <FaLightbulb className="h-4 w-4" />
-          Generate Health Tips
-        </Button>
+        <div className="flex gap-2">
+          {!isEditing && (
+            <Button
+              onClick={handleGenerateTips}
+              disabled={isGenerating}
+              className="flex items-center gap-2 rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+            >
+              <FaLightbulb className="h-4 w-4" />
+              {isGenerating ? "Generating..." : "Generate Health Tips"}
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="mt-6">
         {isEditing ? (
-          <div className="space-y-4">
-            <textarea
-              value={healthTips}
-              onChange={(e) => setHealthTips(e.target.value)}
-              rows={8}
-              className="w-full rounded-lg border border-gray-300 p-4 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors"
-              placeholder="Health tips will be generated here. You can edit them as needed."
-            />
-            <div className="flex justify-end space-x-3">
+          <div className="space-y-6">
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+              <h3 className="font-semibold text-blue-800 mb-2">Review and Edit Health Tips</h3>
+              <p className="text-blue-700 text-sm">
+                The system has generated health tips based on the patient's diagnoses. 
+                You can review and edit all tips in the text area below.
+              </p>
+            </div>
+
+            {/* Single textarea for all tips */}
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-gray-700">
+                Health Tips (one per line)
+              </label>
+              <textarea
+                value={combinedTipsText}
+                onChange={(e) => setCombinedTipsText(e.target.value)}
+                rows={12}
+                className="w-full rounded-lg border border-gray-300 p-4 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200 transition-colors text-sm resize-vertical"
+                placeholder="• Drink plenty of fluids to stay hydrated.
+• Rest in a cool, comfortable environment.
+• Monitor your symptoms regularly..."
+              />
+              <div className="flex justify-between text-xs text-gray-500">
+                <span>{combinedTipsText.split('\n').filter(line => line.trim().length > 0).length} tips</span>
+                <span>Tips will be saved immediately and shown to the patient</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-3 pt-4 border-t">
               <Button
                 onClick={handleCancel}
                 variant="outline"
                 className="border-gray-300 text-gray-700 hover:bg-gray-50"
               >
+                <FaTimes className="h-4 w-4 mr-2" />
                 Cancel
               </Button>
               <Button
-                onClick={handleClear}
-                variant="outline"
-                className="border-red-300 text-red-700 hover:bg-red-50"
-              >
-                Clear
-              </Button>
-              <Button
-                onClick={handleSave}
+                onClick={handleSaveTips}
+                disabled={isSaving || !combinedTipsText.trim()}
                 className="bg-blue-600 text-white hover:bg-blue-700"
-                disabled={!healthTips.trim()}
               >
-                Save Tips
+                <FaSave className="h-4 w-4 mr-2" />
+                {isSaving ? "Saving..." : "Save Health Tips"}
               </Button>
             </div>
           </div>
         ) : (
-          <div className="min-h-[200px] rounded-lg border-2 border-dashed border-gray-300 p-4">
-            {healthTips ? (
-              <div className="whitespace-pre-wrap text-base leading-relaxed">
-                {healthTips}
-                <div className="mt-4 flex justify-end">
-                  <Button
-                    onClick={() => setIsEditing(true)}
-                    variant="outline"
-                    className="flex items-center gap-2"
-                  >
-                    <FaPenToSquare className="h-4 w-4" />
-                    Edit Tips
-                  </Button>
+          <div className="min-h-[200px]">
+            {savedTips.length > 0 ? (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="font-semibold text-lg">Health Tips</h3>
+                  <span className="text-sm text-gray-500">
+                    {savedTips.length} tip{savedTips.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {savedTips.map((tip) => (
+                    <div key={tip.id} className="border rounded-lg p-4 bg-gray-50">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-xs text-gray-500">
+                          {formatDateTime(tip.created_at).date}
+                        </span>
+                      </div>
+                      <p className="text-gray-800 whitespace-pre-wrap">{tip.tip_text}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
             ) : (
-              <div className="flex h-full items-center justify-center text-center">
+              <div className="flex h-48 items-center justify-center text-center border-2 border-dashed border-gray-300 rounded-lg">
                 <div>
                   <FaLightbulb className="mx-auto h-12 w-12 text-gray-400" />
                   <p className="mt-2 text-lg font-medium text-gray-600">
-                    Click the button to generate health tips
+                    No health tips yet
                   </p>
                   <p className="text-sm text-gray-500 mt-1">
-                    Personalized recommendations based on patient data
+                    Click the button to generate personalized health tips
                   </p>
                 </div>
               </div>
@@ -731,6 +814,8 @@ function HealthTips({ patientData }: HealthTipsProps) {
       </div>
     </div>
   );
+
+
 }
 
 export default function Page() {
@@ -950,6 +1035,9 @@ export default function Page() {
               </div>
             </div>
 
+            {/* Health Tips Card - MOVED TO TOP OF LEFT COLUMN */}
+
+
             {/* Appointments Card - Only Scheduled */}
             <div className="card rounded-xl border p-6 shadow-sm">
               <div className="flex items-center justify-between border-b pb-4">
@@ -1055,9 +1143,7 @@ export default function Page() {
                 </table>
               </div>
             </div>
-
-            {/* Health Tips Card - MOVED TO LEFT COLUMN UNDER PRESCRIPTIONS */}
-            <HealthTips patientData={data} />
+            <HealthTips patientData={data} patientId={patient_id as string} />
           </div>
 
           {/* Right Column */}

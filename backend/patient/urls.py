@@ -52,7 +52,14 @@ urlpatterns = [
     path('patient/records/', views.PatientRecordsView.as_view(), name='patient-records'),
     path('patient/show/lab-results/', views.PatientLabResultsView.as_view(), name='patient-lab-results'),
     path('patient/my_treatments/', views.MyTreatmentsView.as_view(), name='patient-treatment-detail'),
-
+    path('patients/<str:patient_id>/diagnoses/', views.PatientDiagnosesAPIView.as_view(), name='patient-diagnoses'),
+    
+    # Health tips generation flow
+    path('health-tips/generate-preview/', views.GenerateHealthTipsAPIView.as_view(), name='generate-tips-preview'),
+    path('health-tips/save-generated/', views.SaveHealthTipsAPIView.as_view(), name='save-generated-tips'),
+    
+    # Patient tips (get all tips for a patient)
+    path('patients/health-tips/patient/', views.PatientHealthTipsListView.as_view(), name='patient-health-tips'),
     # download file
     path('patient/lab-results/<str:result_id>/download/', views.download_lab_result, name='download_lab_result'),
 

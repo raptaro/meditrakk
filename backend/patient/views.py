@@ -8,7 +8,7 @@ from django.db.models.functions import Lower
 from django.utils.timezone import now
 
 from queueing.serializers import PreliminaryAssessmentBasicSerializer, TemporaryStorageQueueSerializer
-from .serializers import PatientMedicalRecordSerializer, PatientSerializer, PatientRegistrationSerializer, LabRequestSerializer, LabResultSerializer, PatientTreatmentsSerializer, PatientVisitSerializer, PatientLabTestSerializer, CommonDiseasesSerializer, PrescriptionSerializer
+from .serializers import DiagnosisSerializer, GenerateTipsRequestSerializer, GeneratedTipSerializer, PatientDiagnosisSerializer, PatientMedicalRecordSerializer, PatientSerializer, PatientRegistrationSerializer, LabRequestSerializer, LabResultSerializer, PatientTreatmentsSerializer, PatientVisitSerializer, PatientLabTestSerializer, CommonDiseasesSerializer, HealthTipsSerializer
 from queueing.models import  PreliminaryAssessment, TemporaryStorageQueue
 from queueing.models import Treatment as TreatmentModel
 
@@ -33,7 +33,7 @@ from user.permissions import IsDoctorOrOnCallDoctor, IsMe, IsMedicalStaff, IsPar
 from rest_framework.permissions import IsAuthenticated
 
 from rest_framework import generics
-from .models import LabRequest, LabResult, Diagnosis
+from .models import HealthTips, LabRequest, LabResult, Diagnosis
 from rest_framework.parsers import MultiPartParser, FormParser
 
 #reports
@@ -43,7 +43,7 @@ from django.utils.dateparse import parse_date
 from collections import defaultdict
 
 # create user
-from user.models import UserAccount, create_user_id
+from user.models import Doctor, UserAccount, create_user_id
 
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
@@ -2141,3 +2141,301 @@ class MyTreatmentsView(APIView):
         return Response({
             'My Treatments': serializer.data
         })
+ 
+# health tips  
+from .health_tip import HealthTipGenerator
+from django.db import transaction
+from django.utils import timezone
+class PatientDiagnosesAPIView(APIView):
+    """Get all diagnoses for a patient"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, patient_id):
+        
+        patient = get_object_or_404(Patient, patient_id=patient_id)
+        diagnoses = Diagnosis.objects.filter(patient=patient)
+        print(patient_id)
+        serializer = PatientDiagnosisSerializer(diagnoses, many=True)
+        
+        return Response({
+            'success': True,
+            'patient_id': patient_id,
+            'patient_name': patient.full_name,
+            'diagnoses': serializer.data,
+            'count': diagnoses.count()
+        })
+
+# api/views.py - Update GenerateHealthTipsAPIView
+class GenerateHealthTipsAPIView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """
+        Generate health tips for a patient
+        Expected payload: {"patient_id": "zuma-020009"}
+        """
+        print(f"=== HEALTH TIPS GENERATION STARTED ===")
+        print(f"Request data: {request.data}")
+        print(f"User: {request.user}")
+        print(f"User role: {getattr(request.user, 'role', 'No role')}")
+        
+        # Check if patient_id is provided
+        patient_id = request.data.get('patient_id')
+        if not patient_id:
+            return Response({
+                'success': False,
+                'error': 'patient_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Get patient by patient_id string
+            patient = Patient.objects.get(patient_id=patient_id)
+            print(f"Found patient: {patient.patient_id} - {patient.full_name}")
+            
+            # Get or create doctor from current user
+            doctor = None
+            try:
+                # Try to get doctor from current user
+                if hasattr(request.user, 'doctor'):
+                    doctor = request.user.doctor
+                    print(f"Using doctor from user: {doctor.id} - {doctor.user.get_full_name()}")
+                else:
+                    # Create a system doctor or use default
+                    doctor = Doctor.objects.filter(user__role='doctor').first()
+                    if not doctor:
+                        # Create a system doctor if none exists
+                        from django.contrib.auth.models import User
+                        system_user, created = User.objects.get_or_create(
+                            username='system_doctor',
+                            defaults={'email': 'system@hospital.com', 'first_name': 'System', 'last_name': 'Doctor'}
+                        )
+                        doctor, created = Doctor.objects.get_or_create(
+                            user=system_user,
+                            defaults={'specialization': 'General Medicine'}
+                        )
+                    print(f"Using system doctor: {doctor.id} - {doctor.user.get_full_name()}")
+            except Exception as e:
+                print(f"Error getting doctor: {str(e)}")
+                return Response({
+                    'success': False,
+                    'error': f'Could not assign doctor: {str(e)}'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Get patient's diagnoses
+            diagnoses = Diagnosis.objects.filter(patient=patient)
+            print(f"Found {diagnoses.count()} diagnoses for patient")
+            
+            for diagnosis in diagnoses:
+                print(f"  Diagnosis: {diagnosis.diagnosis_code} - {diagnosis.diagnosis_description}")
+            
+            # Generate tips
+            generator = HealthTipGenerator()
+            generated_tips = generator.generate_tips_for_patient(patient, doctor)
+            print(f"Successfully generated {len(generated_tips)} tips")
+            
+            # Serialize the response
+            tips_serializer = GeneratedTipSerializer(generated_tips, many=True)
+            
+            return Response({
+                'success': True,
+                'message': f'Generated {len(generated_tips)} health tips for review',
+                'patient_id': patient_id,
+                'patient_name': patient.full_name,
+                'doctor_id': doctor.id,
+                'doctor_name': doctor.user.get_full_name(),
+                'generated_tips': tips_serializer.data,
+                'tip_count': len(generated_tips)
+            })
+            
+        except Patient.DoesNotExist:
+            print(f"Patient not found: {patient_id}")
+            return Response({
+                'success': False,
+                'error': 'Patient not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"Unexpected error in GenerateHealthTipsAPIView: {str(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            return Response({
+                'success': False,
+                'error': f'Internal server error: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class SaveHealthTipsAPIView(APIView):
+    """Save the generated health tips (no status needed)"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request):
+        """
+        Save health tips after generation and editing
+        Expected payload: {
+            "patient_id": "zuma-020009",
+            "tips": [
+                {
+                    "diagnosis_id": 1,
+                    "tip_text": "Tip text...",
+                    "source": "auto_generated"
+                }
+            ]
+        }
+        """
+        print("=== SAVE HEALTH TIPS STARTED ===")
+        print(f"Request data: {request.data}")
+        
+        patient_id = request.data.get('patient_id')
+        tips_data = request.data.get('tips', [])
+        
+        if not patient_id:
+            return Response({
+                'success': False,
+                'error': 'patient_id is required'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        if not tips_data:
+            return Response({
+                'success': False,
+                'error': 'No tips provided to save'
+            }, status=status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            # Get patient by patient_id string
+            patient = Patient.objects.get(patient_id=patient_id)
+            print(f"Found patient: {patient.patient_id} - {patient.full_name}")
+            
+            # Get doctor from current user
+            doctor = None
+            if hasattr(request.user, 'doctor'):
+                doctor = request.user.doctor
+                print(f"Using doctor: {doctor.id} - {doctor.user.get_full_name()}")
+            else:
+                # Use first available doctor
+                doctor = Doctor.objects.first()
+                if doctor:
+                    print(f"Using system doctor: {doctor.id} - {doctor.user.get_full_name()}")
+                else:
+                    return Response({
+                        'success': False,
+                        'error': 'No doctor available'
+                    }, status=status.HTTP_400_BAD_REQUEST)
+            
+            print(f"Processing {len(tips_data)} tips")
+            
+            created_tips = []
+            with transaction.atomic():
+                for tip_data in tips_data:
+                    try:
+                        diagnosis_id = tip_data.get('diagnosis_id')
+                        tip_text = tip_data.get('tip_text', '').strip()
+                        source = tip_data.get('source', 'auto_generated')
+                        
+                        if not tip_text:
+                            print(f"Skipping empty tip for diagnosis {diagnosis_id}")
+                            continue
+                            
+                        # Get the diagnosis
+                        diagnosis = Diagnosis.objects.get(id=diagnosis_id)
+                        
+                        # Create the health tip (no status needed)
+                        health_tip = HealthTips.objects.create(
+                            patient=patient,
+                            diagnosis=diagnosis,
+                            doctor=doctor,
+                            tip_text=tip_text,
+                            source=source,
+                            is_for_patient=True,
+                            is_auto_generated=True
+                        )
+                        created_tips.append(health_tip)
+                        print(f"Created tip: {tip_text[:50]}...")
+                        
+                    except Diagnosis.DoesNotExist:
+                        print(f"Diagnosis not found: {diagnosis_id}")
+                        continue
+                    except Exception as e:
+                        print(f"Error creating tip: {str(e)}")
+                        continue
+                
+                # Serialize the created tips for response
+                tips_serializer = HealthTipsSerializer(created_tips, many=True)
+            
+            print(f"Successfully created {len(created_tips)} health tips")
+            
+            return Response({
+                'success': True,
+                'message': f'Successfully saved {len(created_tips)} health tips',
+                'saved_tips': tips_serializer.data,
+                'saved_count': len(created_tips)
+            }, status=status.HTTP_201_CREATED)
+            
+        except Patient.DoesNotExist:
+            print(f"Patient not found: {patient_id}")
+            return Response({
+                'success': False,
+                'error': f'Patient not found: {patient_id}'
+            }, status=status.HTTP_404_NOT_FOUND)
+        except Exception as e:
+            print(f"Unexpected error in SaveHealthTipsAPIView: {str(e)}")
+            import traceback
+            print(f"Traceback: {traceback.format_exc()}")
+            return Response({
+                'success': False,
+                'error': f'Internal server error: {str(e)}'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class ConfirmHealthTipsAPIView(APIView):
+    """Confirm (save) individual health tips after editing"""
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, tip_id):
+        """
+        Confirm and save a single health tip after editing
+        """
+        tip = get_object_or_404(HealthTips, id=tip_id)
+        
+        # Update tip text if provided
+        new_tip_text = request.data.get('tip_text')
+        if new_tip_text:
+            tip.tip_text = new_tip_text
+        
+        # Set status to confirmed and timestamp
+        tip.status = 'confirmed'
+        tip.confirmed_at = timezone.now()
+        tip.save()
+        
+        serializer = HealthTipsSerializer(tip)
+        
+        return Response({
+            'success': True,
+            'message': 'Health tip confirmed and saved successfully',
+            'tip': serializer.data
+        })
+
+class PatientPendingTipsAPIView(APIView):
+    """Get pending health tips for a patient"""
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, patient_id):
+        patient = get_object_or_404(Patient, patient_id=patient_id)
+        pending_tips = HealthTips.objects.filter(patient=patient, status='pending')
+        serializer = HealthTipsSerializer(pending_tips, many=True)
+        
+        return Response({
+            'success': True,
+            'patient_id': patient_id,
+            'patient_name': patient.full_name,
+            'pending_tips': serializer.data,
+            'count': pending_tips.count()
+        })
+        
+        
+class PatientHealthTipsListView(generics.ListAPIView):
+    serializer_class = HealthTipsSerializer
+    permission_classes = [IsAuthenticated]
+    
+    def get_queryset(self):
+        # Get health tips for the logged-in patient
+        return HealthTips.objects.filter(
+            patient__user=self.request.user,  # Assuming Patient model has user FK
+            is_for_patient=True
+        ).select_related('patient', 'doctor', 'diagnosis').order_by('-created_at')

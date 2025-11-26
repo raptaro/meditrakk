@@ -89,6 +89,45 @@ health_tip_rules:
       - "Maintain a nutritious diet to support your immune system."
       - "Report any new or worsening symptoms to your doctor immediately."
 
+  heart_disease: 
+    conditions:
+      - "diagnosis.diagnosis_code in ['HRT DSS', 'I25.1', 'HEART DIS']"
+      - "'heart disease' in diagnosis.diagnosis_description.lower()"
+      - "'cardiac' in diagnosis.diagnosis_description.lower()"
+    tips:
+      - "Follow a heart-healthy diet low in salt and saturated fats."
+      - "Take prescribed medications regularly."
+      - "Monitor blood pressure and cholesterol levels."
+      - "Engage in regular physical activity as recommended by your doctor."
+
+  liver_cancer:
+    conditions:
+      - "diagnosis.diagnosis_code in ['LVRCNCR', 'C22.9', 'LIVER CA', 'LIVERCNCR']"
+      - "'liver cancer' in diagnosis.diagnosis_description.lower()"
+      - "'hepatic cancer' in diagnosis.diagnosis_description.lower()"
+      - "'hepatocellular' in diagnosis.diagnosis_description.lower()"
+    tips:
+      - "Avoid alcohol completely to reduce liver strain."
+      - "Follow a low-sodium diet to prevent fluid buildup."
+      - "Monitor for jaundice (yellowing of skin or eyes) and report immediately."
+      - "Attend all scheduled oncology and hepatology appointments."
+      - "Maintain a balanced diet with adequate protein to support liver function."
+      - "Report any abdominal pain, swelling, or changes in appetite to your doctor."
+      - "Get plenty of rest and avoid overexertion."
+
+  pancreatic_cancer:
+    conditions:
+      - "diagnosis.diagnosis_code in ['PNCCNCR', 'C25.9', 'PANCREAS CA', 'PANC CNCR']"
+      - "'pancreatic cancer' in diagnosis.diagnosis_description.lower()"
+      - "'pancreas cancer' in diagnosis.diagnosis_description.lower()"
+    tips:
+      - "Eat small, frequent meals to manage digestion and maintain nutrition."
+      - "Monitor blood sugar levels regularly as pancreatic issues can affect insulin."
+      - "Report any new or worsening abdominal pain, nausea, or weight loss."
+      - "Stay hydrated and consider pancreatic enzyme supplements if recommended."
+      - "Attend all scheduled oncology and gastroenterology appointments."
+      - "Manage pain with medications as prescribed by your doctor."
+      - "Seek nutritional counseling to maintain adequate calorie intake."
 rule_engine_config:
   execution_mode: "per_diagnosis"
   max_tips_per_diagnosis: 3

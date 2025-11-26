@@ -4,7 +4,7 @@ import os
 from django.conf import settings
 from rest_framework import serializers
 
-from .models import HealthTips, Patient, Diagnosis, Prescription, LabRequest, LabResult
+from .models import HealthTips, Patient, Diagnosis, Prescription, LabRequest, LabResult, HealthTips
 
 from datetime import datetime, date
 from rest_framework import serializers
@@ -433,20 +433,44 @@ class PatientTreatmentsSerializer(serializers.ModelSerializer):
                     "queue_date": latest_queue.queue_date,
                 }
         return None
+# Health tips serializer
+class GeneratedTipSerializer(serializers.Serializer):
+    """Serializer for generated tips before saving"""
+    diagnosis_id = serializers.IntegerField()
+    diagnosis_code = serializers.CharField()
+    diagnosis_description = serializers.CharField()
+    tip_text = serializers.CharField()
+    source = serializers.CharField()
 
-
+# serializers.py
 class HealthTipsSerializer(serializers.ModelSerializer):
-    patient_name = serializers.CharField(source='patient.full_name', read_only=True)
-    diagnosis_code = serializers.CharField(source='diagnosis.diagnosis_code', read_only=True)
+    patient_name = serializers.CharField(source='patient.get_full_name', read_only=True)
     diagnosis_description = serializers.CharField(source='diagnosis.diagnosis_description', read_only=True)
-    doctor_name = serializers.CharField(source='doctor.full_name', read_only=True)
+    doctor_name = serializers.CharField(source='doctor.user.get_full_name', read_only=True)
     
     class Meta:
         model = HealthTips
         fields = [
-            'id', 'patient', 'patient_name', 'diagnosis', 'diagnosis_code', 
-            'diagnosis_description', 'doctor', 'doctor_name', 'tip_text',
-            'source', 'is_for_patient', 'created_at', 'updated_at'
+            'id', 'patient', 'patient_name', 'diagnosis', 'diagnosis_description',
+            'doctor_name', 'tip_text', 'source', 'is_for_patient',
+            'is_auto_generated', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
-        
+        read_only_fields = [
+            'id', 'patient_name', 'diagnosis_description', 'doctor_name',
+            'created_at', 'updated_at', 'is_auto_generated'
+        ]
+
+class GenerateTipsRequestSerializer(serializers.Serializer):
+    patient_id = serializers.CharField()
+    # doctor_id = serializers.CharField(required=False)
+
+class SaveTipsRequestSerializer(serializers.Serializer):
+    tips = serializers.ListField(
+        child=serializers.DictField(
+            child=serializers.CharField()
+        )
+    )
+class PatientDiagnosisSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Diagnosis
+        fields = ['id', 'diagnosis_code', 'diagnosis_description', 'diagnosis_date']
