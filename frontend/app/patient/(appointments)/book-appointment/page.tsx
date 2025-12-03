@@ -1081,11 +1081,6 @@ export default function PatientBookAppointment() {
                                         {doctor.doctor_profile.specialization ||
                                           "General Practice"}
                                       </div>
-                                      <div className="mt-1 flex items-center justify-between">
-                                        <div className="text-sm font-semibold text-blue-600">
-                                          ₱500
-                                        </div>
-                                      </div>
                                     </div>
                                   </CommandItem>
                                 ))}
@@ -1107,9 +1102,7 @@ export default function PatientBookAppointment() {
                         "Loading schedule..."
                       ) : doctorData.schedule ? (
                         <>
-                          Dr. {doctorData.first_name} {doctorData.last_name} is
-                          available in <strong>UTC timezone</strong>.
-                          Consultation fee: <strong>₱500</strong>
+                          Select available shedule
                         </>
                       ) : (
                         "Schedule not available"
@@ -1359,12 +1352,7 @@ export default function PatientBookAppointment() {
                         <p className="text-sm">
                           <strong>Time:</strong>{" "}
                           {format(selectedDate, "MMM d, yyyy")} at{" "}
-                          {selectedTime} UTC
-                        </p>
-                      )}
-                      {doctorData && (
-                        <p className="mt-2 text-lg font-bold text-blue-600">
-                          Consultation Fee: ₱500
+                          {selectedTime}
                         </p>
                       )}
                     </div>
@@ -1716,18 +1704,17 @@ export default function PatientBookAppointment() {
                               <CheckCircle2 className="mx-auto h-12 w-12 text-green-500" />
                               <div>
                                 <h3 className="font-semibold text-slate-800">
-                                  Reservation Created
+                                  Appointment Reserved
                                 </h3>
                                 <p className="mt-1 text-sm text-slate-600">
-                                  Reservation created. Please upload your GCash
-                                  proof now.
+                                  Please press confirm to proceed
                                 </p>
                               </div>
                               <Button
                                 onClick={uploadGcashProof}
                                 className="w-full bg-blue-600 hover:bg-blue-700"
                               >
-                                Upload Proof
+                                Confirm
                               </Button>
                             </div>
                           )}
